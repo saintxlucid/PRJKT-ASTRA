@@ -112,6 +112,7 @@ consent_policy:
 
 # Audit Requirements
 audit:
+  sacred_code: "333"
   # All destructive operations must be audited with Sacred Code 333
   require_sacred_code:
     - process.kill
