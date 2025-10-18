@@ -1,0 +1,61 @@
+# Legacy Models Registry
+# Maps existing model directories to roles without file moves
+# Sacred Code: 333
+
+embeddings:
+  primary:
+    name: "BGE-M3"
+    path: "bge-m3-gguf/"
+    size_gb: 2.1
+    format: "gguf"
+    status: "active"
+    deployed: true
+    sacred_code: "333"
+
+reranker:
+  primary:
+    name: "RankBM25"
+    path: "bm25-reranker/"
+    format: "python"
+    status: "active"
+    deployed: true
+    sacred_code: "333"
+
+vision:
+  primary:
+    name: "CLIP-Vision"
+    path: "clip-vision-model/"
+    status: "active_if_present"
+    deployed: false
+    sacred_code: "333"
+
+audio:
+  primary:
+    name: "Whisper Large V3 Turbo"
+    path: "whisper-large-v3-turbo-gguf/"
+    size_gb: 3.1
+    format: "gguf"
+    status: "active"
+    deployed: true
+    sacred_code: "333"
+
+# Legacy Model Export Metadata
+exports:
+  active_exports:
+    - "Astra_Memory/"
+    - "ASTRA MEMORY EXPORTS 1"
+    - "ASTRA MEMORY EXPORTS 2"
+  total_vectors: "~8M embeddings"
+  deduplication: "enabled"
+  import_safety: "strict"
+  sacred_code: "333"
+
+# Registration Policy
+policy:
+  move_files: false
+  create_symlinks: false
+  preserve_structure: true
+  wrap_as_tools: true
+  audit_all_access: true
+  consent_required_for_run: true
+  sacred_code: "333"
