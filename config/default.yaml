@@ -1,0 +1,211 @@
+# ASTRA Configuration File
+# This file provides default settings for the ASTRA application.
+# Environment variables prefixed with ASTRA_ will override these settings.
+
+# Environment: development, staging, production
+environment: development
+
+# Server Configuration
+server:
+  host: "0.0.0.0"
+  port: 8080
+  reload: true  # Auto-reload on code changes (dev only)
+  workers: 1
+  log_level: "INFO"
+
+# LLM Configuration
+llm:
+  # Provider and Model Selection
+  provider: "llamacpp"  # llamacpp, openai, anthropic
+  model_path: "gpt-oss-20b.Q4_K_M.gguf"
+  model_name: "gpt-oss-20b"
+  model_size: "gpt-oss-20b"  # gpt-oss-120b or gpt-oss-20b
+  
+  # Connection Settings
+  base_url: "http://localhost:8001"
+  api_key: ""  # Required for OpenAI/Anthropic
+  
+  # Model Architecture (GPT-OSS Specifications)
+  context_length: 131072  # Maximum: 131,072 tokens (extended with YaRN)
+  active_parameters: 3600000000  # 3.6B for 20b, 5.1B for 120b
+  
+  # Generation Parameters
+  temperature: 0.35
+  max_tokens: 1024
+  sampling_preset: "gptoss-strict"
+  
+  # GPT-OSS Reasoning & Tools
+  reasoning_mode: "medium"  # low, medium, or high
+  use_harmony_format: true  # Enable harmony chat format
+  enable_browsing: false  # Web search and page opening
+  enable_python: false  # Jupyter notebook execution
+  enable_developer_functions: true  # Custom function calling
+  strip_cot_in_history: true  # Remove CoT from conversation history
+  
+  # Connection and Reliability
+  timeout: 300  # Increased for high reasoning mode
+  retry_attempts: 3
+  
+  # Tokenizer Information
+  tokenizer_name: "o200k_harmony"  # GPT-OSS tokenizer
+  vocab_size: 201088  # 201,088 tokens
+
+# GPT-OSS Model Information
+# This section documents the model capabilities for reference
+model_info:
+  gpt_oss_20b:
+    total_parameters: 20900000000  # 20.9B
+    active_parameters: 3600000000  # 3.6B per token
+    layers: 24
+    num_experts: 32
+    top_k_experts: 4
+    checkpoint_size_gb: 12.8
+    context_length: 131072
+    quantization: "MXFP4"
+    bits_per_parameter: 4.25
+    
+    # Performance Benchmarks (high reasoning)
+    benchmarks:
+      aime_2025_with_tools: 98.7  # Competition Math
+      gpqa_diamond: 71.5  # PhD Science
+      mmlu: 85.3  # College Exams
+      codeforces_elo: 2516  # Competition Coding
+      swe_bench_verified: 60.7  # Software Engineering
+      
+    hardware_requirements:
+      min_gpu: "16GB GPU (RTX 4090, V100)"
+      min_ram: "32GB"
+      min_disk: "20GB"
+    
+  gpt_oss_120b:
+    total_parameters: 116800000000  # 116.8B
+    active_parameters: 5100000000  # 5.1B per token
+    layers: 36
+    num_experts: 128
+    top_k_experts: 4
+    checkpoint_size_gb: 60.8
+    context_length: 131072
+    quantization: "MXFP4"
+    bits_per_parameter: 4.25
+    
+    # Performance Benchmarks (high reasoning)
+    benchmarks:
+      aime_2025_with_tools: 97.9  # Competition Math
+      gpqa_diamond: 80.1  # PhD Science
+      mmlu: 90.0  # College Exams
+      codeforces_elo: 2622  # Competition Coding
+      swe_bench_verified: 62.4  # Software Engineering
+      
+    hardware_requirements:
+      min_gpu: "1x 80GB GPU (A100, H100)"
+      min_ram: "64GB"
+      min_disk: "70GB"
+  
+  # Harmony Chat Format
+  harmony_format:
+    role_hierarchy:
+      - "System"  # Highest priority
+      - "Developer"
+      - "User"
+      - "Assistant"
+      - "Tool"  # Lowest priority
+    
+    channels:
+      - "analysis"  # Chain-of-thought (internal)
+      - "commentary"  # Function calling metadata
+      - "final"  # User-facing responses
+    
+    multi_turn_handling: "Remove analysis channel from conversation history"
+  
+  # Reasoning Modes
+  reasoning_modes:
+    low:
+      description: "Minimal reasoning for simple tasks"
+      avg_cot_length: "<2k tokens"
+      relative_cost: "1x"
+      use_case: "Simple queries, fact lookup"
+    medium:
+      description: "Balanced reasoning for moderate tasks"
+      avg_cot_length: "2-8k tokens"
+      relative_cost: "3-5x"
+      use_case: "Problem-solving, coding, analysis"
+    high:
+      description: "Maximum reasoning for complex tasks"
+      avg_cot_length: "8k-32k+ tokens"
+      relative_cost: "10-20x"
+      use_case: "Competition math, research, deep analysis"
+  
+  # Tool Capabilities
+  tools:
+    browsing:
+      functions: ["search", "open"]
+      description: "Web search and page opening"
+    python:
+      functions: ["exec"]
+      description: "Jupyter notebook code execution"
+    developer_functions:
+      description: "Custom function calling via Developer message"
+  
+  # Safety and Limitations
+  safety:
+    training:
+      - "Deliberative alignment"
+      - "Instruction hierarchy enforcement"
+      - "Jailbreak robustness"
+      - "CBRN content filtering"
+    
+    guidelines:
+      - "Monitor CoT - don't show analysis channel to users"
+      - "Implement content moderation"
+      - "Add rate limiting"
+      - "Log usage for auditing"
+    
+    preparedness_framework:
+      biological_chemical: "Did not reach High capability"
+      cyber: "Did not reach High capability"
+      ai_self_improvement: "Did not reach High capability"
+  
+  limitations:
+    - "Text-only (no vision)"
+    - "Higher hallucination rate than larger models"
+    - "Knowledge cutoff: June 2024"
+    - "Can be adversarially fine-tuned"
+
+# Database Configuration
+database:
+  # SQLite by default, can use PostgreSQL: postgresql://user:pass@localhost/astra
+  url: "sqlite:///data/astra.db"
+  echo: false  # Log SQL queries
+  pool_size: 5
+  max_overflow: 10
+
+# Vector Store Configuration
+vector_store:
+  provider: "chromadb"
+  persist_directory: "data/chromadb"
+  collection_name: "astra_memory"
+  distance_metric: "cosine"  # cosine, l2, ip
+
+# Memory Configuration
+memory:
+  embedding_model: "all-MiniLM-L6-v2"
+  chunk_size: 500
+  chunk_overlap: 50
+  top_k: 5
+  similarity_threshold: 0.8
+
+# CORS Configuration
+cors:
+  origins:
+    - "http://localhost:5173"
+    - "http://localhost:3000"
+  allow_credentials: true
+  allow_methods: ["*"]
+  allow_headers: ["*"]
+
+# Security Configuration
+security:
+  api_key_enabled: false
+  api_keys: []
+  rate_limit_per_minute: 60
+  max_request_size: 10485760  # 10MB

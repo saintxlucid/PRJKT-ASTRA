@@ -1,0 +1,143 @@
+version: "3.8"
+
+networks:
+  astra-net:
+    driver: bridge
+
+volumes:
+  prometheus-data:
+  grafana-data:
+  qdrant-storage:
+  docs-index:
+  models-cache:
+
+services:
+  bridge:
+    build:
+      context: .
+      dockerfile: Dockerfile.bridge
+    image: astra/bridge:latest
+    container_name: astra-bridge
+    environment:
+      - BRIDGE_API_KEY=${BRIDGE_API_KEY:-changeme}
+      - BRIDGE_AUDIT_LOG=/data/bridge_audit.log
+      - LLAMA_URL=http://llama:8001/v1/chat/completions
+      - BRIDGE_SAFE_ROOT=/data/safe
+      - BRIDGE_PORT=8000
+      - BRIDGE_DEFAULT_TIMEOUT=30
+    volumes:
+      - ./data:/data
+      - ./data/safe:/data/safe:ro
+    ports:
+      - "8765:8000"
+    networks:
+      - astra-net
+    restart: unless-stopped
+    depends_on:
+      - llama
+      - prometheus
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+  llama:
+    image: ghcr.io/ggerganov/llama.cpp:server
+    container_name: astra-llama
+    command: >
+      --model /models/gpt-oss-20b.Q4_K_M.gguf
+      --host 0.0.0.0
+      --port 8001
+      --ctx-size 131072
+      --n-gpu-layers 0
+    volumes:
+      - ../../../astra-local/data/models:/models:ro
+    ports:
+      - "8001:8001"
+    networks:
+      - astra-net
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8001/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
+  qdrant:
+    image: qdrant/qdrant:latest
+    container_name: astra-qdrant
+    volumes:
+      - qdrant-storage:/qdrant/storage
+    ports:
+      - "6333:6333"
+    networks:
+      - astra-net
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:6333/heartbeat"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 20s
+
+  docs:
+    build:
+      context: ../..
+      dockerfile: services/documents/Dockerfile
+    image: astra/docs:latest
+    container_name: astra-docs
+    environment:
+      - BRIDGE_KEYS_FILE=/run/secrets/bridge_keys
+      - BRIDGE_API_KEY=${BRIDGE_API_KEY}
+      - USE_QDRANT=${USE_QDRANT:-true}
+      - QDRANT_URL=http://qdrant:6333
+      - QDRANT_COLLECTION=astra_docs
+      - EMBEDDING_MODEL=${EMBEDDING_MODEL:-sentence-transformers/all-MiniLM-L6-v2}
+      - DOC_INDEX_DIR=/data/index
+    volumes:
+      - docs-index:/data/index
+      - ../../data/documents:/data/documents:ro
+    ports:
+      - "8777:8777"
+    networks:
+      - astra-net
+    depends_on:
+      - qdrant
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://127.0.0.1:8777/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: astra-prometheus
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus-data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+    ports:
+      - "9090:9090"
+    networks:
+      - astra-net
+    restart: unless-stopped
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: astra-grafana
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD:-admin}
+    volumes:
+      - grafana-data:/var/lib/grafana
+    ports:
+      - "3000:3000"
+    networks:
+      - astra-net
+    restart: unless-stopped
+    depends_on:
+      - prometheus

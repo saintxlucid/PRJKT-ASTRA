@@ -1,0 +1,6 @@
+# Why-this-fired narratives
+templates:
+  default: "I'm checking in because {reasons}. If this isn't helpful, say 'mute' to pause this trigger for {cooldown}."
+  emotional_support: "You've been silent {silence_minutes}m with high intensity ({emotional_intensity:.2f}) and negative valence ({emotional_valence:.2f}). I care more about you than output."
+  task_overload: "Backlog counted {tasks_pending}. Suggesting a light plan to reduce overwhelm."
+  hydration_break: "Long session detected (~{session_hours:.1f}h). Micro-recovery protects deep work."

@@ -1,0 +1,20 @@
+{"subject":"ASTRA","predicate":"layer","object":"identity","tags":["arch"],"provenance":"user_asserted","confidence":0.95}
+{"subject":"ASTRA","predicate":"layer","object":"memory","tags":["arch"],"provenance":"user_asserted","confidence":0.95}
+{"subject":"ASTRA","predicate":"layer","object":"autonomy","tags":["arch"],"provenance":"user_asserted","confidence":0.95}
+{"subject":"ASTRA","predicate":"layer","object":"task_agent","tags":["arch"],"provenance":"user_asserted","confidence":0.95}
+{"subject":"ASTRA","predicate":"layer","object":"api","tags":["arch"],"provenance":"user_asserted","confidence":0.95}
+{"subject":"ASTRA","predicate":"layer","object":"bridge","tags":["arch"],"provenance":"user_asserted","confidence":0.95}
+{"subject":"ASTRA","predicate":"ui_component","object":"control_panel","tags":["ui"],"provenance":"user_asserted","confidence":0.95}
+{"subject":"ASTRA","predicate":"ui_component","object":"neural_browser","tags":["ui"],"provenance":"user_asserted","confidence":0.95}
+{"subject":"endpoint","predicate":"serves","object":"/api/agent/execute","tags":["api"],"provenance":"user_asserted","confidence":0.95}
+{"subject":"endpoint","predicate":"serves","object":"/api/autonomy/sensors","tags":["api"],"provenance":"user_asserted","confidence":0.95}
+{"subject":"endpoint","predicate":"serves","object":"/v1/bridge/ingest","tags":["api","bridge"],"provenance":"user_asserted","confidence":0.95}
+{"subject":"endpoint","predicate":"serves","object":"/v1/bridge/healthz","tags":["api","bridge"],"provenance":"user_asserted","confidence":0.95}
+{"subject":"endpoint","predicate":"serves","object":"/ws/graph","tags":["ws"],"provenance":"user_asserted","confidence":0.95}
+{"subject":"safety","predicate":"policy","object":"authorization_required_for_protected_actions","tags":["safety"],"provenance":"user_asserted","confidence":0.95}
+{"subject":"Bridge Module","predicate":"status","object":"v1.0.0 production-ready","tags":["bridge"],"provenance":"user_asserted","confidence":0.95}
+{"subject":"Bridge Module","predicate":"provides","object":"cryptic_input_transformation","tags":["bridge"],"provenance":"user_asserted","confidence":0.95}
+{"subject":"Bridge Module","predicate":"provides","object":"structured_intents_and_facts","tags":["bridge"],"provenance":"user_asserted","confidence":0.95}
+{"subject":"Sacred Code 333","predicate":"principle","object":"Three Systems (Memory, Tools, Dialogue)","tags":["values"],"provenance":"user_asserted","confidence":0.95}
+{"subject":"Sacred Code 333","predicate":"principle","object":"Three Consent Levels (NONE, MUSIC, EMOTION)","tags":["values"],"provenance":"user_asserted","confidence":0.95}
+{"subject":"Sacred Code 333","predicate":"principle","object":"Three Safety Principles (Budget, Authorization, Redaction)","tags":["values"],"provenance":"user_asserted","confidence":0.95}

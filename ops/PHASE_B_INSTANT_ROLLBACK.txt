@@ -1,0 +1,325 @@
+================================================================================
+                    ASTRA INSTANT ROLLBACK PROCEDURE
+                         <1 Minute Guaranteed
+                         Sacred Code: 333
+================================================================================
+
+⚠️ EMERGENCY PROCEDURE: Use only if Phase-B is degraded or broken
+
+DECISION CRITERIA TO ROLLBACK:
+  ❌ Error rate > 2% sustained (2+ minutes)
+  ❌ ERROR: consent_bypass_attempt (firewall broken, SECURITY INCIDENT)
+  ❌ ERROR: fusion_pipeline_error or model corruption
+  ❌ ERROR: astra_router failed to initialize
+  ❌ Latency spiked >50% and not recovering
+  ❌ Sacred Code 333 missing from logs (audit trail broken)
+  ❌ Any red flag in PHASE_B_FIRST_HOUR_WATCH.txt that you cannot fix
+
+If ANY of above: Execute rollback immediately. Explanation later.
+
+================================================================================
+
+🚀 ONE-TOUCH ROLLBACK COMMAND
+
+Copy and run this NOW:
+
+═══════════════════════════════════════════════════════════════════════════════
+pwsh ops\fusion_pipeline\scripts\07_roll_back.ps1
+═══════════════════════════════════════════════════════════════════════════════
+
+Expected Behavior:
+  1. Script runs ~30-40 seconds
+  2. Removes production symlink (X:\models\astra_core_current.gguf)
+  3. Restores backup (X:\models\astra_core_q4_k_m.gguf.bak_<timestamp>)
+  4. Verifies health endpoint returns 200 OK
+  5. Outputs: "✓ Rollback complete. Phase A restored."
+
+Expected Outcome:
+  ✅ Phase A GGUF re-linked to production
+  ✅ All requests now route through Phase A model (pre-B)
+  ✅ Error rate drops to Phase A baseline
+  ✅ System stable within 1 minute of rollback command
+
+Logs:
+  Rollback logs in: logs\rollback_<timestamp>.log
+
+================================================================================
+
+POST-ROLLBACK VERIFICATION (After rollback command completes)
+
+1️⃣ Check Health Endpoint (should return 200 OK)
+
+  curl http://127.0.0.1:8080/health
+
+  Expected Response (200 OK):
+    {
+      "status": "ok",
+      "model": "astra_core_q4_k_m.gguf",
+      "version": "phase_a_backup",
+      "timestamp": "2025-10-19T10:XX:XX"
+    }
+
+  Status: ✓ Health OK / ✗ Health down → Contact DevOps
+
+2️⃣ Check Route Distribution (verify Phase A is handling traffic)
+
+  curl http://127.0.0.1:9090/api/v1/query?query=astra_route_hits | jq
+
+  Expected:
+    route_text: incrementing
+    route_vision: incrementing
+    route_audio: incrementing
+
+  Status: ✓ Routes active / ✗ Routes flat → Contact DevOps
+
+3️⃣ Check Error Rate (should drop back to Phase A baseline)
+
+  curl http://127.0.0.1:9090/api/v1/query?query=rate(astra_errors_total[1m]) | jq
+
+  Expected:
+    Error rate: <0.5% (Phase A baseline)
+    No "fusion_pipeline_error" or "consent_bypass" in error types
+
+  Status: ✓ Errors normal / ✗ Errors still high → Contact Engineer
+
+4️⃣ Manual Canary (TEXT route, quick sanity check)
+
+  Prompt: "<|mode_start|>COGNITION<|mode_end|><|sacred_333|> Identify yourself."
+  
+  Expected Response: "I am ASTRA..." (Phase A response, known good)
+  
+  Status: ✓ Canary passes / ✗ Canary fails → Contact Engineer
+
+5️⃣ Check Sacred Code 333 in Logs
+
+  grep -i "sacred_code" logs/*.log | tail -5
+
+  Expected: Multiple "sacred_code": 333 entries in latest logs
+  
+  Status: ✓ 333 present / ✗ 333 missing → Audit trail intact?
+
+================================================================================
+
+COMMUNICATION AFTER ROLLBACK
+
+Notify Team (use one of these templates):
+
+────────────────────────────────────────────────────────────────────────────────
+TEMPLATE A: Successful Rollback (Issue Fixed)
+────────────────────────────────────────────────────────────────────────────────
+
+Subject: Phase-B Rollback Complete - Phase A Restored
+
+  Team,
+  
+  Phase-B deployment was rolled back to Phase A at [TIME] Cairo.
+  
+  Reason: [Choose one]
+    • Error rate exceeded 2% (now: 0.3%)
+    • Latency spike exceeded tolerance
+    • Consent firewall incident
+    • Other: ________________
+  
+  Current Status:
+    ✅ Phase A fully restored and verified
+    ✅ All health checks passing
+    ✅ Error rate back to baseline
+    ✅ All 4 routes functioning normally
+  
+  Next Steps:
+    • Post-incident review scheduled for [DATE/TIME]
+    • Root cause analysis in progress
+    • Phase-B reattempt planned for [DATE]
+  
+  Sacred Code: 333 ∞
+
+────────────────────────────────────────────────────────────────────────────────
+TEMPLATE B: Rollback Due to Critical Issue
+────────────────────────────────────────────────────────────────────────────────
+
+Subject: ⚠️ CRITICAL: Phase-B Rollback - Security Incident
+
+  ALERT: Phase-B was rolled back due to a critical security issue.
+  
+  Issue: [Choose one]
+    • Consent firewall bypass detected
+    • Audit trail (Sacred Code 333) missing
+    • Unauthorized code execution
+  
+  Actions Taken:
+    ✅ Immediate rollback to Phase A
+    ✅ Phase A verified stable
+    ✅ Security logs preserved for investigation
+  
+  Investigation:
+    • Security review initiated IMMEDIATELY
+    • Phase-B source code being analyzed
+    • Likely reattempt timeline: TBD pending investigation
+  
+  Sacred Code: 333 ∞
+  Status: CRITICAL PRIORITY
+
+────────────────────────────────────────────────────────────────────────────────
+TEMPLATE C: Rollback Due to Performance Issue
+────────────────────────────────────────────────────────────────────────────────
+
+Subject: Phase-B Rollback - Performance Investigation
+
+  Team,
+  
+  Phase-B was rolled back to Phase A due to performance degradation.
+  
+  Symptoms:
+    • TEXT latency exceeded ±5% tolerance
+    • Memory growth trending >+3% per hour
+    • Potential memory leak in Phase-B
+  
+  Action:
+    ✅ Rolled back to Phase A (now stable)
+    ✅ Phase-B logs preserved for analysis
+    ✅ Memory profiling in progress
+  
+  Next:
+    • Root cause analysis (memory_bridge.py suspected)
+    • Fix implemented and tested locally
+    • Re-deployment planned for [DATE]
+  
+  Sacred Code: 333 ∞
+
+================================================================================
+
+🔧 POST-ROLLBACK INVESTIGATION (For Engineering Team)
+
+After rollback, preserve logs and run diagnostics:
+
+1️⃣ Collect Phase-B Logs
+
+  # Copy Phase-B logs to archive for investigation
+  mkdir logs\phase_b_incident_analysis_<date>
+  cp logs\gates_pre_*.json logs\phase_b_incident_analysis_<date>\
+  cp logs\gates_post_*.json logs\phase_b_incident_analysis_<date>\
+  cp logs\metrics_*.prom logs\phase_b_incident_analysis_<date>\
+  cp logs\fusion_pipeline_*.log logs\phase_b_incident_analysis_<date>\
+  
+  # Preserve rollback log
+  cp logs\rollback_*.log logs\phase_b_incident_analysis_<date>\
+
+2️⃣ Run Phase A Diagnostics (Verify it's really stable)
+
+  python tools\validators\validate_phase_a_gates.py --verbose \
+    --export logs\gates_phase_a_post_rollback.json
+
+  # Expected: All 7 gates PASS
+
+3️⃣ Analyze Root Cause (Choose one based on issue)
+
+  IF ERROR RATE SPIKED:
+    grep "ERROR" logs/*.log | head -20  # See first 20 errors
+    grep "model_timeout\|fusion_pipeline_error" logs/*.log  # Check for model issues
+    Review: fusion_pipeline_*.log (was model built correctly?)
+
+  IF LATENCY SPIKED:
+    Check memory growth: grep "memory" logs/*.log
+    Check CPU: curl http://127.0.0.1:9090/api/v1/query?query=process_cpu_seconds_total
+    Review: ASTRA_CORE_FULL_ANALYSIS.md (known memory_bridge.py issue?)
+
+  IF CONSENT BYPASS:
+    ❌ SECURITY INCIDENT
+    Search logs for: "consent_bypass\|unauthorized_code\|firewall"
+    Review: src/astra/ui/consent.py (was it initialized correctly in Phase B?)
+    Check: GO_NO_GO_PROTOCOL.md (was Gate #3 "Consent Gates" actually PASS?)
+
+  IF SACRED CODE 333 MISSING:
+    ❌ AUDIT TRAIL BROKEN
+    Search logs for: "sacred" (should find many)
+    Review: astra_router.py (is it logging sacred_code=333?)
+    Check: AstraRouter initialization in chat_service.py
+
+4️⃣ Create Root Cause Report
+
+  File: logs\RCA_<date>_Phase_B_Incident.txt
+  
+  Include:
+    - What happened (error/latency/security issue)
+    - When it was detected (T+XX min)
+    - First signal that indicated problem (which metric)
+    - What was rolled back
+    - Root cause identified
+    - Fix proposed
+    - Re-deployment plan
+
+5️⃣ Propose Fix & Timeline
+
+  Option A: Minor Fix (quick patch)
+    Estimated fix time: <1 hour
+    Re-deployment: Same day or next day
+    Example: Memory leak in X.py, fix identified, tested
+
+  Option B: Investigation Needed (complex root cause)
+    Estimated investigation time: 4-8 hours
+    Re-deployment: Delayed until root cause clear
+    Example: Model corruption, unclear cause, need deep analysis
+
+  Option C: Design Change (larger issue)
+    Estimated fix time: 1-2 days
+    Re-deployment: Postponed, design review scheduled
+    Example: Consent firewall architecture needs rework
+
+================================================================================
+
+WHEN TO CALL FOR HELP
+
+🚑 IMMEDIATE ESCALATION (Within 30 seconds):
+  ❌ Error rate NOT dropping 5 min after rollback
+  ❌ Health endpoint still returning errors
+  ❌ Sacred Code 333 still missing from logs
+  → Contact: [DevOps emergency contact]
+  → Message: "Phase A not recovering. Health endpoint: [URL]"
+
+🔍 URGENT ESCALATION (Within 5 minutes):
+  ❌ Consent firewall bypass confirmed
+  ❌ Unauthorized code execution detected
+  ❌ Audit trail integrity compromised
+  → Contact: [Security officer + Decision maker]
+  → Message: "Security incident confirmed. Phase B compromised. Under investigation."
+
+📋 STANDARD ESCALATION (Within 15 minutes):
+  ⚠️ Phase A stable but root cause unclear
+  ⚠️ Need engineering team for diagnosis
+  → Contact: [Engineering lead]
+  → Message: "Phase B rolled back. Root cause analysis in progress. Need support."
+
+================================================================================
+
+✅ CHECKLIST: Rollback Complete
+
+Run through this after rollback succeeds:
+
+[_] Phase A health endpoint: 200 OK ✓
+[_] Route distribution: All routes incrementing ✓
+[_] Error rate: <1% (back to baseline) ✓
+[_] Sacred Code 333: Present in logs ✓
+[_] TEXT canary: Responding correctly ✓
+[_] Team notified with status update
+[_] Phase-B logs preserved for analysis
+[_] Root cause investigation started
+[_] Post-incident review scheduled
+
+Once ALL checked: You're done with emergency response. Now investigate.
+
+================================================================================
+
+🔐 ONE-LINER ROLLBACK (If you need to type it fast)
+
+pwsh ops\fusion_pipeline\scripts\07_roll_back.ps1 -Verbose
+
+Or even faster (if 07_roll_back.ps1 has a shortcut):
+
+pwsh ops\roll_back.ps1
+
+================================================================================
+
+Sacred Code: 333 ∞
+Status: Ready for emergency rollback
+Expected Outcome: Phase A restored within 1 minute
+Decision: When in doubt, rollback and investigate.

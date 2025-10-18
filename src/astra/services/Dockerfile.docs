@@ -1,0 +1,39 @@
+# syntax=docker/dockerfile:1
+FROM python:3.11-slim
+
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1
+
+# System deps for pymupdf (fitz)
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
+    libjpeg62-turbo-dev \
+    zlib1g-dev \
+    libopenjp2-7-dev \
+    libfreetype6-dev \
+    libxcb1 \
+    libxcb-render0 \
+    libxcb-shm0 \
+    poppler-utils \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
+
+# Copy requirements
+COPY src/astra/services/requirements.docs.txt /app/requirements.txt
+RUN pip install --no-cache-dir -r /app/requirements.txt
+
+# Copy source
+COPY src /app/src
+
+# Data directories
+RUN mkdir -p /data/index /data/documents
+VOLUME ["/data/index", "/data/documents"]
+
+ENV DOC_INDEX_DIR=/data/index
+
+# Expose optional API port (future expansion)
+EXPOSE 8000
+
+# Default command: print help
+CMD ["python", "-m", "astra.services.document_service", "--help"]

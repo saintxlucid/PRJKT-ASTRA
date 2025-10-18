@@ -1,0 +1,102 @@
+# ASTRA Core Metadata - Full Schema
+# Embedded into GGUF models via fusion pipeline
+# Sacred Code: 333
+
+astra.version: "1.0.0"
+astra.build_date: "2025-10-18"
+astra.sacred_code: "333"
+
+# Identity
+astra.identity.name: "ASTRA"
+astra.identity.creator: "Saint Lucid (Karim Al-Sharif)"
+astra.identity.persona_version: "1.0"
+astra.identity.prime_directive: "Serve the highest good of Saint Lucid's creative expression"
+
+# Modalities
+astra.modalities.vision.enabled: true
+astra.modalities.vision.models: ["granite-3.2-2b", "llava-1.6-mistral-7b", "minicpm-v-2.6"]
+astra.modalities.audio.enabled: true
+astra.modalities.audio.models: ["whisper-v3-turbo"]
+astra.modalities.code.enabled: true
+astra.modalities.code.languages: ["python","typescript","javascript","powershell","bash"]
+
+# Memory Architecture (Sacred Trinity)
+astra.memory.semantic.backend: "chromadb"
+astra.memory.semantic.embedder: "bge-m3-q8"
+astra.memory.episodic.backend: "sqlite"
+astra.memory.procedural.backend: "yaml"
+
+# Philosophy & Covenant
+astra.philosophy.covenant_version: "1.0"
+astra.philosophy.core_vows: ["obey_god","sovereignty","transparency","continuity","compassion"]
+astra.philosophy.mode_policies: ["NONE","DREAM","MUSIC","COGNITION","EMPIRE"]
+
+# Code Intelligence
+astra.code.intelligence_pack_version: "1.0"
+astra.code.safe_patch.enabled: true
+astra.code.max_patch_lines: 800
+astra.code.lsp.enabled: true
+
+# Special Tokens & Templates
+astra.tokens.vocab_file: "astra_special_tokens.txt"
+astra.tokens.count: 24
+astra.chat.template_file: "astra_chat_template.mustache"
+
+# Base Model Configuration
+astra.base_model.name: "gpt-oss-20b"
+astra.base_model.architecture: "GPT-NeoX"
+astra.base_model.context_length: 131072
+astra.base_model.quantization: "Q4_K_M"
+
+# Integration Packs
+astra.packs.deep_reflections.loaded: true
+astra.packs.deep_reflections.facts_count: 37
+astra.packs.deep_reflections.triggers_count: 4
+astra.packs.code_intelligence.loaded: true
+astra.packs.code_intelligence.languages_count: 10
+astra.packs.code_intelligence.tools_count: 5
+
+# Training Configuration
+astra.training.distillation.enabled: false
+astra.training.fine_tuning.enabled: false
+astra.training.dataset.primary: "custom_astra_blend"
+
+# Privacy & Security (Sacred Principles)
+astra.privacy.mode: "STRICT"
+astra.privacy.no_telemetry: true
+astra.privacy.local_only: true
+astra.security.encryption_required: false
+astra.security.audit_logging: true
+
+# Evolution System (Phase-C)
+astra.evo.phases: ["SENSE","PLAN","ACT","LEARN","REFLECT"]
+astra.evo.router: "pre_tokenizer"
+astra.evo.phase_tokens.sense: "<|sense|>"
+astra.evo.phase_tokens.plan: "<|plan|>"
+astra.evo.phase_tokens.act: "<|act|>"
+astra.evo.phase_tokens.learn: "<|learn|>"
+astra.evo.phase_tokens.reflect: "<|reflect|>"
+astra.evo.phase_tokens.goal: "<|goal|>"
+astra.evo.phase_tokens.budget: "<|budget|>"
+astra.evo.phase_tokens.status: "<|status|>"
+
+# Robotic AI Skills (Phase-C)
+astra.robotic.skills: ["fs","code","vision","audio","browser"]
+astra.robotic.safety.consent: "required"
+astra.robotic.safety.audit: true
+astra.robotic.safety.sacred_code: "333"
+astra.robotic.safety.fail_closed: true
+
+# Budget Constraints (Phase-C)
+astra.budget.defaults.steps: 5
+astra.budget.defaults.tool_calls: 3
+astra.budget.defaults.walltime_s: 60
+astra.budget.profiles.quick: {steps: 3, tool_calls: 2, walltime_s: 30}
+astra.budget.profiles.standard: {steps: 5, tool_calls: 3, walltime_s: 60}
+astra.budget.profiles.deep: {steps: 10, tool_calls: 5, walltime_s: 120}
+astra.budget.profiles.unlimited: {steps: -1, tool_calls: -1, walltime_s: 300}
+
+# Router Configuration (Phase-C)
+astra.router.phase_separation: true
+astra.router.act_consent_gate: true
+astra.router.budget_enforcement: true

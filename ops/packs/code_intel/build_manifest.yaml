@@ -1,0 +1,38 @@
+runtime:
+  os: "Windows 11 (dev), Linux (optional)"
+  python: "3.10+"
+
+python_packages:
+  - fastapi
+  - uvicorn[standard]
+  - websockets
+  - psutil
+  - chromadb
+  - sqlalchemy
+  - numpy
+  - pydantic>=2.9.2
+  - python-multipart
+  - structlog>=25.4.0
+
+dev_tools:
+  - ripgrep (optional, fast code search)
+  - git
+  - sqlite3 cli
+
+ports:
+  api: 8765
+  llama_cpp: 8001  # local LLM server if used
+
+scripts:
+  serve: "python launch_ascension_stack.py"
+  test: "python -m pytest || python src/test_ascension_stack.py"
+  bridge_test: "python tests/bridge/test_bridge_minimal.py"
+
+env:
+  ASTRA_CODE_ROOTS: ["src", "ui", "plugins", "ops", "tests"]
+  ASTRA_CODE_ALLOWED_EXTS: [".py",".ps1",".psm1",".sh",".bat",".js",".ts",".tsx",".jsx",".css",".scss",".html",".json",".yaml",".yml",".toml",".sql",".md",".ini",".cfg"]
+  ASTRA_CODE_MAX_PATCH_LINES: 800
+  ASTRA_RUN_SANDBOX: true
+  ASTRA_BRIDGE_ENABLED: true
+  ASTRA_BRIDGE_INTERPRET_CONF_THRESHOLD: 0.65
+  ASTRA_BRIDGE_MAX_TOOLCALLS_PER_REQ: 1

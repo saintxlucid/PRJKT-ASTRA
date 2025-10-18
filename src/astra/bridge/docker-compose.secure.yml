@@ -1,0 +1,50 @@
+version: "3.8"
+
+networks:
+  astra-net:
+    driver: bridge
+
+volumes:
+  nginx-certs:
+
+services:
+  bridge:
+    build:
+      context: .
+      dockerfile: Dockerfile.bridge
+    image: astra/bridge:latest
+    container_name: astra-bridge
+    environment:
+      - BRIDGE_AUDIT_LOG=/data/bridge_audit.log
+      - BRIDGE_SAFE_ROOT=/data/safe
+      - BRIDGE_PORT=8000
+      - BRIDGE_DEFAULT_TIMEOUT=30
+      - BRIDGE_KEYS_FILE=/run/secrets/bridge_keys
+      - BRIDGE_ENFORCE_PER_TOOL_SCOPE=true
+    secrets:
+      - bridge_keys
+    volumes:
+      - ./data:/data
+      - ./data/safe:/data/safe:ro
+    networks:
+      - astra-net
+    restart: unless-stopped
+
+  nginx:
+    image: nginx:1.25-alpine
+    container_name: astra-nginx
+    depends_on:
+      - bridge
+    ports:
+      - "443:443"
+      - "80:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - nginx-certs:/etc/nginx/certs:ro
+    networks:
+      - astra-net
+    restart: unless-stopped
+
+secrets:
+  bridge_keys:
+    file: ./keys.example.json

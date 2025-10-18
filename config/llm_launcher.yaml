@@ -1,0 +1,27 @@
+# Profile definitions for scripts/manage_services.py when launching llama.cpp
+#
+# The "default" profile mirrors the environment variable defaults. Create new
+# profiles for different models/binaries or to set custom arguments.
+
+profiles:
+  default:
+    binary: astra-local/backend/bin/llama.cpp/build/bin/Release/llama-server.exe
+    model: astra-local/data/models/gpt-oss-20b.Q4_K_M.gguf
+    extra_args:
+      - --ctx-size
+      - "4096"
+      - --n-gpu-layers
+      - "0"
+
+  quantized:
+    extends: default
+    extra_args:
+      - --ctx-size
+      - "4096"
+      - --n-gpu-layers
+      - "35"
+
+  dev-small:
+    extends: default
+    model: astra-local/data/models/tiny-llama.Q4_K_M.gguf
+    extra_args: "--ctx-size 2048 --n-gpu-layers 0"

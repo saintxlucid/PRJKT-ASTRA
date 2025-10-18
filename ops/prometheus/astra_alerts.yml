@@ -1,0 +1,199 @@
+# ASTRA Core Prometheus Alert Rules
+# 
+# Install: Add this file to your Prometheus config under rule_files:
+#   rule_files:
+#     - "astra_alerts.yml"
+#
+# Reload: prometheus --config.file=prometheus.yml --web.reload
+# Or: curl -X POST http://localhost:9090/-/reload
+
+groups:
+- name: astra_core
+  interval: 30s
+  rules:
+  
+  # ========================================================================
+  # LLM HEALTH ALERTS
+  # ========================================================================
+  
+  - alert: LLMFailureBurst
+    expr: increase(astra_llm_failures_total[5m]) > 5
+    for: 2m
+    labels:
+      severity: page
+      component: llm
+    annotations:
+      summary: "LLM failures spiking in last 5 minutes"
+      description: "{{ $value }} LLM failures in 5m window. Circuit breaker may be open."
+      runbook: "Check llama.cpp server at localhost:8001. Restart if needed."
+  
+  - alert: LLMHighLatency
+    expr: histogram_quantile(0.95, sum(rate(astra_llm_latency_seconds_bucket[5m])) by (le)) > 1.5
+    for: 5m
+    labels:
+      severity: warn
+      component: llm
+    annotations:
+      summary: "LLM p95 latency > 1.5s for 5 minutes"
+      description: "p95 latency: {{ $value }}s. Check llama.cpp load and model performance."
+  
+  # ========================================================================
+  # API HEALTH ALERTS
+  # ========================================================================
+  
+  - alert: HighErrorRate
+    expr: sum(rate(astra_requests_total{status=~"5.."}[5m])) / sum(rate(astra_requests_total[5m])) > 0.05
+    for: 3m
+    labels:
+      severity: page
+      component: api
+    annotations:
+      summary: "API error rate > 5% for 3 minutes"
+      description: "Error rate: {{ $value | humanizePercentage }}. Check logs for exceptions."
+  
+  - alert: APIHighLatency
+    expr: histogram_quantile(0.95, sum(rate(astra_request_duration_seconds_bucket[5m])) by (le)) > 1.2
+    for: 5m
+    labels:
+      severity: warn
+      component: api
+    annotations:
+      summary: "API p95 latency > 1.2s (SLO breach)"
+      description: "p95 latency: {{ $value }}s. Target: ≤1.2s."
+  
+  - alert: QueueBackpressure
+    expr: astra_queue_depth > 32
+    for: 2m
+    labels:
+      severity: warn
+      component: queue
+    annotations:
+      summary: "Request queue depth sustained > 32"
+      description: "Queue depth: {{ $value }}. Consider scaling or rate limit tuning."
+  
+  # ========================================================================
+  # RATE LIMITING ALERTS
+  # ========================================================================
+  
+  - alert: HighRateLimitRejects
+    expr: sum(rate(astra_limiter_per_key_blocked_total[5m])) / sum(rate(astra_limiter_per_key_allowed_total[5m])) > 0.20
+    for: 5m
+    labels:
+      severity: info
+      component: ratelimit
+    annotations:
+      summary: "Rate limiter blocking > 20% of requests"
+      description: "Block rate: {{ $value | humanizePercentage }}. May indicate abuse or limit too strict."
+  
+  # ========================================================================
+  # MEMORY ALERTS
+  # ========================================================================
+  
+  - alert: LowCacheHitRatio
+    expr: sum(rate(astra_cache_hits_total[10m])) / (sum(rate(astra_cache_hits_total[10m])) + sum(rate(astra_cache_misses_total[10m]))) < 0.10
+    for: 10m
+    labels:
+      severity: info
+      component: cache
+    annotations:
+      summary: "Semantic cache hit ratio < 10%"
+      description: "Hit ratio: {{ $value | humanizePercentage }}. Cache may not be effective."
+  
+  - alert: LowCacheEfficiency
+    expr: sum(rate(astra_cache_hits_total[30m])) / (sum(rate(astra_cache_hits_total[30m])) + sum(rate(astra_cache_misses_total[30m]))) < 0.20
+    for: 30m
+    labels:
+      severity: warn
+      component: cache
+    annotations:
+      summary: "Semantic cache efficiency below 20% for 30 minutes"
+      description: "Cache hit rate: {{ $value | humanizePercentage }}. Review cache TTL settings or increase cache size."
+      runbook: "Check cache metrics at /metrics. Consider increasing ASTRA_CACHE_MAX_SIZE or ASTRA_CACHE_TTL_SECONDS."
+  
+  # ========================================================================
+  # RESOURCE ALERTS
+  # ========================================================================
+  
+  - alert: HighMemoryUsage
+    expr: process_resident_memory_bytes > 4e9  # 4GB
+    for: 5m
+    labels:
+      severity: warn
+      component: resources
+    annotations:
+      summary: "Process memory > 4GB for 5 minutes"
+      description: "Memory: {{ $value | humanize1024 }}. Check for memory leaks."
+  
+  # ========================================================================
+  # STREAMING ALERTS
+  # ========================================================================
+  
+  - alert: StuckStreamingClients
+    expr: astra_stream_clients_active > 0 and rate(astra_stream_tokens_total[5m]) == 0
+    for: 2m
+    labels:
+      severity: warn
+      component: streaming
+    annotations:
+      summary: "Streaming clients connected but no tokens sent"
+      description: "{{ $value }} clients may be stuck. Check LLM or connection issues."
+
+  # ========================================================================
+  # OSOP (OS OPERATOR) ALERTS - GO-LIVE ITEM 6
+  # ========================================================================
+  
+  - alert: OSOPActionSpike
+    expr: sum(rate(astra_osop_actions_total[5m])) > 10
+    for: 3m
+    labels:
+      severity: warn
+      component: osop
+      sacred_code: "333"
+    annotations:
+      summary: "OSOP action rate > 10/sec for 3 minutes"
+      description: "Action rate: {{ $value }}/sec. Possible automation loop or unexpected OS activity."
+      runbook: "Check astra_osop_actions_total{capability=~\".*\"} for breakdown. Verify consent logs with sacred_code=333."
+  
+  - alert: OSOPDestructiveActionsObserved
+    expr: sum(rate(astra_osop_actions_total{capability=~"process.kill|service.restart|fs.write|scheduler.create"}[10m])) > 0
+    for: 1m
+    labels:
+      severity: info
+      component: osop
+      sacred_code: "333"
+    annotations:
+      summary: "Destructive OSOP operations detected (requires audit)"
+      description: "{{ $value }} destructive actions in 10m. All must have consent + sacred_code=333 audit."
+      runbook: "Query logs for sacred_code=333. Verify consent_given=true in astra_osop_actions_total."
+  
+  - alert: ConsentBlocksObserved
+    expr: increase(astra_osop_consent_blocks_total[1h]) > 5
+    for: 5m
+    labels:
+      severity: warn
+      component: osop
+    annotations:
+      summary: "Multiple OSOP consent blocks in last hour"
+      description: "{{ $value }} operations blocked due to missing consent. Check fail-closed policy enforcement."
+      runbook: "Review astra_osop_consent_blocks_total{capability=~\".*\"} by capability. Verify prod.yaml consent gates."
+  
+  - alert: OSOPHighFailureRate
+    expr: sum(rate(astra_osop_actions_total{result="failed"}[5m])) / sum(rate(astra_osop_actions_total[5m])) > 0.10
+    for: 5m
+    labels:
+      severity: warn
+      component: osop
+    annotations:
+      summary: "OSOP failure rate > 10% for 5 minutes"
+      description: "Failure rate: {{ $value | humanizePercentage }}. Check OS operator errors and system health."
+  
+  - alert: OSOPBytesTransferAnomaly
+    expr: sum(rate(astra_osop_bytes_total[5m])) > 1048576  # 1MB/sec
+    for: 10m
+    labels:
+      severity: info
+      component: osop
+    annotations:
+      summary: "OSOP filesystem throughput > 1MB/sec for 10 minutes"
+      description: "Throughput: {{ $value | humanize1024 }}/sec. Verify fs.read/fs.write operations are expected."
+

@@ -1,0 +1,312 @@
+{
+  "dashboard": {
+    "title": "ASTRA Production Dashboard",
+    "tags": ["astra", "production", "ai"],
+    "timezone": "browser",
+    "schemaVersion": 36,
+    "version": 1,
+    "refresh": "30s",
+    "panels": [
+      {
+        "title": "Request Rate",
+        "type": "graph",
+        "gridPos": { "x": 0, "y": 0, "w": 12, "h": 8 },
+        "targets": [
+          {
+            "expr": "sum(rate(astra_http_requests_total[5m]))",
+            "legendFormat": "Total Requests/sec",
+            "refId": "A"
+          },
+          {
+            "expr": "sum(rate(astra_http_requests_total{status=\"200\"}[5m]))",
+            "legendFormat": "Successful (200)",
+            "refId": "B"
+          },
+          {
+            "expr": "sum(rate(astra_http_requests_total{status=~\"4..\"}[5m]))",
+            "legendFormat": "Client Errors (4xx)",
+            "refId": "C"
+          },
+          {
+            "expr": "sum(rate(astra_http_requests_total{status=~\"5..\"}[5m]))",
+            "legendFormat": "Server Errors (5xx)",
+            "refId": "D"
+          }
+        ],
+        "yaxes": [
+          { "label": "req/sec", "format": "short" },
+          { "show": false }
+        ]
+      },
+      {
+        "title": "Error Rate (%)",
+        "type": "graph",
+        "gridPos": { "x": 12, "y": 0, "w": 12, "h": 8 },
+        "targets": [
+          {
+            "expr": "sum(rate(astra_http_requests_total{status=~\"5..\"}[5m])) / sum(rate(astra_http_requests_total[5m])) * 100",
+            "legendFormat": "5xx Error Rate",
+            "refId": "A"
+          },
+          {
+            "expr": "sum(rate(astra_http_requests_total{status=\"429\"}[5m])) / sum(rate(astra_http_requests_total[5m])) * 100",
+            "legendFormat": "Rate Limited (429)",
+            "refId": "B"
+          },
+          {
+            "expr": "sum(rate(astra_http_requests_total{status=\"503\"}[5m])) / sum(rate(astra_http_requests_total[5m])) * 100",
+            "legendFormat": "Queue Full (503)",
+            "refId": "C"
+          }
+        ],
+        "yaxes": [
+          { "label": "%", "format": "percent", "max": 100 },
+          { "show": false }
+        ],
+        "alert": {
+          "name": "High Error Rate",
+          "conditions": [
+            {
+              "evaluator": { "type": "gt", "params": [5] },
+              "query": { "params": ["A", "5m", "now"] }
+            }
+          ]
+        }
+      },
+      {
+        "title": "Response Time (Latency)",
+        "type": "graph",
+        "gridPos": { "x": 0, "y": 8, "w": 12, "h": 8 },
+        "targets": [
+          {
+            "expr": "histogram_quantile(0.50, sum(rate(astra_http_request_duration_seconds_bucket[5m])) by (le))",
+            "legendFormat": "p50",
+            "refId": "A"
+          },
+          {
+            "expr": "histogram_quantile(0.95, sum(rate(astra_http_request_duration_seconds_bucket[5m])) by (le))",
+            "legendFormat": "p95",
+            "refId": "B"
+          },
+          {
+            "expr": "histogram_quantile(0.99, sum(rate(astra_http_request_duration_seconds_bucket[5m])) by (le))",
+            "legendFormat": "p99",
+            "refId": "C"
+          }
+        ],
+        "yaxes": [
+          { "label": "seconds", "format": "s" },
+          { "show": false }
+        ],
+        "alert": {
+          "name": "High p95 Latency",
+          "conditions": [
+            {
+              "evaluator": { "type": "gt", "params": [1.5] },
+              "query": { "params": ["B", "5m", "now"] }
+            }
+          ]
+        }
+      },
+      {
+        "title": "Token Usage",
+        "type": "graph",
+        "gridPos": { "x": 12, "y": 8, "w": 12, "h": 8 },
+        "targets": [
+          {
+            "expr": "sum(rate(astra_tokens_total{type=\"prompt\"}[5m]))",
+            "legendFormat": "Prompt Tokens/sec",
+            "refId": "A"
+          },
+          {
+            "expr": "sum(rate(astra_tokens_total{type=\"completion\"}[5m]))",
+            "legendFormat": "Completion Tokens/sec",
+            "refId": "B"
+          },
+          {
+            "expr": "sum(rate(astra_tokens_total[5m]))",
+            "legendFormat": "Total Tokens/sec",
+            "refId": "C"
+          }
+        ],
+        "yaxes": [
+          { "label": "tokens/sec", "format": "short" },
+          { "show": false }
+        ]
+      },
+      {
+        "title": "Status Code Distribution",
+        "type": "piechart",
+        "gridPos": { "x": 0, "y": 16, "w": 6, "h": 8 },
+        "targets": [
+          {
+            "expr": "sum by (status) (increase(astra_http_requests_total[5m]))",
+            "legendFormat": "{{status}}",
+            "refId": "A"
+          }
+        ]
+      },
+      {
+        "title": "Memory Stats",
+        "type": "stat",
+        "gridPos": { "x": 6, "y": 16, "w": 6, "h": 8 },
+        "targets": [
+          {
+            "expr": "astra_memory_count",
+            "refId": "A"
+          }
+        ],
+        "options": {
+          "colorMode": "value",
+          "graphMode": "area",
+          "justifyMode": "auto",
+          "orientation": "auto",
+          "reduceOptions": {
+            "calcs": ["lastNotNull"],
+            "fields": "",
+            "values": false
+          },
+          "text": {},
+          "textMode": "auto"
+        },
+        "fieldConfig": {
+          "defaults": {
+            "mappings": [],
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                { "color": "green", "value": null },
+                { "color": "yellow", "value": 1000 },
+                { "color": "red", "value": 10000 }
+              ]
+            },
+            "unit": "short"
+          }
+        }
+      },
+      {
+        "title": "Request Rate by Endpoint",
+        "type": "graph",
+        "gridPos": { "x": 12, "y": 16, "w": 12, "h": 8 },
+        "targets": [
+          {
+            "expr": "sum by (path) (rate(astra_http_requests_total{path!~\"/metrics|/health\"}[5m]))",
+            "legendFormat": "{{path}}",
+            "refId": "A"
+          }
+        ],
+        "yaxes": [
+          { "label": "req/sec", "format": "short" },
+          { "show": false }
+        ]
+      },
+      {
+        "title": "Active Connections",
+        "type": "stat",
+        "gridPos": { "x": 0, "y": 24, "w": 6, "h": 4 },
+        "targets": [
+          {
+            "expr": "astra_database_connections_active",
+            "refId": "A"
+          }
+        ],
+        "options": {
+          "colorMode": "value",
+          "graphMode": "none",
+          "justifyMode": "center",
+          "orientation": "auto",
+          "reduceOptions": {
+            "calcs": ["lastNotNull"],
+            "fields": "",
+            "values": false
+          }
+        },
+        "fieldConfig": {
+          "defaults": {
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                { "color": "green", "value": null },
+                { "color": "yellow", "value": 15 },
+                { "color": "red", "value": 20 }
+              ]
+            },
+            "unit": "short"
+          }
+        }
+      },
+      {
+        "title": "Queue Size",
+        "type": "stat",
+        "gridPos": { "x": 6, "y": 24, "w": 6, "h": 4 },
+        "targets": [
+          {
+            "expr": "astra_queue_size",
+            "refId": "A"
+          }
+        ],
+        "options": {
+          "colorMode": "value",
+          "graphMode": "none",
+          "justifyMode": "center",
+          "orientation": "auto",
+          "reduceOptions": {
+            "calcs": ["lastNotNull"],
+            "fields": "",
+            "values": false
+          }
+        },
+        "fieldConfig": {
+          "defaults": {
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                { "color": "green", "value": null },
+                { "color": "yellow", "value": 40 },
+                { "color": "red", "value": 60 }
+              ]
+            },
+            "unit": "short"
+          }
+        }
+      },
+      {
+        "title": "Availability (5m)",
+        "type": "stat",
+        "gridPos": { "x": 12, "y": 24, "w": 12, "h": 4 },
+        "targets": [
+          {
+            "expr": "(sum(rate(astra_http_requests_total{status!~\"5..\"}[5m])) / sum(rate(astra_http_requests_total[5m]))) * 100",
+            "refId": "A"
+          }
+        ],
+        "options": {
+          "colorMode": "value",
+          "graphMode": "area",
+          "justifyMode": "center",
+          "orientation": "auto",
+          "reduceOptions": {
+            "calcs": ["lastNotNull"],
+            "fields": "",
+            "values": false
+          }
+        },
+        "fieldConfig": {
+          "defaults": {
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                { "color": "red", "value": null },
+                { "color": "yellow", "value": 95 },
+                { "color": "green", "value": 99 }
+              ]
+            },
+            "unit": "percent",
+            "max": 100,
+            "min": 0
+          }
+        }
+      }
+    ]
+  }
+}

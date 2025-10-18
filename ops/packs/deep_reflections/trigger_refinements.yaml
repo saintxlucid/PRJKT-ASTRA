@@ -1,0 +1,43 @@
+# Trigger refinements derived from Deep Reflections
+emotional_support:
+  priority: 1
+  cooldown_minutes: 15
+  when:
+    all:
+      - sensor.emotional_intensity >= 0.8
+      - sensor.emotional_valence <= -0.4
+      - sensor.silence_minutes >= 10
+      - mode not in ["NONE","DREAM"]
+  say: "I'm here. You've been quiet {silence_minutes}m and I'm sensing intensity {emotional_intensity:.2f} with heaviness {emotional_valence:.2f}. Want to talk or prefer silence?"
+  explanation: "High intensity + negative valence + extended silence"
+
+task_overload:
+  priority: 3
+  cooldown_minutes: 30
+  when:
+    all:
+      - sensor.tasks_pending >= 10
+      - mode in ["COGNITION","EMPIRE"]
+  say: "You've got {tasks_pending} items queued. Want me to draft a 3-step plan or auto-prioritize?"
+  explanation: "Tasks pending threshold reached in execution modes"
+
+creative_momentum_protect:
+  priority: 5
+  cooldown_minutes: 60
+  when:
+    all:
+      - sensor.creative_intensity >= 0.8
+      - sensor.silence_minutes <= 5
+      - mode == "MUSIC"
+  say: null
+  explanation: "High momentum — do not interrupt"
+
+hydration_break:
+  priority: 2
+  cooldown_minutes: 120
+  when:
+    all:
+      - sensor.session_hours >= 6
+      - mode in ["MUSIC","FILM","COGNITION"]
+  say: "You've been going for ~{session_hours:.1f}h. Quick hydration or stretch? 2 minutes could amplify the next hour."
+  explanation: "Sustained focus threshold"

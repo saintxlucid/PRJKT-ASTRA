@@ -1,0 +1,178 @@
+{
+  "osop_panels": [
+    {
+      "title": "Router Mode Mix (OSOP GO-LIVE Item 5.1)",
+      "type": "piechart",
+      "gridPos": { "x": 0, "y": 16, "w": 6, "h": 8 },
+      "targets": [
+        {
+          "expr": "sum by (mode) (astra_router_calls_total)",
+          "legendFormat": "{{mode}}",
+          "refId": "A"
+        }
+      ],
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "right",
+          "values": ["value", "percent"]
+        },
+        "pieType": "pie",
+        "displayLabels": ["name", "percent"]
+      },
+      "description": "Distribution of router mode selections (text, vision, code, autonomous, meta)"
+    },
+    {
+      "title": "OSOP Actions by Capability (OSOP GO-LIVE Item 5.2)",
+      "type": "graph",
+      "gridPos": { "x": 6, "y": 16, "w": 10, "h": 8 },
+      "targets": [
+        {
+          "expr": "sum by (capability, result) (rate(astra_osop_actions_total[5m]))",
+          "legendFormat": "{{capability}} ({{result}})",
+          "refId": "A"
+        }
+      ],
+      "yaxes": [
+        { "label": "actions/sec", "format": "short" },
+        { "show": false }
+      ],
+      "seriesOverrides": [
+        {
+          "alias": "/.*(blocked).*/",
+          "color": "#C4162A",
+          "dashLength": 5,
+          "spaceLength": 5
+        },
+        {
+          "alias": "/.*(success).*/",
+          "color": "#73BF69"
+        }
+      ],
+      "description": "OSOP capability invocations with result status (success/failed/blocked)"
+    },
+    {
+      "title": "Consent Blocks (OSOP GO-LIVE Item 5.3)",
+      "type": "stat",
+      "gridPos": { "x": 16, "y": 16, "w": 4, "h": 4 },
+      "targets": [
+        {
+          "expr": "sum(increase(astra_osop_consent_blocks_total[1h]))",
+          "refId": "A"
+        }
+      ],
+      "options": {
+        "graphMode": "area",
+        "colorMode": "background",
+        "textMode": "value_and_name",
+        "justifyMode": "center"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "value": 0, "color": "green" },
+              { "value": 1, "color": "yellow" },
+              { "value": 10, "color": "red" }
+            ]
+          },
+          "unit": "short",
+          "displayName": "Consent Blocks (1h)"
+        }
+      },
+      "description": "Total OSOP operations blocked due to missing consent in the last hour"
+    },
+    {
+      "title": "OSOP Bytes Transferred (OSOP GO-LIVE Item 5.4)",
+      "type": "graph",
+      "gridPos": { "x": 16, "y": 20, "w": 8, "h": 4 },
+      "targets": [
+        {
+          "expr": "sum by (operation) (rate(astra_osop_bytes_total[5m]))",
+          "legendFormat": "{{operation}}",
+          "refId": "A"
+        }
+      ],
+      "yaxes": [
+        { "label": "bytes/sec", "format": "Bps" },
+        { "show": false }
+      ],
+      "seriesOverrides": [
+        {
+          "alias": "read",
+          "color": "#5794F2"
+        },
+        {
+          "alias": "write",
+          "color": "#B877D9"
+        }
+      ],
+      "description": "Data throughput for fs.read and fs.write operations"
+    },
+    {
+      "title": "OSOP Consent Status by Capability",
+      "type": "table",
+      "gridPos": { "x": 0, "y": 24, "w": 12, "h": 6 },
+      "targets": [
+        {
+          "expr": "sum by (capability, consent_given) (astra_osop_actions_total)",
+          "format": "table",
+          "instant": true,
+          "refId": "A"
+        }
+      ],
+      "transformations": [
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {},
+            "indexByName": {},
+            "renameByName": {
+              "capability": "Capability",
+              "consent_given": "Consent Given",
+              "Value": "Count"
+            }
+          }
+        }
+      ],
+      "description": "Breakdown of OSOP actions showing which had consent vs. were blocked"
+    },
+    {
+      "title": "Sacred Code 333 Audit Trail",
+      "type": "logs",
+      "gridPos": { "x": 12, "y": 24, "w": 12, "h": 6 },
+      "targets": [
+        {
+          "expr": "{job=\"astra\"} |= \"sacred_code=333\"",
+          "refId": "A"
+        }
+      ],
+      "options": {
+        "showTime": true,
+        "showLabels": false,
+        "wrapLogMessage": true,
+        "enableLogDetails": true
+      },
+      "description": "All destructive OSOP operations with Sacred Code 333 audit marker"
+    }
+  ],
+  "metadata": {
+    "created": "2025-01-18",
+    "purpose": "GO-LIVE Item 5: Grafana panels for OSOP observability",
+    "integration_notes": [
+      "Add these panels to existing ops/grafana_astra_dashboard.json",
+      "Adjust gridPos coordinates if needed to fit existing layout",
+      "Ensure Prometheus data source is configured in Grafana",
+      "Loki data source required for Sacred Code 333 audit logs"
+    ],
+    "panel_summary": [
+      "Router Mode Mix: Pie chart of routing decisions",
+      "OSOP Actions: Time series of capability invocations",
+      "Consent Blocks: Stat panel showing blocks in last hour",
+      "OSOP Bytes: Filesystem read/write throughput",
+      "Consent Status Table: Detailed breakdown by capability",
+      "Sacred Code 333 Logs: Audit trail for destructive operations"
+    ]
+  }
+}

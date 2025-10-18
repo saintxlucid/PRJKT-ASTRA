@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <title>ASTRA • Autonomy Control Panel</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="stylesheet" href="/static/panel.css" />
+</head>
+<body class="panel">
+    <div class="panel-wrap">
+        <header>
+            <h1>🧠 ASTRA Autonomy Control Panel</h1>
+            <p class="subtitle">Live Prompt Autonomy • Task Agents • Sacred Code 333</p>
+        </header>
+
+        <!-- Master Controls -->
+        <section class="control-section">
+            <h2>⚡ Master Controls</h2>
+            <div class="controls-grid">
+                <div class="control-card">
+                    <label class="toggle-label">
+                        <input type="checkbox" id="enable" />
+                        <span class="toggle-slider"></span>
+                        <span class="toggle-text">Autonomy Engine</span>
+                    </label>
+                </div>
+                
+                <div class="control-card">
+                    <label>Priority Cap (1-10):</label>
+                    <input type="number" id="cap" min="1" max="10" value="3" />
+                    <small>Only triggers with priority ≤ cap fire</small>
+                </div>
+
+                <div class="control-card">
+                    <button id="apply" class="btn-primary">Apply Settings</button>
+                    <button id="resetCD" class="btn-secondary">Reset All Cooldowns</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Triggers -->
+        <section class="control-section">
+            <h2>🎯 Active Triggers</h2>
+            <div id="triggers" class="triggers-grid"></div>
+        </section>
+
+        <!-- Sensors -->
+        <section class="control-section">
+            <h2>📊 Sensor Controls</h2>
+            <div class="sensors-grid">
+                <div class="sensor-card">
+                    <label>Silence Duration (minutes)</label>
+                    <input type="range" id="s_silence" min="0" max="120" step="1" value="0" />
+                    <output id="o_silence">0</output>
+                    <button id="reset_silence" class="btn-sm">Reset</button>
+                </div>
+
+                <div class="sensor-card">
+                    <label>Task Backlog Count</label>
+                    <input type="range" id="s_backlog" min="0" max="20" step="1" value="0" />
+                    <output id="o_backlog">0</output>
+                </div>
+
+                <div class="sensor-card">
+                    <label>Creative Intensity (0-1)</label>
+                    <input type="range" id="s_creative" min="0" max="1" step="0.01" value="0.5" />
+                    <output id="o_creative">0.5</output>
+                </div>
+
+                <div class="sensor-card">
+                    <label>Emotional Intensity (0-1)</label>
+                    <input type="range" id="s_emotional" min="0" max="1" step="0.01" value="0.5" />
+                    <output id="o_emotional">0.5</output>
+                </div>
+            </div>
+            <button id="pushSensors" class="btn-primary">Push Sensor Updates</button>
+        </section>
+
+        <!-- Status -->
+        <section class="control-section">
+            <h2>📡 System Status</h2>
+            <div class="status-grid">
+                <div class="status-card">
+                    <h3>Autonomy Status</h3>
+                    <pre id="status"></pre>
+                </div>
+                
+                <div class="status-card">
+                    <h3>Recent Events</h3>
+                    <div id="events" class="events-list"></div>
+                </div>
+
+                <div class="status-card">
+                    <h3>System Health</h3>
+                    <pre id="health"></pre>
+                </div>
+            </div>
+        </section>
+
+        <!-- Quick Actions -->
+        <section class="control-section">
+            <h2>⚡ Quick Actions</h2>
+            <div class="actions-grid">
+                <button class="action-btn" onclick="window.open('/docs', '_blank')">📚 API Docs</button>
+                <button class="action-btn" onclick="window.location.href='/'">🧠 Neural Browser</button>
+                <button class="action-btn" id="refreshStatus">🔄 Refresh Status</button>
+            </div>
+        </section>
+    </div>
+
+    <script src="/static/panel.js"></script>
+</body>
+</html>

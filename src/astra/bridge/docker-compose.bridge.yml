@@ -1,0 +1,95 @@
+version: "3.8"
+
+services:
+  bridge:
+    build:
+      context: .
+      dockerfile: Dockerfile.bridge
+    image: astra/bridge:latest
+    container_name: astra-bridge
+    environment:
+      - BRIDGE_API_KEY=${BRIDGE_API_KEY:-changeme}
+      - BRIDGE_AUDIT_LOG=/data/bridge_audit.log
+      - LLAMA_URL=http://llama:8001/v1/chat/completions
+      - BRIDGE_SAFE_ROOT=/data/safe
+      - BRIDGE_PORT=8000
+      - BRIDGE_MAX_CONCURRENT=8
+      - BRIDGE_DEFAULT_TIMEOUT=30
+    volumes:
+      - ./data:/data
+      - ./data/safe:/data/safe:ro  # Read-only safe directory
+    ports:
+      - "8765:8000"
+    networks:
+      - astra-net
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+  # Example llama-server (adjust based on your llama.cpp setup)
+  llama:
+    image: ghcr.io/ggerganov/llama.cpp:server
+    container_name: astra-llama
+    command: >
+      --model /models/gpt-oss-20b.Q4_K_M.gguf
+      --host 0.0.0.0
+      --port 8001
+      --ctx-size 131072
+      --n-gpu-layers 0
+    volumes:
+      - ../../../astra-local/data/models:/models:ro
+    ports:
+      - "8001:8001"
+    networks:
+      - astra-net
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8001/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
+  # Optional: Prometheus for metrics scraping
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: astra-prometheus
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus-data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+    ports:
+      - "9090:9090"
+    networks:
+      - astra-net
+    restart: unless-stopped
+
+  # Optional: Grafana for dashboards
+  grafana:
+    image: grafana/grafana:latest
+    container_name: astra-grafana
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD:-admin}
+    volumes:
+      - grafana-data:/var/lib/grafana
+    ports:
+      - "3000:3000"
+    networks:
+      - astra-net
+    restart: unless-stopped
+    depends_on:
+      - prometheus
+
+networks:
+  astra-net:
+    driver: bridge
+
+volumes:
+  prometheus-data:
+  grafana-data:

@@ -1,0 +1,129 @@
+# ASTRA Production Configuration
+# Sacred Code: 333 ∞
+# For live development assistance with OS Operator
+
+# Inherit from default
+extends: default.yaml
+
+# Environment
+environment: production
+
+# Server Configuration
+server:
+  host: "127.0.0.1"
+  port: 8080
+  reload: false
+  workers: 1
+  log_level: "INFO"
+
+# Agent Configuration
+agent:
+  autonomy_level: 2  # Plan→Ask→Act with consent
+  budgets:
+    steps: 5
+    tool_calls: 3
+    walltime_s: 60
+  modes_allowed:
+    - "COGNITION"
+    - "MUSIC"
+    - "EMPIRE"
+
+# OS Operator Configuration
+osop:
+  enabled: true
+  path_allowlist:
+    - "X:/PROJECT_ASTRA_2.0/PROJECT_ASTRA_1.0 (ASTRA_CORE)/logs"
+    - "X:/PROJECT_ASTRA_2.0/PROJECT_ASTRA_1.0 (ASTRA_CORE)/data"
+    - "X:/PROJECT_ASTRA_2.0/PROJECT_ASTRA_1.0 (ASTRA_CORE)/workspace"
+    - "X:/workspace"
+    - "/tmp"
+    - "/var/log/astra"
+    - "/opt/astra"
+  max_write_bytes: 1048576  # 1MB
+  kill_allowlist:
+    - "python.exe"
+    - "python"
+    - "node"
+    - "uvicorn"
+    - "gunicorn"
+  service_allowlist:
+    - "astra"
+    - "prometheus"
+    - "grafana-server"
+  scheduler_prefix: "ASTRA_"
+
+# Tool Configuration (Consent Gates)
+tools:
+  # OS Operator Tools (Consent Required)
+  process.kill:
+    enabled: true
+    consent_required: true
+    default_consent: false
+  service.restart:
+    enabled: true
+    consent_required: true
+    default_consent: false
+  fs.write:
+    enabled: true
+    consent_required: true
+    default_consent: false
+  scheduler.create:
+    enabled: true
+    consent_required: true
+    default_consent: false
+  
+  # Code Tools (Consent Required)
+  code.apply:
+    enabled: true
+    consent_required: true
+    default_consent: false
+    max_delta: 800
+  
+  # Disabled in Production
+  shell.run:
+    enabled: false
+  browser.get:
+    enabled: false
+    allowlist: []
+
+# Memory Configuration
+memory:
+  semantic:
+    provider: "chromadb"
+    model: "bge-m3-gguf"
+    collection: "astra_semantic"
+  episodic:
+    db: "astra_episodic.db"
+    retention_days: 90
+  procedural:
+    dir: "procedures/"
+
+# Models Configuration
+models:
+  gguf_path: "X:/models/ASTRA_CORE_BUILD/astra_core_q4_k_m.gguf"
+  quant_profile: "q4_k_m"
+
+# Security Configuration
+security:
+  audit_enabled: true
+  audit_db: "astra_audit.db"
+  sacred_code: "333"
+  fail_closed: true  # Deny by default
+
+# Monitoring Configuration
+monitoring:
+  prometheus:
+    enabled: true
+    port: 9090
+  grafana:
+    enabled: true
+    port: 3000
+  health_check_interval: 30
+
+# Logging Configuration
+logging:
+  level: "INFO"
+  format: "json"
+  output: "logs/astra.log"
+  rotation: "daily"
+  retention: 7

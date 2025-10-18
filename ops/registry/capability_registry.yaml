@@ -1,0 +1,150 @@
+# ASTRA Capability Registry
+# Authoritative list of all tools/capabilities with consent and side-effect rules
+# Sacred Code: 333
+
+version: "1.0"
+last_updated: "2025-10-19"
+
+capabilities:
+  # OS Operator - System Information (Read-Only)
+  - name: system.info
+    version: "1.0"
+    category: system
+    side_effects: false
+    consent_required: false
+    description: "Get system information (OS, platform, version)"
+    
+  - name: system.resources
+    version: "1.0"
+    category: system
+    side_effects: false
+    consent_required: false
+    description: "Get system resource usage (CPU, memory, disk)"
+    
+  - name: system.disk_usage
+    version: "1.0"
+    category: system
+    side_effects: false
+    consent_required: false
+    description: "Get disk usage summary across all drives"
+    
+  # OS Operator - Process Management
+  - name: process.list
+    version: "1.0"
+    category: process
+    side_effects: false
+    consent_required: false
+    description: "List running processes"
+    
+  - name: process.kill
+    version: "1.0"
+    category: process
+    side_effects: true
+    consent_required: true
+    description: "Terminate a process (DESTRUCTIVE)"
+    
+  # OS Operator - Service Management
+  - name: service.list
+    version: "1.0"
+    category: service
+    side_effects: false
+    consent_required: false
+    description: "List system services"
+    
+  - name: service.restart
+    version: "1.0"
+    category: service
+    side_effects: true
+    consent_required: true
+    description: "Restart a system service (DISRUPTIVE)"
+    
+  # OS Operator - File System
+  - name: fs.read
+    version: "1.0"
+    category: filesystem
+    side_effects: false
+    consent_required: false
+    description: "Read file contents"
+    
+  - name: fs.write
+    version: "1.0"
+    category: filesystem
+    side_effects: true
+    consent_required: true
+    description: "Write file contents (PERSISTENT CHANGE)"
+    
+  # OS Operator - Task Scheduler
+  - name: scheduler.create
+    version: "1.0"
+    category: scheduler
+    side_effects: true
+    consent_required: true
+    description: "Create scheduled task (PERSISTENT CHANGE)"
+    
+  - name: scheduler.list
+    version: "1.0"
+    category: scheduler
+    side_effects: false
+    consent_required: false
+    description: "List scheduled tasks"
+
+# Consent Policy
+consent_policy:
+  # Fail-closed by default for destructive operations
+  default_consent: false
+  
+  # Always require explicit consent for these categories
+  require_explicit_consent:
+    - process.kill
+    - service.restart
+    - fs.write
+    - scheduler.create
+  
+  # Auto-approve for read-only operations in safe mode
+  safe_mode_auto_approve:
+    - system.info
+    - system.resources
+    - system.disk_usage
+    - process.list
+    - service.list
+    - fs.read
+    - scheduler.list
+
+# Audit Requirements
+audit:
+  # All destructive operations must be audited with Sacred Code 333
+  require_sacred_code:
+    - process.kill
+    - service.restart
+    - fs.write
+    - scheduler.create
+  
+  # Audit log retention (days)
+  retention_days: 90
+  
+  # Alert on suspicious patterns
+  alert_patterns:
+    - pattern: "multiple_consent_denials"
+      threshold: 3
+      window_minutes: 10
+    - pattern: "rapid_destructive_operations"
+      threshold: 5
+      window_minutes: 5
+
+# Rate Limits
+rate_limits:
+  process.kill:
+    max_per_minute: 5
+    max_per_hour: 20
+  
+  service.restart:
+    max_per_minute: 3
+    max_per_hour: 10
+  
+  fs.write:
+    max_per_minute: 50
+    max_bytes_per_minute: 10485760  # 10 MB
+  
+  scheduler.create:
+    max_per_hour: 5
+    max_per_day: 20

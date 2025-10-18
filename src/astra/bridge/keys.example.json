@@ -1,0 +1,12 @@
+{
+  "agent-dev-key-1": {
+    "scopes": ["tool:call", "tool:shell", "tool:file_read"],
+    "rpm": 120,
+    "daily": 10000
+  },
+  "ops-admin-key": {
+    "scopes": ["admin", "tool:call", "tool:shell", "tool:file_read", "tool:llama"],
+    "rpm": 300,
+    "daily": 50000
+  }
+}

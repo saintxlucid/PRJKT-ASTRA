@@ -1,0 +1,30 @@
+# Language coverage & helpers (all optional — indexer works without LSP)
+languages:
+  python:
+    globs: ["**/*.py"]
+    formatter: "ruff format || black"
+    lsp: "pylsp"               # or pyright-langserver --stdio
+  typescript:
+    globs: ["**/*.ts","**/*.tsx"]
+    formatter: "prettier --write"
+    lsp: "typescript-language-server --stdio"
+  javascript:
+    globs: ["**/*.js","**/*.jsx"]
+    formatter: "prettier --write"
+    lsp: "typescript-language-server --stdio"
+  html_css:
+    globs: ["**/*.html","**/*.css","**/*.scss"]
+    formatter: null
+    lsp: null
+  powershell:
+    globs: ["**/*.ps1","**/*.psm1"]
+    formatter: null
+    lsp: "pwsh.exe -NoLogo -NoProfile -Command 'Start-EditorServices'"
+  bash:
+    globs: ["**/*.sh","**/*.bash"]
+    formatter: "shfmt -w"
+    lsp: "bash-language-server start"
+  sql_yaml_misc:
+    globs: ["**/*.sql","**/*.yaml","**/*.yml","**/*.json","**/*.toml","**/*.md","Dockerfile"]
+    formatter: null
+    lsp: null

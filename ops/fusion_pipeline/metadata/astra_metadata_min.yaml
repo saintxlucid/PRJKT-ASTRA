@@ -1,0 +1,13 @@
+# ASTRA Core Metadata - Minimal Schema
+# For quick testing and lightweight deployments
+
+astra.version: "1.0.0"
+astra.sacred_code: "333"
+astra.identity.name: "ASTRA"
+astra.identity.creator: "Saint Lucid"
+astra.modalities.vision.enabled: true
+astra.modalities.audio.enabled: true
+astra.modalities.code.enabled: true
+astra.memory.semantic.backend: "chromadb"
+astra.philosophy.covenant_version: "1.0"
+astra.privacy.local_only: true

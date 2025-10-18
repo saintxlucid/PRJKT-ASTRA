@@ -1,0 +1,27 @@
+# Code Intelligence Safety Policies
+path_allowlist:
+  - src
+  - ui
+  - plugins
+  - ops
+
+limits:
+  max_patch_lines: 800
+  max_file_size_bytes: 1048576
+
+guardrails:
+  deny_globs:
+    - "**/*.env"
+    - "**/secrets.*"
+    - "**/.env.*"
+    - "**/node_modules/**"
+    - "**/.git/**"
+    - "**/venv/**"
+    - "**/__pycache__/**"
+  
+  require_backup_for:
+    - "**/*.py"
+    - "**/*.ts"
+    - "**/*.tsx"
+    - "**/*.cpp"
+    - "**/*.hpp"

@@ -1,0 +1,19 @@
+{
+  "autonomy_enabled": true,
+  "cooldowns": { "global_seconds": 30 },
+  "priority_cap": 3,
+  "mode_policies": {
+    "NONE": { "autonomy": false, "browser": true },
+    "DREAM": { "autonomy": false },
+    "MUSIC": { "autonomy": true, "interrupt_protection": true },
+    "EMOTION": { "autonomy": true, "witness_first": true }
+  },
+  "safety": {
+    "irreversible_actions": {
+      "require_backup": true,
+      "require_delay_minutes": 120,
+      "require_reconfirm": true
+    }
+  },
+  "metrics": { "log_level": "INFO", "explanations_required": true }
+}

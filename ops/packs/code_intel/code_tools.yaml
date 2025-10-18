@@ -1,0 +1,71 @@
+# Task Agent Tool Definitions for Code Intelligence
+tools:
+  - name: code.search
+    description: Search code symbols (functions/classes) by name or signature
+    route: GET /api/code/search
+    args:
+      - name: q
+        type: string
+        required: true
+        description: Search query
+      - name: limit
+        type: integer
+        default: 50
+        description: Max results
+    auth: false
+
+  - name: code.read
+    description: Read file content with line range
+    route: GET /api/code/file
+    args:
+      - name: path
+        type: string
+        required: true
+        description: File path
+      - name: start
+        type: integer
+        default: 1
+        description: Start line
+      - name: end
+        type: integer
+        default: 200
+        description: End line
+    auth: false
+
+  - name: code.diff
+    description: Propose a patch plan (dry-run diff)
+    route: POST /api/code/diff
+    args:
+      - name: instruction
+        type: string
+        required: true
+        description: Natural language change instruction
+      - name: files
+        type: array
+        default: []
+        description: Files to consider
+    auth: true
+
+  - name: code.apply
+    description: Apply a guarded patch
+    route: POST /api/code/apply
+    args:
+      - name: path
+        type: string
+        required: true
+        description: Target file path
+      - name: original
+        type: string
+        required: true
+        description: Original content for verification
+      - name: patched
+        type: string
+        required: true
+        description: Patched content to apply
+    auth: true
+
+  - name: code.index
+    description: Reindex repository code
+    route: GET /api/code/index
+    args: []
+    auth: true

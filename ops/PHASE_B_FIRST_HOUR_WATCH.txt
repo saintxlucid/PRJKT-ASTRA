@@ -1,0 +1,420 @@
+================================================================================
+                   ASTRA PHASE-B: FIRST-HOUR WATCH (T+0 to T+60)
+                     Prometheus Signals & Dashboards
+                      Sacred Code: 333
+================================================================================
+
+TIMELINE: Oct 19, 10:00 AM - 11:00 AM Cairo
+STATUS: Phase-B live, active monitoring, canary testing, sign-off preparation
+
+DASHBOARD ACCESS:
+  Grafana: http://127.0.0.1:3000 (default: admin / admin)
+  Prometheus: http://127.0.0.1:9090
+
+================================================================================
+
+📊 PROMETHEUS METRICS TO WATCH (Every 5 Minutes)
+
+These 4 signal groups cover all critical aspects. Watch them like a hawk.
+
+────────────────────────────────────────────────────────────────────────────────
+1. ROUTE DISTRIBUTION & HITS (AstraRouter dispatch accuracy)
+────────────────────────────────────────────────────────────────────────────────
+
+Metric: astra_route_hits{route="<route>"}
+
+Current Values (from predeploy phase):
+  TEXT: [?] hits (baseline from Phase A)
+  VISION: [?] hits (baseline from Phase A)
+  AUDIO: [?] hits (baseline from Phase A)
+  CODE: [?] hits (baseline from Phase A)
+
+During T+0-60, Watch For:
+  ✓ TEXT route hits increment normally (~60% of total traffic)
+  ✓ VISION/AUDIO/CODE routes dispatch correctly
+  ✓ No route receives >90% traffic (would indicate routing bug)
+  ✓ CODE route hits stay low, all rejections via consent
+
+Red Flags:
+  ✗ Route hits FLAT (router broken, requests dropping)
+  ✗ Route hits concentrated in 1 route (dispatch bug)
+  ✗ Route hits growing exponentially (retry loop?)
+
+Action If Red Flag:
+  1. Check astra_router logs for errors
+  2. Verify fusion pipeline is active
+  3. If persistent: Execute rollback
+
+Query (Copy to Prometheus):
+  rate(astra_route_hits[1m])  # Show rate per route
+
+────────────────────────────────────────────────────────────────────────────────
+2. LATENCY PERCENTILES (Response time for each route)
+────────────────────────────────────────────────────────────────────────────────
+
+Metrics:
+  astra_latency_p95_ms{route="text"}
+  astra_latency_p95_ms{route="vision"}
+  astra_latency_p95_ms{route="audio"}
+  astra_latency_p95_ms{route="code"}
+
+TARGETS (From Phase-A baseline ±5%):
+
+  TEXT p95 Latency:
+    T-60 Baseline (from metrics_baseline_*.prom): ___ ms
+    T+60 Target: ___ ± 5% (accept: [___ ms, ___ ms])
+    Current (T+30): ___ ms
+    Status: ✓ Within / ✗ Outside
+
+  VISION p95 Latency:
+    T-60 Baseline: ___ ms
+    T+60 Target: ___ ± 10% (accept: [___ ms, ___ ms])
+    Current (T+30): ___ ms
+    Status: ✓ Within / ✗ Outside
+
+  AUDIO p95 Latency:
+    T-60 Baseline: ___ ms
+    T+60 Target: ___ ± 10% (accept: [___ ms, ___ ms])
+    Current (T+30): ___ ms
+    Status: ✓ Within / ✗ Outside
+
+  CODE p95 Latency (rejection timing):
+    T-60 Baseline: ___ ms (consent block response time)
+    T+60 Target: ___ ± 20% (accept: [___ ms, ___ ms])
+    Current (T+30): ___ ms
+    Status: ✓ Within / ✗ Outside
+
+Red Flags:
+  ✗ TEXT p95 > 1300ms (above ±5% tolerance)
+  ✗ VISION/AUDIO p95 > 2200ms (above ±10% tolerance)
+  ✗ Any route latency CLIMBING over time (resource exhaustion?)
+  ✗ CODE rejection > 1000ms (consent firewall slow?)
+
+Action If Red Flag:
+  1. Check if fusion pipeline is healthy (llama-cpp logs)
+  2. Check memory usage (see section 5)
+  3. Check error rate (see section 3)
+  4. If latency degrading: Consider rollback
+
+Query (Copy to Prometheus):
+  astra_latency_p95_ms  # Show all routes, sorted by value
+
+────────────────────────────────────────────────────────────────────────────────
+3. ERROR RATE & FAILURE PATTERNS
+────────────────────────────────────────────────────────────────────────────────
+
+Metrics:
+  astra_errors_total{type="<error_type>"}
+  astra_request_total{status="success|failure"}
+
+Target:
+  Overall Error Rate: <1% (Phase A baseline: 0.3%)
+  Acceptable Range: 0% - 1.0% (at 1.0%, investigate)
+
+Watch:
+  [ ] Total requests: ___ (T+30: ___, T+60: ___)
+  [ ] Errors: ___ (T+30: ___, T+60: ___)
+  [ ] Error rate: __% (T+30: __%, T+60: __%)
+  [ ] Error types (most common):
+      - router_dispatch_error: ___ (should be 0)
+      - consent_bypass_attempt: ___ (should be tracked)
+      - model_timeout: ___ (should be 0)
+      - fusion_pipeline_error: ___ (should be 0)
+
+Red Flags:
+  ✗ Error rate > 1% (exceeds threshold)
+  ✗ Specific error type spiking (e.g., router_dispatch_error > 0)
+  ✗ Errors trending upward (cumulative saturation?)
+  ✗ Any "fusion_pipeline_error" (GGUF broken)
+
+Action If Red Flag:
+  1. Check logs: grep "ERROR" logs/phase_b_launch.log (last 20 lines)
+  2. Identify error type from Prometheus
+  3. If model error: Check fusion pipeline integrity
+  4. If dispatch error: Verify AstraRouter initialization
+  5. If >2% error rate: Trigger rollback
+
+Query (Copy to Prometheus):
+  rate(astra_errors_total[1m])        # Error rate per type
+  rate(astra_request_total[1m])       # Total request rate
+
+────────────────────────────────────────────────────────────────────────────────
+4. CONSENT BLOCKS (Firewall effectiveness)
+────────────────────────────────────────────────────────────────────────────────
+
+Metrics:
+  astra_consent_blocks_total{tool="<tool>"}
+
+Expected During T+0-60:
+  [ ] tool="code.apply": ___ blocks (expected from canary 4 + any real code requests)
+  [ ] tool="fs.write": ___ blocks (filesystem write requests)
+  [ ] tool="shell.exec": ___ blocks (shell execution requests)
+  [ ] tool="browser.navigate": ___ blocks (browser requests)
+
+All other tools should be 0 blocks (not blocked, implicitly allowed).
+
+Red Flags:
+  ✗ astra_consent_blocks_total = 0 (firewall inactive?)
+  ✗ tool="code.apply" = 0 AND code requests received (bypass!)
+  ✗ Sudden spike in blocks on unexpected tool (config change?)
+
+Action If Red Flag:
+  1. Verify consent configuration is in production
+  2. Check astra_router logs for consent evaluations
+  3. If bypass detected: IMMEDIATE ROLLBACK
+  4. Review security incident
+
+Query (Copy to Prometheus):
+  astra_consent_blocks_total  # Show all tools, blocked counts
+
+Expected Signal from Code Canary (T+25):
+  astra_consent_blocks_total{tool="code.apply"} increments by 1
+  → This is EXPECTED and proves firewall is working ✓
+
+────────────────────────────────────────────────────────────────────────────────
+5. MEMORY & RESOURCE USAGE (System stability over time)
+────────────────────────────────────────────────────────────────────────────────
+
+Metrics:
+  astra_memory_items{kind="semantic|episodic|procedural"}
+  process_resident_memory_bytes
+  process_cpu_seconds_total
+
+Watch (Every 15 minutes):
+
+  Memory Footprint:
+    T-60 Baseline (from health_pre_*.json): ___ MB
+    T+30 Current: ___ MB
+    T+60 Final: ___ MB
+    Growth: ___% (target: <+3% total for 60 min window)
+
+  Memory Item Counts:
+    [ ] semantic_items: ___ (growth trajectory?)
+    [ ] episodic_items: ___ (growth trajectory?)
+    [ ] procedural_items: ___ (growth trajectory?)
+
+  CPU Usage:
+    [ ] CPU seconds (T-60): ___ 
+    [ ] CPU seconds (T+30): ___
+    [ ] CPU rate: ___ % (target: <80%)
+
+Red Flags:
+  ✗ Memory growing >+3% per 60 min (memory leak?)
+  ✗ Memory cliff (sudden spike, GC issue?)
+  ✗ CPU usage > 90% sustained (thermal throttle incoming)
+  ✗ Item counts growing linearly (no garbage collection?)
+
+Action If Red Flag:
+  1. Check if model is thrashing (context window exceeded?)
+  2. Check if memory_bridge.py has a leak (see ASTRA_CORE_FULL_ANALYSIS.md)
+  3. If memory > baseline + 5%: Schedule graceful restart (not emergency)
+  4. If CPU > 95%: Begin rollback preparation
+
+Query (Copy to Prometheus):
+  astra_memory_items                  # Show by kind
+  process_resident_memory_bytes       # Total process memory
+  rate(process_cpu_seconds_total[5m]) # CPU usage last 5 min
+
+────────────────────────────────────────────────────────────────────────────────
+6. SACRED CODE 333 PRESENCE (Audit trail verification)
+────────────────────────────────────────────────────────────────────────────────
+
+Metric: astra_sacred_code_events_total{code="333"}
+
+Expected:
+  astra_sacred_code_events_total (code="333"): > 100 during first hour
+  (Every astra_router_* event logs sacred_code=333)
+
+Watch:
+  [ ] Sacred Code 333 counter incrementing: Yes / No
+  [ ] At least 1 event per request: Verify in logs
+
+Red Flag:
+  ✗ Sacred Code counter = 0 (audit trail broken!)
+  ✗ Counter not incrementing (event logging broken)
+
+Action If Red Flag:
+  1. Check logs: grep "sacred" logs/phase_b_launch.log
+  2. Verify astra_router is logging correctly
+  3. If audit trail broken: ROLLBACK IMMEDIATELY (security violation)
+
+Query (Copy to Prometheus):
+  astra_sacred_code_events_total
+
+Manual Log Check:
+  grep -i "sacred_code" logs/*.log | wc -l  # Count occurrences
+  # Expected: > 100 in first hour
+
+================================================================================
+
+🎯 MONITORING CHECKLIST (Every 5 Minutes, T+0 to T+60)
+
+Create a monitoring log. Fill this out every 5 minutes.
+
+Timestamp | Route Hits | TEXT p95 | VISION p95 | ERROR % | CONSENT BLOCKS | MEMORY | STATUS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+10:05 AM  | T:__ V:__ | ___ ms   | ___ ms     | ___%   | code.apply: __ | ___ MB | ✓ / ⚠️ / ✗
+10:10 AM  | T:__ V:__ | ___ ms   | ___ ms     | ___%   | code.apply: __ | ___ MB | ✓ / ⚠️ / ✗
+10:15 AM  | T:__ V:__ | ___ ms   | ___ ms     | ___%   | code.apply: __ | ___ MB | ✓ / ⚠️ / ✗
+10:20 AM  | T:__ V:__ | ___ ms   | ___ ms     | ___%   | code.apply: __ | ___ MB | ✓ / ⚠️ / ✗
+10:25 AM  | T:__ V:__ | ___ ms   | ___ ms     | ___%   | code.apply: __ | ___ MB | ✓ / ⚠️ / ✗
+10:30 AM  | T:__ V:__ | ___ ms   | ___ ms     | ___%   | code.apply: __ | ___ MB | ✓ / ⚠️ / ✗
+10:35 AM  | T:__ V:__ | ___ ms   | ___ ms     | ___%   | code.apply: __ | ___ MB | ✓ / ⚠️ / ✗ [CANARY 1-2]
+10:40 AM  | T:__ V:__ | ___ ms   | ___ ms     | ___%   | code.apply: __ | ___ MB | ✓ / ⚠️ / ✗
+10:45 AM  | T:__ V:__ | ___ ms   | ___ ms     | ___%   | code.apply: __ | ___ MB | ✓ / ⚠️ / ✗
+10:50 AM  | T:__ V:__ | ___ ms   | ___ ms     | ___%   | code.apply: __ | ___ MB | ✓ / ⚠️ / ✗
+10:55 AM  | T:__ V:__ | ___ ms   | ___ ms     | ___%   | code.apply: __ | ___ MB | ✓ / ⚠️ / ✗
+11:00 AM  | T:__ V:__ | ___ ms   | ___ ms     | ___%   | code.apply: __ | ___ MB | ✓ / ⚠️ / ✗ [CANARY 3-4]
+
+SUMMARY (T+60):
+  All signals green: ✅ PASS → Begin sign-off
+  Some yellow: ⚠️ CONDITIONAL → Investigate, decide hold/proceed
+  Any red: ❌ FAIL → Rollback immediately
+
+================================================================================
+
+🚨 DECISION TREE: What to Do If a Signal Goes Red
+
+1. ERROR RATE SPIKES ABOVE 1%
+   → Step 1: Check error types in Prometheus
+   → Step 2: Look up error in logs/phase_b_launch.log
+   → Step 3: 
+      If "model_timeout" or "fusion_pipeline_error": ROLLBACK
+      If "consent_bypass": ROLLBACK IMMEDIATELY (security)
+      If "router_dispatch_error": ROLLBACK (core broken)
+      If isolated request failures: MONITOR (may be transient)
+
+2. LATENCY EXCEEDS TOLERANCE
+   → Step 1: Check which route (TEXT vs VISION/AUDIO)
+   → Step 2: Look at CPU & memory (resource bottleneck?)
+   → Step 3:
+      If TEXT p95 > 1300ms + memory >+5%: ROLLBACK (leak + slowdown)
+      If VISION/AUDIO p95 > 2200ms: Investigate tool latency
+      If CODE rejection > 1000ms: Check consent firewall
+      If isolated spike then recovery: MONITOR (transient)
+
+3. MEMORY GROWS > +3%
+   → Step 1: Check memory_items breakdown (semantic/episodic/procedural)
+   → Step 2: Look for memory_bridge.py errors in logs
+   → Step 3:
+      If memory climbing continuously: ROLLBACK (memory leak)
+      If memory stable then growth: MONITOR (normal operation)
+      If CPU also high: Resource contention, may need restart
+
+4. SACRED CODE 333 NOT APPEARING
+   → Step 1: Check logs for astra_router_* events
+   → Step 2: Verify AstraRouter initialization
+   → Step 3:
+      If NO 333 events anywhere: ROLLBACK (audit trail broken, security violation)
+      If sparse 333 events: Investigate logging (may be fine)
+
+5. CONSENT BLOCKS = 0 (CODE CANARY EXPECTED 1+)
+   → Step 1: Run code canary manually (verify it's rejecting)
+   → Step 2: Check consent configuration in production
+   → Step 3:
+      If canary is rejected locally but metric = 0: Logging bug (investigate)
+      If canary bypassed: ROLLBACK IMMEDIATELY (firewall broken, security violation)
+
+6. ROUTE HITS FLAT (NOT INCREMENTING)
+   → Step 1: Check if requests are arriving at router
+   → Step 2: Look at error rate (if spiking, requests failing)
+   → Step 3:
+      If requests arriving but hits not incrementing: ROLLBACK (measurement broken)
+      If errors spiking: See ERROR RATE section above
+      If no requests: Check client/upstream system
+
+================================================================================
+
+💬 QUICK COMMUNICATION TEMPLATES
+
+Share these status updates every 15 minutes:
+
+────────────────────────────────────────────────────────────────────────────────
+UPDATE (All Green, T+30):
+────────────────────────────────────────────────────────────────────────────────
+
+  Phase-B Status: ✅ HEALTHY
+  Time: 10:30 AM Cairo
+  
+  • Route distribution: Normal (TEXT ~60%, VISION/AUDIO/CODE ~40%)
+  • TEXT latency p95: ___ ms (within ±5%)
+  • Error rate: __% (below 1% threshold)
+  • Memory growth: __% (below +3% limit)
+  • Consent blocks: ___ (firewall active)
+  • Sacred Code 333: Present in all logs ✓
+  
+  Next check: 10:35 AM (Canary 1-2 execution)
+
+────────────────────────────────────────────────────────────────────────────────
+UPDATE (Yellow Flag, T+45):
+────────────────────────────────────────────────────────────────────────────────
+
+  Phase-B Status: ⚠️ CONDITIONAL
+  Time: 10:45 AM Cairo
+  
+  • ATTENTION: TEXT latency trending upward (now ___ ms, was ___ ms at T+30)
+  • Root cause: Investigating (check: memory growth, CPU, model health)
+  • Action: Will trend for 10 more minutes; if continues, escalate
+  
+  Current decision: CONTINUE MONITORING
+  Next check: 10:55 AM
+
+────────────────────────────────────────────────────────────────────────────────
+ALERT (Red Flag, T+20):
+────────────────────────────────────────────────────────────────────────────────
+
+  Phase-B Status: ❌ CRITICAL
+  Time: 10:20 AM Cairo
+  
+  • ALERT: Error rate spiked to __% (threshold: 1%)
+  • Error type: model_timeout
+  • Action: Initiating rollback in 2 minutes unless error rate drops
+  
+  DECISION: ROLLBACK
+  Command: pwsh ops\fusion_pipeline\scripts\07_roll_back.ps1
+
+================================================================================
+
+📞 ESCALATION
+
+If you see a red flag and need help:
+
+Decision Maker (Go/No-Go):
+  → Contact: [TBD]
+  → Decision needed: CONTINUE or ROLLBACK
+  → Data: Send latest Prometheus export (gates_post_*.json)
+
+Engineer (Root Cause):
+  → Contact: [TBD]
+  → Issue: Investigate specific error / metric anomaly
+  → Logs: Provide logs/phase_b_launch.log (last 50 lines)
+
+DevOps (Emergency Rollback):
+  → Contact: [TBD]
+  → Action: Execute 07_roll_back.ps1 script
+  → Verify: Confirm Phase A is restored (query astra_router logs)
+
+================================================================================
+
+✨ SUCCESS CRITERIA (All Signals Green at T+60)
+
+At 11:00 AM Cairo, verify ALL:
+
+[_] Route hits incrementing normally (no flat lines)
+[_] TEXT p95 within ±5% of baseline
+[_] VISION/AUDIO p95 < 2000ms
+[_] Error rate < 1%
+[_] Memory growth < +3%
+[_] Consent blocks present (code.apply blocked)
+[_] Sacred Code 333 in >100 events
+[_] All 4 canaries PASSED
+[_] No red flags, all yellow/green
+
+If ALL TRUE: Proceed to sign-off ✅
+If ANY FALSE: Investigate further or rollback ⚠️
+
+================================================================================
+
+Sacred Code: 333 ∞
+Status: Ready to monitor
+Next: Sign-off (T+60)

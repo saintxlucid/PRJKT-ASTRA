@@ -1,0 +1,58 @@
+# High-level system map
+services:
+  identity:
+    files: ["src/identity_engine.py", "astra_identity.yaml"]
+    purpose: "Generate system prompts with persona + memory injection"
+    inputs: ["episodic memory frames", "semantic facts"]
+    outputs: ["system_prompt", "mode_presets"]
+
+  memory:
+    files: ["src/memory_engine.py", "src/memory_context_builder.py"]
+    purpose: "Semantic (Chroma), Episodic/Procedural (SQLite) retrieval & write policy"
+    outputs: ["context_frames", "memory_write_events"]
+
+  autonomy:
+    files: ["src/autonomy_engine.py", "ops/packs/deep_reflections/trigger_refinements.yaml"]
+    purpose: "Sensor-driven triggers with cooldowns and explanations"
+    outputs: ["proactive_messages", "autonomy_events"]
+
+  task_agent:
+    files: ["src/task_agent_manager.py", "plugins/"]
+    purpose: "Permissioned action dispatcher with audit"
+    outputs: ["tool_execution_events"]
+
+  api:
+    files: ["src/ascension_api.py", "src/video_export.py", "src/plugins/*", "src/routes/*"]
+    purpose: "REST + WebSocket integration layer"
+    outputs: ["/api/*", "ws://*/ws/*"]
+
+  neural_browser:
+    files: ["ui/control_panel/*", "ui/graph/*"]
+    purpose: "3D/2D graph, trigger controls, status"
+
+  bridge:
+    files: ["src/astra/bridge/*", "src/astra/api/routes/bridge.py"]
+    purpose: "Cryptic input transformation to structured intents/facts"
+    outputs: ["bridge_events", "routed_actions"]
+
+data_flows:
+  - from: autonomy
+    to: memory
+    why: "Store initiations + outcomes for learning"
+  - from: api
+    to: memory
+    why: "Persist transcripts/events"
+  - from: memory
+    to: identity
+    why: "Inject relevant context into prompts"
+  - from: task_agent
+    to: audit_log
+    why: "Transparency & rollback"
+  - from: bridge
+    to: memory
+    why: "Facts and episodic events from bridge language"
+
+notes:
+  - "Bridge Module fully integrated (v1.0.0)"
+  - "Voice/Whisper ready; enable after memory bridge is live"
+  - "DAW integration planned (Path 4)"
