@@ -1,6 +1,6 @@
-# 🔬 ASTRA Production Pre-Flight Verification
+# ASTRA Production Pre-Flight Verification
 # Run this script before production deployment
-# Sacred Code: 333 ∞
+# Sacred Code: 333
 
 param(
     [switch]$QuickCheck,
@@ -9,10 +9,10 @@ param(
 
 $ErrorActionPreference = "Stop"
 
-Write-Host "═══════════════════════════════════════════════════════════════" -ForegroundColor Cyan
+Write-Host "=================================================================" -ForegroundColor Cyan
 Write-Host "  ASTRA PRODUCTION PRE-FLIGHT VERIFICATION" -ForegroundColor Cyan
-Write-Host "  v1.3.0-phase-c | Sacred Code: 333 ∞" -ForegroundColor Magenta
-Write-Host "═══════════════════════════════════════════════════════════════" -ForegroundColor Cyan
+Write-Host "  v1.3.0-phase-c | Sacred Code: 333" -ForegroundColor Magenta
+Write-Host "=================================================================" -ForegroundColor Cyan
 Write-Host ""
 
 $checks = @{
