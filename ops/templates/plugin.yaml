@@ -1,0 +1,36 @@
+# Legacy Capability Plugin Configuration
+# Auto-generated template for ASTRA legacy integration
+# Sacred Code 333: All side-effects recorded in audit log
+
+name: "<FOLDER_NAME>"
+version: "legacy-compat-1.0"
+description: "Legacy capability wrapper for <FOLDER_NAME> module"
+
+capabilities:
+  - name: "<FOLDER_NAME>.info"
+    description: "Query <FOLDER_NAME> capability information (read-only)"
+    side_effects: false
+    consent_required: false
+    audit: true
+    
+  - name: "<FOLDER_NAME>.run"
+    description: "Execute <FOLDER_NAME> capability with potential side effects"
+    side_effects: true
+    consent_required: true
+    audit: true
+
+observability:
+  emit_events: true
+  metrics_enabled: true
+  log_level: "info"
+
+security:
+  sacred_code: "333"
+  hard_gate: true
+  consent_gated: true
+  audit_trail_enabled: true
+
+metadata:
+  integration_type: "legacy-adapter"
+  requires_warmup: false
+  timeout_ms: 30000

@@ -1,0 +1,86 @@
+# Alert Rules for ASTRA Legacy Tools Monitoring
+# Sacred Code 333: All alerts generated with audit trail
+
+groups:
+  - name: astra_legacy_tools
+    interval: 1m
+    rules:
+      - alert: LegacyToolHighLatency
+        expr: histogram_quantile(0.95, astra_legacy_call_duration_seconds) > 2.0
+        for: 5m
+        labels:
+          severity: warning
+          sacred_code: '333'
+        annotations:
+          summary: "Legacy tool {{ $labels.folder }} has high latency (p95 > 2.0s)"
+          description: "Legacy tool {{ $labels.folder }} p95 latency: {{ $value }}s (threshold: 2.0s)"
+
+      - alert: LegacyToolErrorRate
+        expr: rate(astra_legacy_errors_total[5m]) > 0.01
+        for: 5m
+        labels:
+          severity: warning
+          sacred_code: '333'
+        annotations:
+          summary: "Legacy tool {{ $labels.folder }} error rate elevated"
+          description: "Legacy tool {{ $labels.folder }} error rate: {{ $value | humanizePercentage }} (threshold: 1%)"
+
+      - alert: LegacyToolUnhealthy
+        expr: astra_legacy_health_status == 0
+        for: 2m
+        labels:
+          severity: critical
+          sacred_code: '333'
+        annotations:
+          summary: "Legacy tool {{ $labels.folder }} is UNHEALTHY"
+          description: "Legacy tool {{ $labels.folder }} failed health check"
+
+      - alert: LegacyToolMemoryLeak
+        expr: rate(astra_legacy_memory_bytes[10m]) > 1048576
+        for: 10m
+        labels:
+          severity: warning
+          sacred_code: '333'
+        annotations:
+          summary: "Legacy tool {{ $labels.folder }} may have memory leak"
+          description: "Legacy tool {{ $labels.folder }} memory growing at {{ $value | humanize }}B/min"
+
+      - alert: LegacyToolConsentBlocksHigh
+        expr: rate(astra_legacy_consent_blocks_total[5m]) > 0.1
+        for: 5m
+        labels:
+          severity: info
+          sacred_code: '333'
+        annotations:
+          summary: "Legacy tool {{ $labels.folder }} consent blocks elevated"
+          description: "Legacy tool {{ $labels.folder }} blocking {{ $value | humanize }} consent requests/sec (expected for gated operations)"
+
+      - alert: SacredCode333Missing
+        expr: rate(astra_sacred_code_333_events_total[5m]) == 0 and rate(astra_legacy_calls_total[5m]) > 0
+        for: 2m
+        labels:
+          severity: critical
+          sacred_code: '333'
+        annotations:
+          summary: "Sacred Code 333 audit trail broken for {{ $labels.folder }}"
+          description: "Legacy tool {{ $labels.folder }} executing without Sacred Code 333 markers - audit trail may be compromised"
+
+      - alert: LegacyToolHighSessionCount
+        expr: astra_legacy_active_sessions > 100
+        for: 5m
+        labels:
+          severity: warning
+          sacred_code: '333'
+        annotations:
+          summary: "Legacy tool {{ $labels.folder }} has high session count"
+          description: "Legacy tool {{ $labels.folder }} active sessions: {{ $value }} (threshold: 100)"
+
+      - alert: LegacyToolCallRateDrop
+        expr: rate(astra_legacy_calls_total[5m]) < 0.01 and increase(astra_legacy_calls_total[1m]) > 0
+        for: 10m
+        labels:
+          severity: warning
+          sacred_code: '333'
+        annotations:
+          summary: "Legacy tool {{ $labels.folder }} call rate dropping"
+          description: "Legacy tool {{ $labels.folder }} call rate has decreased significantly (may indicate issue)"

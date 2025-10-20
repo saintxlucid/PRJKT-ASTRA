@@ -1,0 +1,75 @@
+# Prometheus Configuration for ASTRA Legacy Tools Monitoring
+# Sacred Code 333: All metrics recorded with tool identifier labels
+
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+  external_labels:
+    monitor: 'astra-legacy-monitor'
+    sacred_code: '333'
+
+scrape_configs:
+  - job_name: 'astra-legacy-tools'
+    description: 'Monitor legacy tool wrapper metrics'
+    static_configs:
+      - targets: ['127.0.0.1:8080']
+    metrics_path: '/metrics'
+    scrape_interval: 10s
+    scrape_timeout: 5s
+    
+  - job_name: 'astra-legacy-backend'
+    static_configs:
+      - targets: ['127.0.0.1:8080']
+    params:
+      folder: ['backend']
+    metrics_path: '/metrics'
+    
+  - job_name: 'astra-legacy-core'
+    static_configs:
+      - targets: ['127.0.0.1:8080']
+    params:
+      folder: ['core']
+    metrics_path: '/metrics'
+    
+  - job_name: 'astra-legacy-lib'
+    static_configs:
+      - targets: ['127.0.0.1:8080']
+    params:
+      folder: ['lib']
+    metrics_path: '/metrics'
+    
+  - job_name: 'astra-legacy-tier0'
+    static_configs:
+      - targets: ['127.0.0.1:8080']
+    params:
+      folder: ['tier0']
+    metrics_path: '/metrics'
+    
+  - job_name: 'astra-legacy-local'
+    static_configs:
+      - targets: ['127.0.0.1:8080']
+    params:
+      folder: ['astra-local']
+    metrics_path: '/metrics'
+    
+  - job_name: 'astra-legacy-os'
+    static_configs:
+      - targets: ['127.0.0.1:8080']
+    params:
+      folder: ['astra-os']
+    metrics_path: '/metrics'
+    
+  - job_name: 'astra-legacy-desktop'
+    static_configs:
+      - targets: ['127.0.0.1:8080']
+    params:
+      folder: ['astra-desktop-simple']
+    metrics_path: '/metrics'
+
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets: ['127.0.0.1:9093']
+
+rule_files:
+  - 'legacy_tools_alerts.yml'

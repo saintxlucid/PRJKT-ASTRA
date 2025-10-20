@@ -1,0 +1,190 @@
+{
+  "dashboard": {
+    "title": "ASTRA Legacy Tools Monitoring",
+    "description": "Real-time monitoring for wrapped legacy capabilities (backend, core, lib, tier0, astra-local, astra-os, astra-desktop-simple)",
+    "tags": ["legacy", "integration", "monitoring", "Sacred Code 333"],
+    "timezone": "browser",
+    "panels": [
+      {
+        "id": 1,
+        "title": "Legacy Tools: Call Rate (per minute)",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "rate(astra_legacy_calls_total[1m])",
+            "legendFormat": "{{folder}}"
+          }
+        ],
+        "yaxes": [
+          {"format": "ops", "label": "Calls/min"}
+        ]
+      },
+      {
+        "id": 2,
+        "title": "Legacy Tools: Latency (p95)",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "histogram_quantile(0.95, astra_legacy_call_duration_seconds)",
+            "legendFormat": "{{folder}}"
+          }
+        ],
+        "yaxes": [
+          {"format": "s", "label": "Duration (s)"}
+        ]
+      },
+      {
+        "id": 3,
+        "title": "Legacy Tools: Error Rate",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "rate(astra_legacy_errors_total[5m])",
+            "legendFormat": "{{folder}}"
+          }
+        ],
+        "yaxes": [
+          {"format": "percentunit", "label": "Error %"}
+        ]
+      },
+      {
+        "id": 4,
+        "title": "Legacy Tools: Sacred Code 333 Events",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "rate(astra_sacred_code_333_events_total[5m])",
+            "legendFormat": "{{folder}} - {{event_type}}"
+          }
+        ],
+        "yaxes": [
+          {"format": "ops", "label": "Events/sec"}
+        ]
+      },
+      {
+        "id": 5,
+        "title": "Legacy Tools: Consent Blocks",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "increase(astra_legacy_consent_blocks_total[5m])",
+            "legendFormat": "{{folder}}"
+          }
+        ]
+      },
+      {
+        "id": 6,
+        "title": "Legacy Tools: Memory Usage",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "astra_legacy_memory_bytes",
+            "legendFormat": "{{folder}}"
+          }
+        ],
+        "yaxes": [
+          {"format": "bytes", "label": "Memory"}
+        ]
+      },
+      {
+        "id": 7,
+        "title": "Legacy Tools: Active Sessions",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "astra_legacy_active_sessions",
+            "legendFormat": "{{folder}}"
+          }
+        ]
+      },
+      {
+        "id": 8,
+        "title": "Backend Tool Calls (5m)",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "rate(astra_legacy_calls_total{folder='backend'}[5m])"
+          }
+        ]
+      },
+      {
+        "id": 9,
+        "title": "Core Tool Calls (5m)",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "rate(astra_legacy_calls_total{folder='core'}[5m])"
+          }
+        ]
+      },
+      {
+        "id": 10,
+        "title": "Lib Tool Calls (5m)",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "rate(astra_legacy_calls_total{folder='lib'}[5m])"
+          }
+        ]
+      },
+      {
+        "id": 11,
+        "title": "Tier0 Tool Calls (5m)",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "rate(astra_legacy_calls_total{folder='tier0'}[5m])"
+          }
+        ]
+      },
+      {
+        "id": 12,
+        "title": "Astra-Local Tool Calls (5m)",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "rate(astra_legacy_calls_total{folder='astra-local'}[5m])"
+          }
+        ]
+      },
+      {
+        "id": 13,
+        "title": "Astra-OS Tool Calls (5m)",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "rate(astra_legacy_calls_total{folder='astra-os'}[5m])"
+          }
+        ]
+      },
+      {
+        "id": 14,
+        "title": "Astra-Desktop-Simple Tool Calls (5m)",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "rate(astra_legacy_calls_total{folder='astra-desktop-simple'}[5m])"
+          }
+        ]
+      },
+      {
+        "id": 15,
+        "title": "Legacy Tool Health Status",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "astra_legacy_health_status",
+            "legendFormat": "{{folder}}"
+          }
+        ]
+      }
+    ],
+    "refresh": "30s",
+    "time": {
+      "from": "now-6h",
+      "to": "now"
+    },
+    "version": 1
+  },
+  "overwrite": true
+}
