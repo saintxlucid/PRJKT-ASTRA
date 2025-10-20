@@ -1,0 +1,335 @@
+# ASTRA-OS Threat Patterns
+# Signatures and patterns for autonomous threat detection
+# Sacred Code: 333
+
+threat_patterns:
+  # === MALWARE SIGNATURES ===
+  
+  - id: "threat_suspicious_exe_download"
+    name: "Suspicious Executable in Downloads"
+    description: "Executable file created in Downloads or Temp folder"
+    severity: "HIGH"
+    event_type: "file_created"
+    pattern:
+      path_contains: ["Downloads", "Temp", "AppData\\Local\\Temp"]
+      extension: [".exe", ".dll", ".scr", ".bat", ".cmd", ".vbs", ".ps1"]
+    confidence: 0.80
+    response:
+      soft_mode: "ask_user"
+      hard_mode: "block"
+    enabled: true
+  
+  - id: "threat_hidden_executable"
+    name: "Hidden Executable File"
+    description: "Executable with hidden attribute set"
+    severity: "CRITICAL"
+    event_type: "file_created"
+    pattern:
+      extension: [".exe", ".dll"]
+      attributes: ["hidden"]
+    confidence: 0.95
+    response:
+      soft_mode: "notify"
+      hard_mode: "block"
+    enabled: true
+  
+  - id: "threat_double_extension"
+    name: "Double Extension File"
+    description: "File with double extension (e.g., invoice.pdf.exe)"
+    severity: "HIGH"
+    event_type: "file_created"
+    pattern:
+      filename_regex: "\\.(pdf|doc|jpg|png|txt)\\.(exe|scr|bat|cmd)$"
+    confidence: 0.90
+    response:
+      soft_mode: "ask_user"
+      hard_mode: "block"
+    enabled: true
+  
+  - id: "threat_startup_modification"
+    name: "Startup Folder Modification"
+    description: "File created in Windows startup folders"
+    severity: "CRITICAL"
+    event_type: "file_created"
+    pattern:
+      path_contains: ["Startup", "Start Menu\\Programs\\Startup"]
+    confidence: 0.85
+    response:
+      soft_mode: "ask_user"
+      hard_mode: "ask_user"  # Always ask, even in hard mode
+    enabled: true
+  
+  # === PROCESS THREATS ===
+  
+  - id: "threat_unknown_process"
+    name: "Unknown Process Execution"
+    description: "Process started from unusual location"
+    severity: "MEDIUM"
+    event_type: "process_spawned"
+    pattern:
+      path_not_contains: ["Program Files", "Windows", "System32"]
+      path_contains: ["Temp", "AppData", "Downloads"]
+    confidence: 0.70
+    response:
+      soft_mode: "log_monitor"
+      hard_mode: "notify"
+    enabled: true
+  
+  - id: "threat_powershell_encoded"
+    name: "Encoded PowerShell Command"
+    description: "PowerShell with encoded/hidden command"
+    severity: "HIGH"
+    event_type: "process_spawned"
+    pattern:
+      process_name: ["powershell.exe", "pwsh.exe"]
+      cmdline_contains: ["-EncodedCommand", "-enc", "-e ", "hidden", "bypass"]
+    confidence: 0.85
+    response:
+      soft_mode: "ask_user"
+      hard_mode: "block"
+    enabled: true
+  
+  - id: "threat_cmd_suspicious"
+    name: "Suspicious Command Prompt Activity"
+    description: "cmd.exe with suspicious arguments"
+    severity: "MEDIUM"
+    event_type: "process_spawned"
+    pattern:
+      process_name: ["cmd.exe"]
+      cmdline_contains: ["del /f", "format", "reg delete", "net user"]
+    confidence: 0.75
+    response:
+      soft_mode: "notify"
+      hard_mode: "ask_user"
+    enabled: true
+  
+  - id: "threat_rapid_process_spawn"
+    name: "Rapid Process Spawning"
+    description: "Multiple processes spawned in short time (possible fork bomb)"
+    severity: "CRITICAL"
+    event_type: "process_spawned"
+    pattern:
+      count_threshold: 10
+      time_window: 5  # seconds
+    confidence: 0.90
+    response:
+      soft_mode: "notify"
+      hard_mode: "block"
+    enabled: true
+  
+  # === RESOURCE ABUSE ===
+  
+  - id: "threat_cpu_spike_sustained"
+    name: "Sustained High CPU Usage"
+    description: "Process consuming >90% CPU for extended period"
+    severity: "HIGH"
+    event_type: "process_cpu_spike"
+    pattern:
+      cpu_threshold: 90
+      duration: 30  # seconds
+    confidence: 0.80
+    response:
+      soft_mode: "notify"
+      hard_mode: "notify"
+    enabled: true
+  
+  - id: "threat_memory_exhaustion"
+    name: "Memory Exhaustion Attempt"
+    description: "Process consuming excessive memory rapidly"
+    severity: "CRITICAL"
+    event_type: "process_memory_spike"
+    pattern:
+      memory_threshold: 80  # percent of system RAM
+      growth_rate: "rapid"
+    confidence: 0.85
+    response:
+      soft_mode: "notify"
+      hard_mode: "ask_user"
+    enabled: true
+  
+  # === NETWORK THREATS ===
+  
+  - id: "threat_unknown_outbound"
+    name: "Unknown Outbound Connection"
+    description: "Unknown process establishing network connection"
+    severity: "MEDIUM"
+    event_type: "network_connection"
+    pattern:
+      direction: "outbound"
+      process_trusted: false
+    confidence: 0.70
+    response:
+      soft_mode: "log_monitor"
+      hard_mode: "notify"
+    enabled: true
+  
+  - id: "threat_suspicious_port"
+    name: "Connection to Suspicious Port"
+    description: "Connection to commonly malicious ports"
+    severity: "HIGH"
+    event_type: "network_connection"
+    pattern:
+      ports: [4444, 5555, 6666, 7777, 31337]  # Common backdoor ports
+    confidence: 0.85
+    response:
+      soft_mode: "notify"
+      hard_mode: "block"
+    enabled: true
+  
+  # === REGISTRY/SYSTEM MODIFICATIONS ===
+  
+  - id: "threat_registry_autorun"
+    name: "Registry Autorun Modification"
+    description: "Modification to registry autorun keys"
+    severity: "CRITICAL"
+    event_type: "registry_modified"
+    pattern:
+      key_contains: ["Run", "RunOnce", "RunServices"]
+    confidence: 0.90
+    response:
+      soft_mode: "ask_user"
+      hard_mode: "ask_user"
+    enabled: true
+  
+  - id: "threat_hosts_file_modified"
+    name: "Hosts File Modification"
+    description: "System hosts file modified (DNS hijack attempt)"
+    severity: "HIGH"
+    event_type: "file_modified"
+    pattern:
+      path: "C:\\Windows\\System32\\drivers\\etc\\hosts"
+    confidence: 0.95
+    response:
+      soft_mode: "ask_user"
+      hard_mode: "block"
+    enabled: true
+  
+  # === BEHAVIORAL THREATS ===
+  
+  - id: "threat_rapid_file_encryption"
+    name: "Rapid File Encryption Pattern"
+    description: "Multiple files rapidly renamed/modified (ransomware behavior)"
+    severity: "CRITICAL"
+    event_type: "file_modified"
+    pattern:
+      count_threshold: 20
+      time_window: 10  # seconds
+      extension_change: true
+    confidence: 0.95
+    response:
+      soft_mode: "block"
+      hard_mode: "block"
+    enabled: true
+  
+  - id: "threat_screenshot_capture"
+    name: "Screenshot Capture Activity"
+    description: "Process taking screenshots (spyware behavior)"
+    severity: "MEDIUM"
+    event_type: "screenshot_detected"
+    pattern:
+      frequency: "high"
+    confidence: 0.75
+    response:
+      soft_mode: "notify"
+      hard_mode: "ask_user"
+    enabled: true
+  
+  - id: "threat_clipboard_monitor"
+    name: "Clipboard Monitoring"
+    description: "Process monitoring clipboard (credential theft)"
+    severity: "HIGH"
+    event_type: "clipboard_access"
+    pattern:
+      frequency: "repeated"
+    confidence: 0.80
+    response:
+      soft_mode: "notify"
+      hard_mode: "ask_user"
+    enabled: true
+
+# Threat severity levels
+severity_levels:
+  LOW:
+    color: "green"
+    priority: 1
+    auto_block: false
+    
+  MEDIUM:
+    color: "orange"
+    priority: 2
+    auto_block: false
+    
+  HIGH:
+    color: "red"
+    priority: 3
+    auto_block: false  # Depends on autonomy level
+    
+  CRITICAL:
+    color: "dark_red"
+    priority: 4
+    auto_block: true  # Always block in hard mode
+
+# Security modes
+security_modes:
+  soft:
+    name: "Soft Security"
+    description: "Notify user, allow override"
+    default_action: "notify"
+    block_critical: false
+    
+  hard:
+    name: "Hard Security"
+    description: "Automatically block threats"
+    default_action: "block"
+    block_critical: true
+    
+  adaptive:
+    name: "Adaptive Security"
+    description: "Adjust based on user behavior and autonomy level"
+    default_action: "ask_user"
+    block_critical: true
+
+# Whitelist (trusted processes/paths)
+whitelist:
+  processes:
+    - "explorer.exe"
+    - "svchost.exe"
+    - "dwm.exe"
+    - "csrss.exe"
+    - "lsass.exe"
+    - "services.exe"
+    - "winlogon.exe"
+    - "System"
+  
+  paths:
+    - "C:\\Windows\\System32"
+    - "C:\\Windows\\SysWOW64"
+    - "C:\\Program Files"
+    - "C:\\Program Files (x86)"
+
+# Blacklist (known malicious)
+blacklist:
+  extensions:
+    - ".crypted"
+    - ".locked"
+    - ".encrypted"
+    - ".zzzzz"
+    - ".aaa"
+  
+  filenames:
+    - "DECRYPT_INSTRUCTIONS.txt"
+    - "HOW_TO_DECRYPT.html"
+    - "YOUR_FILES_ARE_ENCRYPTED.txt"
+  
+  processes:
+    - "malware.exe"
+    - "trojan.exe"
+    - "virus.exe"
+
+# Learning settings
+learning:
+  enabled: true
+  false_positive_threshold: 3  # Disable rule after 3 false positives
+  confidence_adjustment: 0.05  # How much to adjust per feedback
+  min_confidence: 0.30
+  max_confidence: 0.99

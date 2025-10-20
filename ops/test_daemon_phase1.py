@@ -199,11 +199,105 @@ async def test_training_loop():
     return True
 
 
+async def test_security_sentinel():
+    """Test security sentinel threat detection"""
+    print("\n" + "=" * 80)
+    print("TEST 7: Security Sentinel")
+    print("=" * 80)
+    
+    from astra.daemon.security_sentinel import (
+        SecuritySentinel,
+        ThreatDetector,
+        ResponseManager,
+        SecurityMode,
+        ThreatSeverity
+    )
+    
+    # Test ThreatDetector
+    print("\n  Testing ThreatDetector...")
+    detector = ThreatDetector()
+    print(f"  ✓ Loaded {len(detector.patterns)} threat patterns")
+    
+    # Test event: suspicious exe in Downloads (should trigger threat_suspicious_exe_download)
+    test_event = {
+        'event_type': 'file_created',
+        'path': 'C:\\Users\\User\\Downloads\\suspicious.exe',
+        'process_name': 'chrome.exe'
+    }
+    
+    threat = detector.check_event('file_created', test_event)
+    if threat:
+        print(f"  ✓ Threat detected: {threat.pattern.name}")
+        print(f"    - Severity: {threat.severity.value}")
+        print(f"    - Confidence: {threat.confidence}")
+        print(f"    - Source: {threat.source}")
+    else:
+        print("  ✗ No threat detected (expected threat)")
+        return False
+    
+    # Test whitelisted event (should NOT trigger)
+    whitelisted_event = {
+        'event_type': 'process_spawned',
+        'process_name': 'explorer.exe',
+        'path': 'C:\\Windows\\explorer.exe'
+    }
+    
+    threat2 = detector.check_event('process_spawned', whitelisted_event)
+    if threat2 is None:
+        print(f"  ✓ Whitelisted process correctly ignored")
+    else:
+        print(f"  ✗ Whitelisted process incorrectly flagged")
+        return False
+    
+    # Test ResponseManager
+    print("\n  Testing ResponseManager...")
+    response_mgr = ResponseManager(SecurityMode.SOFT, autonomy_level=3)
+    
+    action = response_mgr.determine_action(threat)
+    print(f"  ✓ Determined action: {action.value}")
+    
+    blocked = response_mgr.execute_action(threat, action)
+    print(f"  ✓ Action executed: {'BLOCKED' if blocked else 'ALLOWED'}")
+    
+    # Test SecuritySentinel orchestration
+    print("\n  Testing SecuritySentinel orchestration...")
+    sentinel = SecuritySentinel(
+        event_bus=None,
+        operator_shell=None,
+        security_mode=SecurityMode.SOFT,
+        autonomy_level=3
+    )
+    
+    init_success = await sentinel.initialize()
+    if not init_success:
+        print("  ✗ Sentinel initialization failed")
+        return False
+    
+    print(f"  ✓ Sentinel initialized")
+    
+    # Test event processing
+    sentinel.on_event(test_event)
+    print(f"  ✓ Event queued for processing")
+    
+    # Process queue
+    await sentinel._process_event_queue()
+    
+    stats = sentinel.get_stats()
+    print(f"  ✓ Stats: {stats['threats_detected']} threats detected")
+    
+    if stats['threats_detected'] > 0:
+        recent = sentinel.get_recent_threats(1)
+        print(f"  ✓ Recent threats: {len(recent)}")
+    
+    print("\n  All Security Sentinel checks passed!")
+    return True
+
+
 async def main():
     """Run all tests"""
     print("\n")
     print("╔" + "=" * 78 + "╗")
-    print("║" + "ASTRA-OS Phase 1: Component Tests".center(78) + "║")
+    print("║" + "ASTRA-OS Phase 1-4: Component Tests".center(78) + "║")
     print("║" + f"Sacred Code: 333".center(78) + "║")
     print("╚" + "=" * 78 + "╝")
     
@@ -214,6 +308,7 @@ async def main():
         ("Operator Shell", test_operator_shell),
         ("Memory Bridge Client", test_memory_bridge_client),
         ("Training Loop", test_training_loop),
+        ("Security Sentinel", test_security_sentinel),
     ]
     
     results = {}
