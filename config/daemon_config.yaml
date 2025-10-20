@@ -1,0 +1,79 @@
+# ASTRA-OS Daemon Configuration
+# Sacred Code: 333
+
+daemon:
+  name: "ASTRA-OS"
+  version: "1.0.0"
+  sacred_code: 333
+  description: "Persistent AI companion operating system"
+
+startup:
+  auto_boot: true
+  fork_process: true
+  setup_registry: true
+  log_level: "INFO"
+
+logging:
+  log_dir: "${HOME}/.astra/logs"
+  log_file_prefix: "astra_daemon"
+  max_log_size: 104857600  # 100MB
+  backup_count: 5
+
+monitoring:
+  file_watcher:
+    enabled: true
+    watch_paths:
+      - "${HOME}/Desktop"
+      - "${HOME}/Documents"
+      - "${HOME}/Downloads"
+    recursive: true
+  
+  process_scanner:
+    enabled: true
+    scan_interval_seconds: 5
+    track_new_processes: true
+    detect_resource_spikes: true
+    cpu_spike_threshold: 80
+    memory_spike_threshold: 50
+  
+  system_monitor:
+    enabled: true
+    check_interval_seconds: 10
+    cpu_alert_threshold: 90
+    memory_alert_threshold: 85
+    disk_alert_threshold: 90
+  
+  network_listener:
+    enabled: false  # Phase 2
+    check_interval_seconds: 10
+
+security:
+  soft_security: true
+  hard_security: false
+  threat_db_path: "config/threats.db"
+  quarantine_dir: "${HOME}/.astra/quarantine"
+
+shell:
+  theme: "dark"
+  position: "bottom-right"
+  always_on_top: false
+  update_interval_seconds: 5
+
+voice:
+  enabled: false  # Phase 2
+  wake_words:
+    - "ASTRA"
+    - "Lucid"
+  engine: "vosk"  # or "whisper"
+  language: "en-US"
+
+memory_bridge:
+  enabled: true
+  base_url: "http://127.0.0.1:8080"
+  connection_timeout_seconds: 5
+  retry_attempts: 3
+
+autonomy:
+  level: 1  # 1=ask always, 5=auto-act
+  learning_enabled: true
+  rules_file: "config/autonomy_rules.yaml"
