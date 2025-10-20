@@ -148,6 +148,57 @@ async def test_memory_bridge_client():
     return True
 
 
+async def test_training_loop():
+    """Test training loop decision engine"""
+    print("\n" + "=" * 80)
+    print("TEST 6: Training Loop")
+    print("=" * 80)
+    
+    from astra.daemon.training_loop import (
+        TrainingLoop, DecisionEngine, LearningEngine, 
+        ActionType, FeedbackType, Decision
+    )
+    
+    # Test decision engine
+    print("  Testing Decision Engine...")
+    engine = DecisionEngine()
+    print(f"    ✓ Initialized with autonomy level: {engine.current_autonomy_level}")
+    
+    # Test event evaluation
+    test_event = {'path': 'C:\\Users\\Desktop\\file.exe'}
+    decision = engine.evaluate_event('file_created', test_event)
+    print(f"    ✓ Made decision: {decision.action.value} (confidence: {decision.confidence})")
+    
+    # Test autonomy level adjustment
+    engine.set_autonomy_level(5)  # Autonomous
+    decision2 = engine.evaluate_event('file_created', test_event)
+    print(f"    ✓ Adjusted for autonomy level 5: {decision2.action.value}")
+    
+    # Test learning engine
+    print("  Testing Learning Engine...")
+    learning = LearningEngine()
+    learning.record_decision(decision)
+    print(f"    ✓ Recorded decision")
+    
+    # Simulate user feedback
+    learning.record_feedback(decision.decision_id, FeedbackType.APPROVE)
+    print(f"    ✓ Recorded user feedback")
+    
+    stats = learning.get_stats()
+    print(f"    ✓ Stats: {stats['total_decisions']} decisions, {stats['positive_feedback']} approved")
+    
+    # Test training loop
+    print("  Testing Training Loop...")
+    loop = TrainingLoop()
+    initialized = await loop.initialize()
+    print(f"    ✓ Initialized: {initialized}")
+    
+    loop_stats = loop.get_stats()
+    print(f"    ✓ Loop stats: autonomy_level={loop_stats['autonomy_level']}")
+    
+    return True
+
+
 async def main():
     """Run all tests"""
     print("\n")
@@ -162,6 +213,7 @@ async def main():
         ("Boot Daemon", test_boot_daemon),
         ("Operator Shell", test_operator_shell),
         ("Memory Bridge Client", test_memory_bridge_client),
+        ("Training Loop", test_training_loop),
     ]
     
     results = {}
