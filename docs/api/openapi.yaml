@@ -1,0 +1,332 @@
+openapi: 3.0.3
+info:
+  title: ASTRA Evolution API
+  description: |
+    API for model evolution and transformation operations including quantization,
+    LoRA merging, model surgery, and validation.
+  version: 1.0.0
+  
+servers:
+  - url: /api/v1
+    description: Primary API endpoint
+
+security:
+  - ApiKeyAuth: []
+  
+components:
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-API-Key
+      
+  schemas:
+    Error:
+      type: object
+      properties:
+        code:
+          type: string
+          description: Error code
+        message:
+          type: string
+          description: Error message
+        details:
+          type: object
+          description: Additional error details
+          
+    ModelInfo:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Unique model identifier
+        name:
+          type: string
+          description: Model name
+        architecture:
+          type: string
+          description: Model architecture type
+        parameters:
+          type: integer
+          description: Number of parameters
+        quantization:
+          type: string
+          description: Quantization format
+        context_length:
+          type: integer
+          description: Context window size
+        created_at:
+          type: string
+          format: date-time
+        signature:
+          type: string
+          description: HMAC signature
+          
+    QuantizationConfig:
+      type: object
+      properties:
+        format:
+          type: string
+          enum: [Q4_K_M, Q5_K_M, Q6_K, Q8_0]
+          description: Target quantization format
+        bits:
+          type: integer
+          enum: [4, 5, 6, 8]
+          description: Bits per weight
+        compute_dtype:
+          type: string
+          enum: [float16, float32]
+          description: Compute type for quantization
+        strict:
+          type: boolean
+          description: Enforce strict accuracy requirements
+          
+    LoRAConfig:
+      type: object
+      properties:
+        adapter_path:
+          type: string
+          description: Path to LoRA adapter
+        alpha:
+          type: number
+          description: LoRA scaling factor
+        target_modules:
+          type: array
+          items:
+            type: string
+          description: Modules to apply LoRA to
+          
+    ValidationConfig:
+      type: object
+      properties:
+        tasks:
+          type: array
+          items:
+            type: string
+            enum: [perplexity, accuracy, drift]
+        thresholds:
+          type: object
+          properties:
+            perplexity_max:
+              type: number
+            accuracy_min:
+              type: number
+            drift_max:
+              type: number
+              
+    ValidationResult:
+      type: object
+      properties:
+        passed:
+          type: boolean
+        metrics:
+          type: object
+          properties:
+            perplexity:
+              type: number
+            accuracy:
+              type: number
+            drift:
+              type: number
+        details:
+          type: array
+          items:
+            type: object
+            properties:
+              task:
+                type: string
+              passed:
+                type: boolean
+              value:
+                type: number
+              threshold:
+                type: number
+                
+paths:
+  /models:
+    get:
+      summary: List available models
+      responses:
+        '200':
+          description: List of models
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ModelInfo'
+    post:
+      summary: Upload new model
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+                name:
+                  type: string
+                description:
+                  type: string
+      responses:
+        '201':
+          description: Model uploaded successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ModelInfo'
+                
+  /models/{model_id}:
+    parameters:
+      - name: model_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    get:
+      summary: Get model details
+      responses:
+        '200':
+          description: Model details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ModelInfo'
+                
+  /models/{model_id}/quantize:
+    post:
+      summary: Quantize model
+      parameters:
+        - name: model_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/QuantizationConfig'
+      responses:
+        '200':
+          description: Quantization successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ModelInfo'
+                
+  /models/{model_id}/merge-lora:
+    post:
+      summary: Merge LoRA adapter
+      parameters:
+        - name: model_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoRAConfig'
+      responses:
+        '200':
+          description: LoRA merge successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ModelInfo'
+                
+  /models/{model_id}/validate:
+    post:
+      summary: Validate model
+      parameters:
+        - name: model_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ValidationConfig'
+      responses:
+        '200':
+          description: Validation results
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationResult'
+                
+  /models/{model_id}/snapshots:
+    get:
+      summary: List model snapshots
+      parameters:
+        - name: model_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: List of snapshots
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: string
+                      format: uuid
+                    created_at:
+                      type: string
+                      format: date-time
+                    operation:
+                      type: string
+                    size:
+                      type: integer
+                    signature:
+                      type: string
+                      
+  /models/{model_id}/rollback:
+    post:
+      summary: Rollback to snapshot
+      parameters:
+        - name: model_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                snapshot_id:
+                  type: string
+                  format: uuid
+      responses:
+        '200':
+          description: Rollback successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ModelInfo'
