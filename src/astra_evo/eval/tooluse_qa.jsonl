@@ -1,0 +1,5 @@
+{"id": "T001", "instruction": "Create a new file named hello.txt with the content 'Hello World'", "expected": {"tool": "create_file", "args": {"filePath": "./hello.txt", "content": "Hello World"}}}
+{"id": "T002", "instruction": "List all Python files in the src directory", "expected": {"tool": "file_search", "args": {"pattern": "src/**/*.py"}}}
+{"id": "T003", "instruction": "Search for the word 'error' in log files", "expected": {"tool": "grep_search", "args": {"pattern": "error", "includePattern": "**/*.log"}}}
+{"id": "T004", "instruction": "Create a directory named 'test_data'", "expected": {"tool": "create_directory", "args": {"dirPath": "./test_data"}}}
+{"id": "T005", "instruction": "Read the contents of config.json", "expected": {"tool": "read_file", "args": {"filePath": "./config.json"}}}

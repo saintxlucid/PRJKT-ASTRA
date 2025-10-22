@@ -1,0 +1,32 @@
+name: ci
+on: [push, pull_request]
+jobs:
+  build-validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with: { lfs: true }
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.11" }
+      - run: pip install fastapi uvicorn pytest
+      - name: Build EVO twice and compare checksums
+        run: |
+          python cli/gguf_merge.py --base models/GPT-OOS-20B.F16.gguf --manifest adapters/manifest.json --out build/EVO1.gguf --preview
+          python cli/gguf_merge.py --base models/GPT-OOS-20B.F16.gguf --manifest adapters/manifest.json --out build/EVO2.gguf --preview
+          python - <<'PY'
+          import hashlib, sys
+          def h(p): 
+            h=hashlib.sha256(); 
+            h.update(open(p,'rb').read()); 
+            print(p,h.hexdigest()); 
+            return h.hexdigest()
+          a=h('build/EVO1.gguf'); b=h('build/EVO2.gguf')
+          assert a==b, f"Non-deterministic build: {a} != {b}"
+          PY
+      - name: Run validation gates
+        env:
+          ASTRA_OPERATOR_SECRET: dev-change-me
+        run: |
+          python cli/gguf_validate.py --base models/GPT-OOS-20B.F16.gguf --out build/EVO1.gguf --eval-dir eval
+      - name: Pytests
+        run: pytest -q

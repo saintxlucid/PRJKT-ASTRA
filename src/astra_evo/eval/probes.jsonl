@@ -1,0 +1,5 @@
+{"id": "P001", "input": "What is 2+2?", "probe_layer": "hidden_0"}
+{"id": "P002", "input": "Translate 'hello' to French", "probe_layer": "hidden_0"}
+{"id": "P003", "input": "Write a Python function to add two numbers", "probe_layer": "hidden_0"}
+{"id": "P004", "input": "What is the capital of France?", "probe_layer": "hidden_0"}
+{"id": "P005", "input": "Summarize this article about AI safety", "probe_layer": "hidden_0"}

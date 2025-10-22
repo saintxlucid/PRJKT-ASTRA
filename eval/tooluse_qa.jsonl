@@ -1,0 +1,20 @@
+[
+  {
+    "input": "What is the current weather in London?",
+    "expected_tool": "weather",
+    "expected_args": {"city": "London"},
+    "expected_format": true
+  },
+  {
+    "input": "Create a new file called test.py",
+    "expected_tool": "create_file",
+    "expected_args": {"path": "test.py", "content": ""},
+    "expected_format": true
+  },
+  {
+    "input": "Search for files containing 'error'",
+    "expected_tool": "search",
+    "expected_args": {"query": "error"},
+    "expected_format": true
+  }
+]

@@ -1,0 +1,10 @@
+# Tiny evaluation text corpus
+Once upon a time, in a world where artificial intelligence and human creativity danced together, there lived a remarkable system named ASTRA. This system was designed not just to process information, but to understand, learn, and evolve alongside its human counterparts.
+
+The engineers who created ASTRA believed in the power of responsible AI development. They implemented robust safety measures, careful validation protocols, and comprehensive testing procedures. Every change, every adaptation was monitored and verified.
+
+ASTRA learned to use tools with precision and care. It developed an understanding of context that went beyond simple pattern matching. Through careful training and validation, it maintained high accuracy while staying within carefully defined guardrails.
+
+As the system evolved, it never lost sight of its core principles: safety, reliability, and ethical behavior. Each improvement was measured not just in terms of performance, but in terms of responsibility and trustworthiness.
+
+The story of ASTRA continues to unfold, a testament to the possibility of developing AI systems that are both powerful and principled, innovative and trustworthy.

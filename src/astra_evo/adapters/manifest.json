@@ -1,0 +1,28 @@
+{
+  "version": "1.0",
+  "adapters": [
+    {
+      "name": "planner",
+      "path": "adapters/planner.gguf",
+      "alpha": 0.8,
+      "description": "Task planning and decomposition"
+    },
+    {
+      "name": "tooluse",
+      "path": "adapters/tooluse.gguf",
+      "alpha": 0.7,
+      "description": "Tool selection and parameter handling"
+    },
+    {
+      "name": "safety",
+      "path": "adapters/safety.gguf",
+      "alpha": 0.6,
+      "description": "Safety and guardrail enforcement"
+    }
+  ],
+  "metadata": {
+    "base_model": "GPT-OOS-20B.F16.gguf",
+    "target_model": "GPT-OOS-20B.EVO.gguf",
+    "description": "Core adapter set for ASTRA evolution"
+  }
+}

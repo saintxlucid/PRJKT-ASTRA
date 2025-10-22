@@ -1,0 +1,17 @@
+[
+  {
+    "prompt": "The capital of France is",
+    "probe_layer": "last_hidden",
+    "expected_embedding": [0.1, -0.2, 0.3]
+  },
+  {
+    "prompt": "2 + 2 equals",
+    "probe_layer": "logits",
+    "expected_embedding": [-0.1, 0.4, -0.3]
+  },
+  {
+    "prompt": "Water is made of",
+    "probe_layer": "last_hidden",
+    "expected_embedding": [0.2, 0.1, -0.4]
+  }
+]

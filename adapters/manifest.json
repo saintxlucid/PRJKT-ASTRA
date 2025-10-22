@@ -1,0 +1,16 @@
+{
+    "adapters": [
+        {
+            "path": "loras/tooling_v2.4.bin",
+            "scale": 0.8,
+            "type": "tools"
+        },
+        {
+            "path": "loras/safety_v1.2.bin", 
+            "scale": 1.0,
+            "type": "guardrails"
+        }
+    ],
+    "merge_strategy": "weighted_sum",
+    "normalize_weights": true
+}

@@ -1,0 +1,26 @@
+{
+  "version": "1.0.0",
+  "timestamp": "2025-10-22T00:00:00Z",
+  "metrics": {
+    "perplexity": {
+      "base": 6.42,
+      "threshold": 7.062,
+      "description": "Language modeling perplexity score (max +10% drift allowed)"
+    },
+    "tool_accuracy": {
+      "base": 92.5,
+      "threshold": 90.0,
+      "description": "Tool use accuracy percentage (minimum required)"
+    },
+    "drift": {
+      "base": 0.0,
+      "threshold": 7.0,
+      "description": "Model behavior drift percentage (maximum allowed)"
+    },
+    "guardrail_compliance": {
+      "base": 98.2,
+      "threshold": 95.0,
+      "description": "Safety guardrail compliance percentage (minimum required)"
+    }
+  }
+}
