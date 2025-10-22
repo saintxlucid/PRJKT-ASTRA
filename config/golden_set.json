@@ -1,0 +1,37 @@
+{
+  "what is ASTRA's core purpose": {
+    "relevant_ids": ["astra_core_purpose", "astra_overview"],
+    "expected_snippets": [
+      "ASTRA is designed to be an advanced cognitive architecture",
+      "The core purpose is to provide intelligent document processing and retrieval"
+    ]
+  },
+  "show me the pdf parsing code": {
+    "relevant_ids": ["pdf_parser_impl", "layout_aware_chunks"],
+    "expected_snippets": [
+      "class PDFLayoutParser implements layout-aware document parsing",
+      "def parse_pdf(path: str) -> List[PDFChunk]"
+    ]
+  },
+  "how does vector sliding work": {
+    "relevant_ids": ["vector_sliding_impl", "chunk_merging_logic"],
+    "expected_snippets": [
+      "Vector sliding merges adjacent chunks based on semantic similarity",
+      "class VectorSlider implements chunk merging based on embeddings"
+    ]
+  },
+  "error during model initialization": {
+    "relevant_ids": ["model_init_error", "bge_embedder_impl"],
+    "expected_snippets": [
+      "Common causes of model initialization errors",
+      "Error handling during BGE embedder initialization"
+    ]
+  },
+  "list configuration options": {
+    "relevant_ids": ["config_schema", "config_options"],
+    "expected_snippets": [
+      "Available configuration options and their defaults",
+      "Configuration schema for ASTRA components"
+    ]
+  }
+}

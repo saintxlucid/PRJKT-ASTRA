@@ -11,12 +11,16 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from astra.api.middleware.request_id import RequestIdMiddleware
-from astra.api.routes import chat, conversations, system
+from astra.api.routes import chat, conversations, system, tools, consent
 from astra.infrastructure.storage.database import DatabaseManager
 from astra.infrastructure.storage.vector_store import VectorStore
 
 # Bridge Module
 from astra.bridge.api_routes import router as bridge_router
+
+# Tool Bus Components
+from astra.core.tool_bus import initialize_registry
+from astra.security.policy_engine import initialize_policy_engine
 
 # Upgrade Pack v2.0 - Metrics and Security
 from astra.metrics import MetricsMiddleware, metrics_endpoint
@@ -139,11 +143,17 @@ def create_app() -> FastAPI:
     # Upgrade Pack v2.0 - Add rate limiting middleware
     app.add_middleware(RateLimitMiddleware)
 
+    # Initialize Tool Bus components
+    initialize_registry()
+    initialize_policy_engine()
+
     # Include routers
     app.include_router(chat.router)
     app.include_router(conversations.router)
     app.include_router(system.router)
     app.include_router(bridge_router)  # Bridge module for LLM function calling
+    app.include_router(tools.router)  # Tool Bus endpoints
+    app.include_router(consent.router)  # Consent management
 
     # Upgrade Pack v2.0 - Expose Prometheus metrics endpoint
     app.add_route("/metrics", metrics_endpoint)

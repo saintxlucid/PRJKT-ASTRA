@@ -1,0 +1,47 @@
+# RAG Pipeline Configuration
+
+# Dense Retrieval Configuration
+dense_index:
+  type: "local" # Changed from "qdrant"
+  config:
+    index_path: "data/index/local.faiss" # Path for the local index
+    batch_size: 100
+    cache_dir: "data/cache/local_index"
+    vector_size: 1024  # BGE-M3 dimension
+
+# Vector Sliding Configuration
+vector_sliding:
+  similarity_threshold: 0.8
+  max_merge_tokens: 512
+
+# Embedder Configuration
+embedder:
+  type: "bge-m3"
+  config:
+    model_name: "BAAI/bge-m3"
+    device: "cuda"
+    cache_dir: "data/cache/embeddings"
+    max_batch_size: 32
+    normalize: true
+
+# Retrieval Parameters
+retrieval:
+  k_dense: 10
+  k_final: 5
+  cache_ttl: 3600  # 1 hour
+  fusion_method: "rrf"
+  rrf_k: 60  # RRF constant
+
+# Telemetry
+telemetry:
+  log_dir: "data/logs"
+  metrics_file: "metrics.jsonl"
+  rotation_bytes: 1048576  # 1MB
+  max_files: 5
+
+# Cache Configuration  
+cache:
+  backend: "disk"
+  base_dir: "data/cache"
+  max_size_gb: 10
+  cleanup_interval: 3600  # 1 hour

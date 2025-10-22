@@ -64,6 +64,18 @@ class MetricsManager:
             'Cache operations total',
             ['operation'],
             registry=self._registry)
+            
+        # Reconciliation metrics
+        self.reconciliation_diffs = Gauge(
+            'astra_memory_reconciliation_diffs',
+            'Number of differences found during reconciliation',
+            ['memory_type'],
+            registry=self._registry)
+            
+        self.reconciliation_errors = Counter(
+            'astra_memory_reconciliation_errors_total',
+            'Total number of errors encountered during reconciliation',
+            registry=self._registry)
         
         # Core metrics from SafetyMetrics
         self.safety = SafetyMetrics(registry=self._registry)
@@ -142,3 +154,13 @@ class MetricsManager:
     def record_cache(self, operation: str) -> None:
         """Record cache operation"""
         self.cache_stats.labels(operation=operation).inc()
+        
+    def observe_reconciliation_diffs(self, semantic: int, episodic: int, procedural: int) -> None:
+        """Record number of differences found during reconciliation"""
+        self.reconciliation_diffs.labels(memory_type="semantic").set(semantic)
+        self.reconciliation_diffs.labels(memory_type="episodic").set(episodic)
+        self.reconciliation_diffs.labels(memory_type="procedural").set(procedural)
+        
+    def record_reconciliation_error(self) -> None:
+        """Record an error encountered during reconciliation"""
+        self.reconciliation_errors.inc()

@@ -7,9 +7,11 @@ This module provides integration with llama.cpp server.
 from __future__ import annotations
 
 import json
+import os
 from typing import AsyncIterator, Optional
 
 import httpx
+import structlog
 from tenacity import (
     retry,
     retry_if_exception_type,
@@ -24,6 +26,7 @@ from astra.utils.errors import (
     LLMTimeoutError,
 )
 from astra.utils.logging import LoggerMixin
+from astra.metrics.llm_metrics import RequestMetrics
 
 from .base import (
     ChatRequest,
@@ -37,6 +40,7 @@ from .harmony import (
     HarmonyPromptBuilder,
 )
 from .sampling import SamplingConfigFactory, StopTokenManager
+from .llamacpp_metrics import LlamaCppMetricsTracker
 
 
 class LlamaCppProvider(LLMProvider, LoggerMixin):
@@ -75,6 +79,15 @@ class LlamaCppProvider(LLMProvider, LoggerMixin):
         )
         self.model_path = model_path
         self.client = httpx.AsyncClient(timeout=timeout)
+        
+        # Initialize metrics tracker
+        try:
+            process_id = os.getpid()
+            self.metrics = LlamaCppMetricsTracker(process_id)
+        except Exception as e:
+            self.logger.warning("metrics_init_failed", error=str(e))
+            self.metrics = LlamaCppMetricsTracker()
+            
         self.logger.info(
             "initialized_llamacpp_provider",
             base_url=base_url,
@@ -218,6 +231,13 @@ class LlamaCppProvider(LLMProvider, LoggerMixin):
                 "stream": False,
             }
 
+            # Start tracking metrics
+            metrics = self.metrics.start_request(
+                model=self.model_path or "llama.cpp",
+                sampling_preset=self.sampling_preset,
+                prompt_tokens=len(prompt.split())  # Approximate
+            )
+
             self.logger.debug(
                 "sending_chat_request",
                 prompt_length=len(prompt),
@@ -273,12 +293,17 @@ class LlamaCppProvider(LLMProvider, LoggerMixin):
                 content = raw_content
 
             # Extract token usage
+            # Update metrics and usage stats
+            completion_tokens = data.get("tokens_predicted", 0)
             usage = {
                 "prompt_tokens": data.get("tokens_evaluated", 0),
-                "completion_tokens": data.get("tokens_predicted", 0),
+                "completion_tokens": completion_tokens,
                 "total_tokens": data.get("tokens_evaluated", 0)
-                + data.get("tokens_predicted", 0),
+                + completion_tokens,
             }
+
+            self.metrics.update_request(metrics, completion_tokens)
+            self.metrics.finish_request(metrics)
 
             finish_reason = "stop" if data.get("stopped_eos", False) else "length"
 

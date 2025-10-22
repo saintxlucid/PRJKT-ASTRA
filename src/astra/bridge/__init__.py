@@ -10,7 +10,7 @@ from .config import BridgeConfig
 from .schemas import BridgeEvent, BridgeIntent, BridgeFact, BridgeRouteResult, BridgeKind
 from .interpreter import interpret, LLM_ABSTRACTOR
 from .router import route
-from .memory_bridge import MemoryBridgeService, MemoryLTMAdapter, MemoryEpisodicAdapter
+from .memory_bridge import MemoryBridge, LongTermMemory, EpisodicMemory, MemoryType
 from .tool_bridge import ToolBridgeService, TaskAgentAdapter
 from .registry import BridgeRegistry
 from .api_routes import router as bridge_router, setup_bridge
@@ -24,9 +24,10 @@ __all__ = [
     "BridgeKind",
     "interpret",
     "route",
-    "MemoryBridgeService",
-    "MemoryLTMAdapter",
-    "MemoryEpisodicAdapter",
+    "MemoryBridge",
+    "LongTermMemory",
+    "EpisodicMemory",
+    "MemoryType",
     "ToolBridgeService",
     "TaskAgentAdapter",
     "BridgeRegistry",

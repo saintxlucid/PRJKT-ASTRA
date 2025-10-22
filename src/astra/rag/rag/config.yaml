@@ -1,0 +1,565 @@
+# ASTRA Multi-RAG System v2.0 Configuration
+# Category-aware retrieval with hierarchical ingestion, hybrid search, and HRM planning
+# Windows-first, local-first, repeatable evaluation
+
+version: "2.0"
+created: "2025-10-20"
+
+# ============================================================================
+# 1. SYSTEM SETTINGS
+# ============================================================================
+system:
+  mode: "production"  # production | development | eval
+  data_root: "${APPDATA}/ASTRA/data"  # Windows-friendly path expansion
+  
+  # Vector Store Backend
+  vector_store:
+    backend: "qdrant"  # qdrant | chroma | faiss | hybrid
+    local_path: "${APPDATA}/ASTRA/vectors"
+    
+    # Qdrant-specific
+    qdrant:
+      host: "localhost"
+      port: 6333
+      # For local mode:
+      path: "${APPDATA}/ASTRA/vectors/qdrant_storage"
+      hnsw:
+        ef_construct: 200  # Construction effort
+        m: 16              # Max connections
+      
+      # Query-time settings
+      search:
+        ef: 128            # Search effort
+  
+  # SQLite for FTS5 + metadata
+  sqlite:
+    path: "${APPDATA}/ASTRA/data/astra_rag.db"
+    vacuum_schedule: "daily"  # Optimize vacuuming
+  
+  # File Watchers (Windows ReadDirectoryChangesW)
+  file_watchers:
+    enabled: true
+    watch_interval_ms: 1000
+    batch_delay_ms: 500
+
+# ============================================================================
+# 2. CATEGORY REGISTRY (Domain-Specific Configurations)
+# ============================================================================
+categories:
+  
+  ai_engineering:
+    enabled: true
+    description: "Code, algorithms, architecture, ML research"
+    priority: 100
+    
+    # Ingestion: Code-aware chunking + vector-sliding for function boundaries
+    chunker:
+      type: "code_aware"        # Special: split by functions/classes
+      fallback: "recursive"     # Fallback for non-code sections
+      config:
+        chunk_size: 800
+        overlap: 128
+        min_chunk_size: 200
+        max_chunk_size: 1500
+        detect_docstrings: true
+        detect_imports: true
+    
+    # Abstracts: Summaries of sections (100-200 tokens)
+    abstracts:
+      enabled: true
+      max_tokens: 200
+      include_code_signatures: true
+    
+    # Vector-sliding: Capture edge context between chunks
+    vector_sliding:
+      enabled: true
+      offsets: [0, 128, 256]  # 3 embeddings per chunk
+    
+    # Embedding model (bilingual, strong on technical text)
+    embedding:
+      model: "bge-m3"
+      dimension: 1536
+      batch_size: 32
+    
+    # Reranker: High precision for code
+    reranker:
+      model: "bge-reranker-large"
+      threshold: 0.5
+    
+    # Vector index (per-category collection)
+    index:
+      name: "astra_ai_engineering"
+      distance_metric: "cosine"
+    
+    # Retrieval parameters
+    retrieval:
+      bm25_k: 60          # Sparse search: top 60 from FTS5
+      vec_k: 60           # Dense search: top 60 from ANN
+      top_k: 12           # Final top-k after reranking
+      mix_alpha: 0.5      # Hybrid blend: 0.5*dense + 0.5*sparse
+      diversity_cap: 0.4  # Cap single doc at 40%
+    
+    # Post-retrieval optimization
+    optimizer:
+      adjacent_packing: true
+      deduplicate: true
+      cite_hierarchical: true
+
+  music_film:
+    enabled: true
+    description: "Music theory, songwriting, film craft, media production"
+    priority: 90
+    
+    # Semantic + abstracts for natural boundaries (articles, discussions)
+    chunker:
+      type: "semantic"
+      fallback: "sliding"
+      config:
+        chunk_size: 700
+        overlap: 100
+        min_chunk_size: 150
+    
+    abstracts:
+      enabled: true
+      max_tokens: 180
+    
+    vector_sliding:
+      enabled: true
+      offsets: [0, 100, 200]
+    
+    embedding:
+      model: "bge-m3"
+      dimension: 1536
+      batch_size: 32
+    
+    reranker:
+      model: "bge-reranker-large"
+      threshold: 0.5
+    
+    index:
+      name: "astra_music_film"
+      distance_metric: "cosine"
+    
+    retrieval:
+      bm25_k: 50
+      vec_k: 70
+      top_k: 12
+      mix_alpha: 0.4      # Bias toward dense (semantic coherence)
+      diversity_cap: 0.35
+
+  cognition_spirit:
+    enabled: true
+    description: "Consciousness, philosophy, spiritual practice, introspection"
+    priority: 95
+    
+    # Adaptive chunking: density-aware, sensitive to conceptual density
+    chunker:
+      type: "adaptive"
+      fallback: "semantic"
+      config:
+        chunk_size: 650
+        overlap: 150
+        min_chunk_size: 200
+        density_threshold: 8  # tokens per concept
+    
+    abstracts:
+      enabled: true
+      max_tokens: 200
+      include_key_concepts: true
+    
+    vector_sliding:
+      enabled: true
+      offsets: [0, 120, 240]
+    
+    embedding:
+      model: "bge-m3"
+      dimension: 1536
+      batch_size: 32
+    
+    reranker:
+      model: "bge-reranker-base"  # Lighter: speed over precision
+      threshold: 0.45
+    
+    index:
+      name: "astra_cognition_spirit"
+      distance_metric: "cosine"
+    
+    retrieval:
+      bm25_k: 50
+      vec_k: 50
+      top_k: 10
+      mix_alpha: 0.5
+      diversity_cap: 0.3
+
+  operations_systems:
+    enabled: true
+    description: "System logs, deployment runbooks, incident reports"
+    priority: 85
+    
+    # Paragraph-based with sliding for continuous logs
+    chunker:
+      type: "sliding"
+      fallback: "sentence"
+      config:
+        chunk_size: 900
+        overlap: 128
+        min_chunk_size: 200
+    
+    abstracts:
+      enabled: true
+      max_tokens: 150
+      extract_timestamps: true
+    
+    vector_sliding:
+      enabled: true
+      offsets: [0, 150, 300]
+    
+    embedding:
+      model: "bge-m3"
+      dimension: 1536
+      batch_size: 32
+    
+    reranker:
+      model: "bge-reranker-large"
+      threshold: 0.55
+    
+    index:
+      name: "astra_operations"
+      distance_metric: "cosine"
+    
+    retrieval:
+      bm25_k: 70        # Favor keyword precision for logs
+      vec_k: 50
+      top_k: 12
+      mix_alpha: 0.6
+      diversity_cap: 0.5
+
+# ============================================================================
+# 3. ROUTER CONFIGURATION
+# ============================================================================
+router:
+  mode: "multi_label"  # single | multi_label
+  
+  # Rule-based routing (keywords → category)
+  rules:
+    ai_engineering:
+      keywords: ["code", "function", "class", "algorithm", "api", "implementation", "debug", "model", "training"]
+      patterns: ['def\s+\w+', 'class\s+\w+', 'import\s+']
+      priority: 100
+    
+    music_film:
+      keywords: ["music", "song", "film", "movie", "production", "mix", "chord", "melody", "cinematography", "edit"]
+      patterns: ['chord', 'tempo', 'tempo bpm', 'scene breakdown']
+      priority: 90
+    
+    cognition_spirit:
+      keywords: ["consciousness", "awareness", "meditation", "philosophy", "spirit", "meaning", "mind", "ego", "self"]
+      patterns: []
+      priority: 95
+    
+    operations_systems:
+      keywords: ["error", "log", "deployment", "failed", "alert", "incident", "system", "service", "health"]
+      patterns: ['ERROR', 'WARN', 'FATAL', '\\[TIMESTAMP\\]']
+      priority: 85
+  
+  # Optional: Zero-shot classifier (for ambiguous queries)
+  fallback_classifier:
+    enabled: false
+    model: "cross-encoder/nli-deberta-v3-small"
+
+# ============================================================================
+# 4. HIERARCHICAL RETRIEVAL PIPELINE
+# ============================================================================
+retrieval_pipeline:
+  
+  # Stage 1: Sparse Search (FTS5 on titles, abstracts, headers)
+  sparse:
+    enabled: true
+    engine: "fts5"  # Full-Text Search 5 (SQLite)
+    index_columns: ["title", "abstract", "headers"]
+    # BM25 parameters inherited from category config
+  
+  # Stage 2: Dense Search (ANN on vectors)
+  dense:
+    enabled: true
+    index_type: "hnws"  # Hierarchical Navigable Small World (Qdrant)
+    consent_filter: true
+    # Vector search inherited from category config
+  
+  # Stage 3: Cross-Encoder Re-ranking
+  reranking:
+    enabled: true
+    batch_size: 40      # Input to reranker
+    output_size: 10     # Output after reranking (before packing)
+  
+  # Stage 4: Post-Retrieval Optimization
+  post_optimization:
+    enabled: true
+    adjacent_packing: true  # Merge adjacent chunks from same doc
+    deduplication: true     # Remove text duplicates
+    diversity_guard: true   # Cap single-doc concentration
+    hierarchical_cite: true # Path: doc > section > para
+
+# ============================================================================
+# 5. FUSION LAYER (Cross-Category)
+# ============================================================================
+fusion:
+  mode: "attention_gate"  # weighted | attention_gate | neural
+  
+  # Weighted fusion (fixed per category)
+  weights:
+    ai_engineering: 1.0
+    music_film: 0.9
+    cognition_spirit: 0.95
+    operations_systems: 0.85
+  
+  # Attention gate fusion (learned from query features)
+  attention_gate:
+    input_features: ["query_length", "query_entropy", "keyword_match", "domain_indicator"]
+    hidden_dim: 64
+    output_dim: 4  # Per-category gates
+    learning_rate: 0.001
+    update_frequency: "daily"
+
+# ============================================================================
+# 6. HRM PLANNER (Dual-Speed Reasoning)
+# ============================================================================
+planner:
+  
+  # Fast loop (Gamma ~30 Hz): rapid retrieval
+  fast_loop:
+    enabled: true
+    max_iterations: 2
+    evidence_gap_threshold: 0.3  # If coverage < 30%, trigger re-query
+    sub_query_strategies:
+      - "synonym_expansion"
+      - "table_figure_captions"
+      - "chunker_mode_switch"
+      - "cross_category_expansion"
+  
+  # Slow loop (Alpha ~8-13 Hz): reflection + meta-reasoning
+  slow_loop:
+    enabled: true
+    max_iterations: 1
+    reflection_criteria:
+      - "answerability"        # Is context sufficient?
+      - "conflict_score"       # Are top segments consistent?
+      - "specificity"          # Are we citing concrete spans?
+    
+    decision_threshold: 0.7    # Confidence needed to finalize
+  
+  # Learning signals (bandit-style updates)
+  learning:
+    enabled: true
+    feedback_sources:
+      - "offline_eval"    # Hit@k, MRR@k
+      - "operator_feedback"  # 👍/👎, corrections
+    update_signals:
+      - "fusion_weights"
+      - "router_priors"
+      - "reranker_threshold"
+
+# ============================================================================
+# 7. CONSENT & RETENTION POLICIES
+# ============================================================================
+consent_retention:
+  
+  # Default consent scope (can be overridden per document)
+  default_scope: "private"  # private | shared | public
+  
+  # Retention policies (per scope)
+  retention:
+    private: 365   # 1 year
+    shared: 180    # 6 months
+    public: 7      # 7 days
+  
+  # PII handling
+  pii:
+    detection_enabled: true
+    patterns:
+      - "email"
+      - "phone"
+      - "ssn"
+      - "credit_card"
+      - "api_key"
+    redaction_strategy: "obfuscate"  # delete | obfuscate | summarize
+  
+  # Consolidation job (runs daily)
+  consolidation:
+    enabled: true
+    schedule: "02:00"  # UTC
+    
+    tasks:
+      - "expire_old_documents"
+      - "obfuscate_pii"
+      - "generate_daily_brief"
+      - "snapshot_vectors"
+      - "vacuum_sqlite"
+
+# ============================================================================
+# 8. MODELS & INFERENCE (Local-Friendly)
+# ============================================================================
+models:
+  
+  # Embedding models per category
+  embeddings:
+    default: "bge-m3"
+    variants:
+      bge-m3:
+        provider: "sentence-transformers"
+        dimension: 1536
+        pooling: "mean"
+      gte-large:
+        provider: "sentence-transformers"
+        dimension: 1024
+        pooling: "mean"
+  
+  # Reranking models
+  rerankers:
+    default: "bge-reranker-large"
+    variants:
+      bge-reranker-large:
+        provider: "sentence-transformers"
+        max_length: 512
+      bge-reranker-base:
+        provider: "sentence-transformers"
+        max_length: 512
+  
+  # Local LLM for summarization/refinement
+  llm:
+    model: "local-llm-20b"  # GGUF-based
+    context_window: 4096
+    quantization: "Q4_K_M"
+    provider: "llama.cpp"
+
+# ============================================================================
+# 9. OBSERVABILITY & EVALUATION
+# ============================================================================
+observability:
+  
+  # Telemetry collection per query
+  telemetry:
+    enabled: true
+    log_fields:
+      - "query_id"
+      - "category_routing"
+      - "retrieval_time_ms"
+      - "bm25_k"
+      - "vec_k"
+      - "top_k"
+      - "rerank_ms"
+      - "source_diversity"
+      - "hit_overlap_ratio"
+      - "fusion_weights"
+      - "policy_used"
+  
+  # RAG evaluation harness
+  eval:
+    enabled: true
+    
+    # Evaluation datasets (per category)
+    datasets:
+      ai_engineering:
+        path: "${APPDATA}/ASTRA/eval/ai_engineering_qa.jsonl"
+        size: 100  # 100 Q/A pairs
+      music_film:
+        path: "${APPDATA}/ASTRA/eval/music_film_qa.jsonl"
+        size: 80
+      cognition_spirit:
+        path: "${APPDATA}/ASTRA/eval/cognition_spirit_qa.jsonl"
+        size: 60
+      operations_systems:
+        path: "${APPDATA}/ASTRA/eval/operations_qa.jsonl"
+        size: 50
+    
+    # Metrics
+    metrics:
+      - "hit@10"
+      - "mrr@10"
+      - "context_token_budget"
+      - "doc_diversity"
+      - "latency_p99"
+    
+    # Regression detection
+    regression_threshold: -0.05  # Allow 5% degradation
+    block_release_on_regression: true
+
+# ============================================================================
+# 10. WINDOWS SERVICE & DAEMON
+# ============================================================================
+service:
+  
+  # Ingestion daemon
+  ingestion_daemon:
+    enabled: true
+    watch_directories:
+      - "${APPDATA}/ASTRA/data/ai_engineering"
+      - "${APPDATA}/ASTRA/data/music_film"
+      - "${APPDATA}/ASTRA/data/cognition_spirit"
+      - "${APPDATA}/ASTRA/data/operations"
+    
+    batch_interval_sec: 60
+    max_batch_size: 100
+  
+  # HRM planner service
+  planner_service:
+    enabled: true
+    listen_port: 6334
+    timeout_sec: 30
+  
+  # Windows Service registration
+  windows_service:
+    name: "AstraMultiRAGService"
+    display_name: "ASTRA Multi-RAG System"
+    description: "Category-aware retrieval with hierarchical ingestion and HRM planning"
+    auto_start: true
+    account: "LocalSystem"
+
+# ============================================================================
+# 11. ADVANCED: VECTOR-SLIDING TECHNICAL SPEC
+# ============================================================================
+vector_sliding:
+  description: |
+    Mitigates "edge loss" between chunks by computing N overlapping
+    embeddings within each chunk's token span.
+    
+    Example:
+      chunk_tokens: [t0, t1, ..., t800]
+      offsets: [0, 128, 256]
+      embeddings:
+        - e0: embed(t0...t512)
+        - e1: embed(t128...t640)
+        - e2: embed(t256...t768)
+      payload: {doc_id, chunk_id, offset_id}
+      
+      At query time: max_similarity(query_vec, [e0, e1, e2])
+  
+  implementation_notes: |
+    1. During ingestion, for each chunk C:
+       a. For each offset O in offsets:
+          i. Extract window: C[O:O+512] (overlapping window)
+          ii. Embed window: embed(window)
+          iii. Store: payload = {doc_id, chunk_id, offset_id=O}
+    
+    2. At query time:
+       a. Embed query: q_vec
+       b. ANN search: top-k from all [doc, chunk, offset] triples
+       c. For each unique [doc, chunk], max over offsets
+       d. Return to reranker
+
+# ============================================================================
+# 12. MIGRATION & ROLLBACK
+# ============================================================================
+migration:
+  backup_before_update: true
+  backup_path: "${APPDATA}/ASTRA/backups"
+  rollback_enabled: true
+
+logging:
+  level: "INFO"  # DEBUG | INFO | WARNING | ERROR
+  format: "json"
+  output_paths:
+    - "console"
+    - "${APPDATA}/ASTRA/logs/rag.log"
+
+# EOF: config.yaml

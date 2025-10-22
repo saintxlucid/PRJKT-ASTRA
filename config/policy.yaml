@@ -1,0 +1,47 @@
+# ASTRA Policy Configuration
+# Author: Saint Lucid
+# Date: October 22, 2025
+# Sacred Code: 333
+
+scopes:
+  fs.write: 
+    enabled: true
+  browser.navigate: 
+    enabled: true
+  shell.exec: 
+    enabled: true
+    timeoutSec: 45
+  evolution.propose:
+    enabled: true
+  evolution.simulate:
+    enabled: true
+  evolution.execute:
+    enabled: true
+  evolution.rollback:
+    enabled: true
+
+filesystem:
+  allowedPaths:
+    - "x:/PROJECT_ASTRA_2.0/PROJECT_ASTRA_1.0"  # ASTRA workspace
+  blockedPaths:
+    - "C:/Windows"
+    - "C:/Users/*/Documents/Secrets"
+    - "C:/Program Files"
+    - "C:/Program Files (x86)"
+  maxFilesTouched: 20
+
+browser:
+  allowedDomains:
+    - "github.com"
+    - "docs.python.org"
+    - "microsoft.github.io"
+    - "code.visualstudio.com"
+  humanInLoop: true
+
+evolution:
+  canaryDefault: true
+  snapshotDir: "x:/PROJECT_ASTRA_2.0/PROJECT_ASTRA_1.0/snapshots"
+  rollbackStrategy: "latest"
+
+telemetry:
+  level: "minimal"  # none, minimal, standard, debug

@@ -6,6 +6,7 @@ Collects metrics from event bus and exports to Prometheus.
 
 import asyncio
 import time
+import psutil
 from dataclasses import dataclass
 from datetime import datetime
 from typing import Any, Dict, List, Optional
@@ -20,6 +21,7 @@ logger = structlog.get_logger(__name__)
 
 
 # Prometheus Metrics Definition
+# SLO Metrics
 
 # Counters
 ROUTER_CALLS = Counter(
@@ -138,6 +140,50 @@ REMAINING_BUDGET = Gauge(
     "Remaining budget tokens",
 )
 
+# SLO-specific metrics
+
+# WebSocket metrics
+ROUTER_HEARTBEAT_TOTAL = Counter(
+    "astra_router_heartbeat_total",
+    "Total WebSocket heartbeat attempts",
+)
+
+ROUTER_HEARTBEAT_SUCCESS = Counter(
+    "astra_router_heartbeat_success_total",
+    "Successful WebSocket heartbeat responses",
+)
+
+# Context metrics
+CONTEXT_TOKENS = Histogram(
+    "astra_context_tokens_total",
+    "Number of tokens in request context",
+    buckets=(1000, 2000, 4000, 6000, 8000, 10000, 12000),
+)
+
+# Memory operation metrics
+MEMORY_SYNC_DIFFS = Counter(
+    "astra_memory_sync_diffs_total",
+    "Total differences found during memory reconciliation",
+)
+
+MEMORY_ENTRIES = Gauge(
+    "astra_memory_entries_total",
+    "Total number of memory entries",
+)
+
+MEMORY_OPERATION_DURATION = Histogram(
+    "astra_memory_operation_duration_seconds",
+    "Memory operation duration in seconds",
+    ["operation"],  # read, write, search
+    buckets=(0.01, 0.05, 0.1, 0.25, 0.5, 1.0),
+)
+
+# Resource metrics
+CPU_USAGE = Gauge(
+    "astra_cpu_usage_percent",
+    "CPU usage percentage",
+)
+
 
 @dataclass
 class MetricEvent:
@@ -180,6 +226,14 @@ class MetricsExporter:
         # Router events
         self.bus.subscribe("astra.router.route_selected", self._on_route_selected)
         self.bus.subscribe("astra.router.phase_executing", self._on_phase_executing)
+        self.bus.subscribe("astra.router.heartbeat", self._on_ws_heartbeat)
+
+        # Context events
+        self.bus.subscribe("astra.context.update", self._on_context_update)
+
+        # Memory events
+        self.bus.subscribe("astra.memory.sync", self._on_memory_sync)
+        self.bus.subscribe("astra.memory.operation", self._on_memory_operation)
 
         # Tool events
         self.bus.subscribe("astra.tool.before", self._on_tool_before)
@@ -415,10 +469,55 @@ class MetricsExporter:
         OSOP_BYTES.labels(operation=operation).inc(bytes_count)
         logger.debug("metric_osop_bytes", operation=operation, bytes=bytes_count)
 
+    # SLO-specific event handlers
+
+    def _on_ws_heartbeat(self, event: Any) -> None:
+        """Track WebSocket heartbeat."""
+        ROUTER_HEARTBEAT_TOTAL.inc()
+        if event.data.get("success", False):
+            ROUTER_HEARTBEAT_SUCCESS.inc()
+        logger.debug("metric_ws_heartbeat", success=event.data.get("success", False))
+
+    def _on_context_update(self, event: Any) -> None:
+        """Track context token usage."""
+        tokens = event.data.get("tokens", 0)
+        CONTEXT_TOKENS.observe(tokens)
+        logger.debug("metric_context_tokens", tokens=tokens)
+
+    def _on_memory_sync(self, event: Any) -> None:
+        """Track memory sync stats."""
+        diffs = event.data.get("diffs", 0)
+        total_entries = event.data.get("total_entries", 0)
+        
+        MEMORY_SYNC_DIFFS.inc(diffs)
+        MEMORY_ENTRIES.set(total_entries)
+        logger.debug("metric_memory_sync", diffs=diffs, total=total_entries)
+
+    def _on_memory_operation(self, event: Any) -> None:
+        """Track memory operation timing."""
+        operation = event.data.get("operation", "unknown")
+        duration = event.data.get("duration", 0)
+        
+        MEMORY_OPERATION_DURATION.labels(operation=operation).observe(duration)
+        logger.debug("metric_memory_op", operation=operation, duration=duration)
+
+    async def _collect_resource_metrics(self) -> None:
+        """Collect system resource metrics."""
+        while self.running:
+            try:
+                CPU_USAGE.set(psutil.cpu_percent(interval=1))
+                await asyncio.sleep(5)  # Poll every 5 seconds
+            except Exception as e:
+                logger.error("resource_metric_error", error=str(e))
+                await asyncio.sleep(10)  # Back off on error
 
 async def start_metrics_exporter(port: int = 8000) -> MetricsExporter:
     """Start metrics exporter and setup subscriptions."""
     exporter = MetricsExporter(port=port)
     exporter.start()
     await exporter.setup_subscriptions()
+
+    # Start resource metrics collection
+    asyncio.create_task(exporter._collect_resource_metrics())
+
     return exporter

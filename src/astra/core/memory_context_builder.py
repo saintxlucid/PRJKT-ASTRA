@@ -10,24 +10,33 @@ Project: PROJECT_ASTRA_1.0 (ASTRA_CORE)
 
 from __future__ import annotations
 
-from typing import List, Dict, Any, Optional
-from dataclasses import dataclass
+import time
+from typing import List, Dict, Any, Optional, Union
+from dataclasses import dataclass, field
 
 import structlog
 
 from src.astra.core.memory_engine import MemoryEngine, MemoryContext
 from src.astra.core.identity_engine import IdentityEngine
+from src.astra.metrics.memory_metrics import MemoryMetrics
 
 logger = structlog.get_logger()
 
 
 @dataclass
 class ConversationContext:
-    """Complete context for a conversation including identity and memories"""
+    """Complete context for a conversation including identity and memories."""
     system_prompt: str
     memory_context: Optional[MemoryContext] = None
     conversation_history: Optional[List[Dict[str, str]]] = None
-    metadata: Optional[Dict[str, Any]] = None
+    metadata: Dict[str, Any] = field(default_factory=dict)
+
+    def get_token_count(self) -> int:
+        """Calculate total tokens in context."""
+        total = len(self.system_prompt.split())
+        if self.memory_context and self.memory_context.formatted_context:
+            total += len(self.memory_context.formatted_context.split())
+        return total
 
 
 class MemoryContextBuilder:
@@ -51,6 +60,7 @@ class MemoryContextBuilder:
         """
         self.identity_engine = identity_engine
         self.memory_engine = memory_engine
+        self.metrics = MemoryMetrics()
         
         logger.info("Memory context builder initialized")
     
@@ -75,23 +85,46 @@ class MemoryContextBuilder:
         Returns:
             Complete conversation context
         """
+        # Track build time
+        start_time = time.perf_counter()
+        
+        # Track identity and memory timings separately
+        identity_duration = 0.0
+        memory_duration = 0.0
+        
         # Retrieve relevant memories
         memory_context = None
         if include_memory and self.memory_engine:
             try:
+                search_start = time.perf_counter()
+                # Use top_k to get total max results
                 memory_context = await self.memory_engine.search_memories(
                     query=user_message,
-                    search_semantic=True,
-                    search_episodic=True,
-                    search_procedural=False,  # Only include if needed
-                    max_total=max_memories
+                    memory_types=["semantic", "episodic"],
+                    limit=max_memories
                 )
+                memory_duration = time.perf_counter() - search_start
+                
+                # Record memory metrics
+                self.metrics.record_memory_search(memory_duration, "semantic")
+                self.metrics.record_memory_search(memory_duration, "episodic")
+                
+                # Record retrieval counts by type
+                if memory_context:
+                    self.metrics.record_memory_retrieval("semantic", memory_context.semantic_count)
+                    self.metrics.record_memory_retrieval("episodic", memory_context.episodic_count)
+                    
+                    # Record token counts if available
+                    if memory_context.formatted_context:
+                        memory_tokens = memory_context.get_token_count()
+                        self.metrics.record_context_tokens("memory", memory_tokens)
                 
                 logger.debug(
                     "Retrieved memories for context",
-                    total=memory_context.total_count,
-                    semantic=memory_context.semantic_count,
-                    episodic=memory_context.episodic_count
+                    total=memory_context.total_count if memory_context else 0,
+                    semantic=memory_context.semantic_count if memory_context else 0,
+                    episodic=memory_context.episodic_count if memory_context else 0,
+                    duration=memory_duration
                 )
                 
             except Exception as e:
@@ -203,7 +236,7 @@ class MemoryContextBuilder:
         conversation_id: str,
         force_semantic: bool = False,
         force_episodic: bool = False
-    ) -> Dict[str, Optional[str]]:
+    ) -> Dict[str, Optional[Union[str, int]]]:
         """
         Store conversation exchange in appropriate memory types.
         
@@ -217,7 +250,7 @@ class MemoryContextBuilder:
         Returns:
             Dictionary of stored memory IDs
         """
-        stored_ids = {
+        stored_ids: Dict[str, Optional[Union[str, int]]] = {
             "semantic": None,
             "episodic": None
         }

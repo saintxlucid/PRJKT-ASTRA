@@ -1,0 +1,12 @@
+# Test requirements for ASTRA Evolution Backend
+pytest>=7.0.0
+pytest-asyncio>=0.21.0
+pytest-cov>=4.1.0
+pytest-mock>=3.11.1
+pytest-timeout>=2.1.0
+pytest-xdist>=3.3.1  # For parallel test execution
+pytest-benchmark>=4.0.0
+freezegun>=1.2.0  # For time-based testing
+coverage>=7.3.0
+cryptography>=41.0.0  # For security tests
+psutil>=5.9.0  # For memory monitoring

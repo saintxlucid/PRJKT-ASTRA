@@ -7,7 +7,7 @@ import structlog
 
 from .schemas import BridgeRouteResult
 from .config import BridgeConfig
-from .memory_bridge import MemoryBridgeService
+from .memory_bridge import MemoryBridge
 from .tool_bridge import ToolBridgeService
 
 logger = structlog.get_logger()
@@ -15,7 +15,7 @@ logger = structlog.get_logger()
 
 def route(payload: Dict[str, Any], 
           cfg: BridgeConfig, 
-          mem: MemoryBridgeService, 
+          mem: MemoryBridge, 
           tools: ToolBridgeService) -> BridgeRouteResult:
     """
     Route interpreted payload to appropriate handlers:

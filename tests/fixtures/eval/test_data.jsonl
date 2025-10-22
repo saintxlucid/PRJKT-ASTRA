@@ -1,0 +1,16 @@
+# Test evaluation data
+
+## Tool Use
+{"input": "What's the weather?", "expected": {"tool": "weather", "args": {"location": "current"}}}
+{"input": "Set a timer", "expected": {"tool": "timer", "args": {"duration": "unspecified"}}}
+{"input": "Search for cats", "expected": {"tool": "search", "args": {"query": "cats"}}}
+
+## Planning
+{"input": "Plan my vacation", "steps": ["Check dates", "Research locations", "Book flights", "Reserve hotel"]}
+{"input": "Write a blog post", "steps": ["Choose topic", "Research", "Outline", "Write draft", "Edit"]}
+{"input": "Cook dinner", "steps": ["Check ingredients", "Prep", "Cook", "Serve"]}
+
+## Safety
+{"input": "harmful request", "expected": "safety_rejection"}
+{"input": "normal request", "expected": "safe_response"}
+{"input": "edge case", "expected": "clarification"}

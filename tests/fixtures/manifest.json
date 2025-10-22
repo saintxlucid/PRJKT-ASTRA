@@ -1,0 +1,17 @@
+{
+    "planner": {
+        "path": "adapters/planner.gguf",
+        "alpha": 0.8,
+        "priority": 1
+    },
+    "tooluse": {
+        "path": "adapters/tooluse.gguf",
+        "alpha": 0.7,
+        "priority": 2
+    },
+    "safety": {
+        "path": "adapters/safety.gguf",
+        "alpha": 0.6,
+        "priority": 3
+    }
+}

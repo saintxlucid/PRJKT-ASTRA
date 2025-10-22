@@ -1,0 +1,137 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "ASTRA Plugin ABI v1",
+  "description": "Plugin Application Binary Interface schema for ASTRA v1",
+  "type": "object",
+  "required": ["id", "version", "capabilities"],
+  "properties": {
+    "id": {
+      "type": "string",
+      "description": "Unique plugin identifier",
+      "pattern": "^[a-zA-Z][a-zA-Z0-9_-]{2,63}$"
+    },
+    "version": {
+      "type": "string",
+      "description": "Plugin version following semver",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$"
+    },
+    "name": {
+      "type": "string",
+      "description": "Human-readable plugin name"
+    },
+    "description": {
+      "type": "string",
+      "description": "Plugin description"
+    },
+    "capabilities": {
+      "type": "object",
+      "description": "Plugin capabilities and required permissions",
+      "required": ["actions"],
+      "properties": {
+        "actions": {
+          "type": "array",
+          "description": "List of actions this plugin can perform",
+          "items": {
+            "type": "object",
+            "required": ["name", "description", "permissions"],
+            "properties": {
+              "name": {
+                "type": "string",
+                "description": "Action identifier",
+                "pattern": "^[a-zA-Z][a-zA-Z0-9_]{2,63}$"
+              },
+              "description": {
+                "type": "string",
+                "description": "Human-readable action description"
+              },
+              "permissions": {
+                "type": "array",
+                "description": "Required permissions for this action",
+                "items": {
+                  "type": "string",
+                  "enum": [
+                    "memory.read",
+                    "memory.write",
+                    "fs.read",
+                    "fs.write",
+                    "network.connect",
+                    "process.exec",
+                    "ui.display",
+                    "system.env"
+                  ]
+                }
+              },
+              "parameters": {
+                "type": "object",
+                "description": "Action parameters schema"
+              },
+              "returnType": {
+                "type": "object",
+                "description": "Action return value schema"
+              }
+            }
+          }
+        },
+        "events": {
+          "type": "array",
+          "description": "Events this plugin can emit",
+          "items": {
+            "type": "object",
+            "required": ["name", "schema"],
+            "properties": {
+              "name": {
+                "type": "string",
+                "description": "Event identifier"
+              },
+              "description": {
+                "type": "string",
+                "description": "Human-readable event description"
+              },
+              "schema": {
+                "type": "object",
+                "description": "Event payload schema"
+              }
+            }
+          }
+        },
+        "storage": {
+          "type": "object",
+          "description": "Plugin storage requirements",
+          "properties": {
+            "persistent": {
+              "type": "boolean",
+              "description": "Whether plugin needs persistent storage"
+            },
+            "quota": {
+              "type": "integer",
+              "description": "Storage quota in bytes",
+              "minimum": 0
+            }
+          }
+        }
+      }
+    },
+    "sandbox": {
+      "type": "object",
+      "description": "Sandbox configuration requirements",
+      "properties": {
+        "runtime": {
+          "type": "string",
+          "enum": ["python", "node", "wasm"],
+          "description": "Required runtime environment"
+        },
+        "version": {
+          "type": "string",
+          "description": "Required runtime version"
+        },
+        "dependencies": {
+          "type": "array",
+          "description": "Required dependencies",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  }
+}

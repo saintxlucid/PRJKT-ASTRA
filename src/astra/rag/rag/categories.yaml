@@ -1,0 +1,88 @@
+categories:
+  ai_engineering:
+    keywords:
+      - qdrant
+      - embedding
+      - vector
+      - llm
+      - inference
+      - quantization
+      - gguf
+      - rag
+      - retriever
+      - python
+      - api
+      - cuda
+      - pytorch
+      - ollama
+      - llama.cpp
+      - neox
+      - win32
+    retriever:
+      bm25_k: 60
+      vec_k: 60
+      top_k: 12
+      mix_alpha: 0.5
+
+  music_film:
+    keywords:
+      - mixing
+      - mastering
+      - melody
+      - "808"
+      - cinematography
+      - fx3
+      - story
+      - script
+      - lyrics
+      - beat
+      - film
+      - documentary
+      - scene
+    retriever:
+      bm25_k: 50
+      vec_k: 70
+      top_k: 12
+      mix_alpha: 0.4
+
+  cognition_spirit:
+    keywords:
+      - focus
+      - ritual
+      - meditation
+      - discipline
+      - "333"
+      - identity
+      - philosophy
+      - spiritual
+      - alignment
+      - lucid
+      - purpose
+    retriever:
+      bm25_k: 50
+      vec_k: 50
+      top_k: 10
+      mix_alpha: 0.5
+
+  operations_systems:
+    keywords:
+      - "windows service"
+      - prometheus
+      - grafana
+      - logging
+      - metrics
+      - deployment
+      - rollback
+      - snapshot
+      - backup
+      - policy
+      - consent
+      - dpapi
+      - readDirectoryChangesW
+      - powershell
+      - svc
+    retriever:
+      bm25_k: 70
+      vec_k: 50
+      top_k: 12
+      mix_alpha: 0.6

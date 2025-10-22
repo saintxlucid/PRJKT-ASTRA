@@ -15,14 +15,20 @@ Project: PROJECT_ASTRA_1.0 (ASTRA_CORE)
 from __future__ import annotations
 
 import os
-import time
 import asyncio
 from pathlib import Path
-from typing import List, Dict, Any, Optional, Tuple
+from typing import List, Dict, Any, Optional, Tuple, Union
 from dataclasses import dataclass
-from datetime import datetime
+import time as time_lib
+from datetime import datetime, time as dt_time
 
 import structlog
+import chromadb
+from ..metrics import MEMORY_METRICS
+from .memory.write_cache import MemoryWriteCache
+from .memory.indices import create_memory_indices, verify_indices
+from .memory.scheduler import ReconciliationScheduler
+from .memory.reconciliation import ReconciliationReport
 
 logger = structlog.get_logger()
 
@@ -70,7 +76,8 @@ class MemoryEngine:
         self,
         vector_store=None,
         database_path: Optional[Path] = None,
-        memory_config: Optional[Dict[str, Any]] = None
+        memory_config: Optional[Dict[str, Any]] = None,
+        reconciliation_time: Optional[dt_time] = None  # Default 2 AM if not specified
     ):
         """
         Initialize memory engine.
@@ -79,6 +86,7 @@ class MemoryEngine:
             vector_store: VectorStore instance for semantic memory
             database_path: Path to SQLite database for episodic/procedural
             memory_config: Memory retrieval configuration
+            reconciliation_time: Time to run daily reconciliation (default 2 AM)
         """
         self.vector_store = vector_store
         self.database_path = database_path or Path("data/astra.db")
@@ -87,12 +95,36 @@ class MemoryEngine:
         # Initialize LTM if available
         self.ltm = None
         try:
+            # Create memory indices first
+            create_memory_indices(self.database_path)
+            if not verify_indices(self.database_path):
+                logger.warning("Memory indices verification failed")
+            
+            # Initialize write-through cache
+            if self.vector_store and hasattr(self.vector_store, "_client"):
+                self.write_cache = MemoryWriteCache(
+                    database_path=self.database_path,
+                    chroma_client=self.vector_store._client
+                )
+                
+                # Initialize reconciliation scheduler
+                if self.write_cache:
+                    self.reconciliation_scheduler = ReconciliationScheduler(
+                        write_cache=self.write_cache,
+                        schedule_time=reconciliation_time or dt_time(hour=2, minute=0)
+                    )
+            else:
+                logger.warning("Vector store client not available for write cache")
+                self.write_cache = None
+                self.reconciliation_scheduler = None
+            
             # Try to import and use the existing LTM system
             from astra_local.backend.astra.cognition.ltm import LTM
             if self.database_path:
                 os.environ["SQLITE_PATH"] = str(self.database_path)
             self.ltm = LTM()
             logger.info("LTM system initialized", database=str(self.database_path))
+            
         except ImportError:
             logger.warning("LTM module not available, using basic memory")
         
@@ -137,6 +169,7 @@ class MemoryEngine:
         Returns:
             Assembled memory context
         """
+        start_time = time_lib.time()
         all_memories: List[MemoryResult] = []
         
         # Search semantic memory (facts, preferences, knowledge)
@@ -165,6 +198,9 @@ class MemoryEngine:
         
         # Format context
         formatted = self._format_memory_context(top_memories)
+        
+        end_time = time_lib.time()
+        MEMORY_METRICS.observe_memory_latency("search", (end_time - start_time) * 1000)
         
         return MemoryContext(
             memories=top_memories,
@@ -316,7 +352,7 @@ class MemoryEngine:
                 
                 # Calculate relevance based on recency and match
                 timestamp = result.get("ts", 0)
-                age_hours = (time.time() - timestamp) / 3600
+                age_hours = (time_lib.time() - timestamp) / 3600
                 recency_score = max(0, 1.0 - (age_hours * config.get("time_decay", 0.1)))
                 match_score = overlap / len(keywords) if keywords else 0.0
                 final_score = (recency_score * 0.4) + (match_score * 0.6)
@@ -422,6 +458,40 @@ class MemoryEngine:
         Returns:
             Memory ID if successful
         """
+        start_time = time_lib.time()
+        
+        # Use write-through cache if available
+        if self.write_cache and self.vector_store:
+            try:
+                # Generate unique ID
+                from uuid import uuid4
+                memory_id = str(uuid4())
+                
+                # Prepare data
+                data = {
+                    "id": memory_id,
+                    "text": content,
+                    "tags": tags or [],
+                    "metadata": {
+                        "tags": tags or [],
+                        **(metadata or {})
+                    }
+                }
+                
+                # Write through cache
+                success = await self.write_cache.write_semantic(data)
+                if success:
+                    logger.info("Semantic memory stored with write-through", id=memory_id)
+                    return memory_id
+                else:
+                    logger.error("Write-through cache failed for semantic memory")
+                    return None
+                    
+            except Exception as e:
+                logger.error(f"Error in semantic write-through: {e}")
+                return None
+        
+        # Fall back to LTM if no write cache
         if self.ltm:
             try:
                 memory_id = self.ltm.save_semantic(
@@ -429,13 +499,15 @@ class MemoryEngine:
                     tags=tags or [],
                     meta=metadata or {}
                 )
-                logger.info("Semantic memory stored", id=memory_id, tags=tags)
+                logger.info("Semantic memory stored directly", id=memory_id)
+                duration = time_lib.time() - start_time
+                MEMORY_METRICS.observe_store_latency("semantic", duration)
                 return memory_id
             except Exception as e:
                 logger.error(f"Error storing semantic memory: {e}")
                 return None
         
-        # Fall back to vector store
+        # Final fallback to vector store
         if self.vector_store:
             try:
                 memory_id = self.vector_store.add_memory(
@@ -446,7 +518,7 @@ class MemoryEngine:
                         **(metadata or {})
                     }
                 )
-                logger.info("Semantic memory stored in vector store", id=memory_id)
+                logger.info("Semantic memory stored in vector store directly", id=memory_id)
                 return memory_id
             except Exception as e:
                 logger.error(f"Error storing in vector store: {e}")
@@ -471,7 +543,90 @@ class MemoryEngine:
         Returns:
             Memory ID if successful
         """
+        start_time = time_lib.time()
         if not self.ltm:
+            return None
+            
+        # Use write-through cache if available
+        if self.write_cache:
+            try:
+                # Prepare data
+                data = {
+                    "title": title,
+                    "summary": summary,
+                    "tags": tags or []
+                }
+                
+                # Write through cache
+                success = await self.write_cache.write_episodic(data)
+                if success:
+                    logger.info("Episodic memory stored with write-through", title=title)
+                    return data["title"]  # Use title as ID since it's unique
+                else:
+                    logger.error("Write-through cache failed for episodic memory")
+                    return None
+                    
+            except Exception as e:
+                logger.error(f"Error in episodic write-through: {e}")
+                return None
+            
+    async def store_procedural(
+        self,
+        name: str,
+        script: str,
+        tags: Optional[List[str]] = None
+    ) -> Optional[Union[str, int]]:
+        """
+        Store a procedural memory (workflow, pattern).
+        
+        Args:
+            name: Procedure name
+            script: Procedure script/steps
+            tags: Optional tags
+        
+        Returns:
+            Memory ID (str or int) if successful
+        """
+        start_time = time_lib.time()
+        if not self.ltm:
+            return None
+            
+        # Use write-through cache if available
+        if self.write_cache:
+            try:
+                # Prepare data
+                data = {
+                    "name": name,
+                    "script": script,
+                    "tags": tags or []
+                }
+                
+                # Write through cache
+                success = await self.write_cache.write_procedural(data)
+                if success:
+                    logger.info("Procedural memory stored with write-through", name=name)
+                    return name  # Use name as ID since it's unique
+                else:
+                    logger.error("Write-through cache failed for procedural memory")
+                    return None
+                    
+            except Exception as e:
+                logger.error(f"Error in procedural write-through: {e}")
+                return None
+                
+        # Fall back to direct LTM store
+        try:
+            memory_id = self.ltm.save_procedure(
+                name=name,
+                script=script,
+                tags=tags or []
+            )
+            logger.info("Procedural memory stored directly", id=memory_id, name=name)
+            duration = time_lib.time() - start_time
+            MEMORY_METRICS.observe_store_latency("procedural", duration)
+            return memory_id
+        except Exception as e:
+            logger.error(f"Error storing procedural memory: {e}")
             return None
         
         try:
@@ -481,6 +636,8 @@ class MemoryEngine:
                 tags=tags or []
             )
             logger.info("Episodic memory stored", id=memory_id, title=title)
+            duration = time.time() - start_time
+            MEMORY_METRICS.observe_store_latency("episodic", duration)
             return memory_id
         except Exception as e:
             logger.error(f"Error storing episodic memory: {e}")
@@ -494,13 +651,16 @@ class MemoryEngine:
             Dictionary with counts of each memory type
         """
         counts = {"semantic": 0, "episodic": 0, "procedural": 0}
+        start_time = time_lib.time()
 
         # ALWAYS check vector_store first for semantic memories
         if self.vector_store:
             try:
                 counts["semantic"] = int(self.vector_store.get_memory_count())
+                MEMORY_METRICS.update_memory_count("semantic", counts["semantic"])
             except Exception as exc:
                 logger.error(f"Error getting vector store stats: {exc}")
+                MEMORY_METRICS.record_reconcile_drift("chroma")
 
         # If no LTM, return just vector store counts
         if not self.ltm:
@@ -515,6 +675,9 @@ class MemoryEngine:
                     for key in ["episodic", "procedural"]:  # Don't override semantic count
                         value = raw_counts.get(key)
                         counts[key] = int(value) if isinstance(value, int) else counts[key]
+                        MEMORY_METRICS.update_memory_count(key, counts[key])
+                    end_time = time_lib.time()
+                    MEMORY_METRICS.observe_memory_latency("count", (end_time - start_time) * 1000)
                     return counts
 
             # Manual fallback for legacy LTM implementations (episodic/procedural only)
@@ -525,12 +688,18 @@ class MemoryEngine:
                     cursor.execute("SELECT COUNT(*) FROM episodic")
                     episodic_count = cursor.fetchone()
                     counts["episodic"] = int(episodic_count[0]) if episodic_count else 0
+                    MEMORY_METRICS.update_memory_count("episodic", counts["episodic"])
+
                     cursor.execute("SELECT COUNT(*) FROM procedural")
                     procedural_count = cursor.fetchone()
                     counts["procedural"] = int(procedural_count[0]) if procedural_count else 0
+                    MEMORY_METRICS.update_memory_count("procedural", counts["procedural"])
                 except Exception as sqlite_exc:
                     logger.debug(f"Error counting sqlite memories: {sqlite_exc}")
+                    MEMORY_METRICS.record_reconcile_drift("sqlite")
 
+            end_time = time_lib.time()
+            MEMORY_METRICS.observe_memory_latency("count", (end_time - start_time) * 1000)
             return counts
         except Exception as exc:
             logger.error(f"Error getting memory stats: {exc}")
@@ -545,7 +714,7 @@ def get_memory_engine(
     vector_store=None,
     database_path: Optional[Path] = None,
     memory_config: Optional[Dict[str, Any]] = None
-) -> MemoryEngine:
+) -> "MemoryEngine":
     """
     Get global memory engine instance (singleton pattern).
     
@@ -560,5 +729,50 @@ def get_memory_engine(
             database_path=database_path,
             memory_config=memory_config
         )
-    
+        
+        if _memory_engine is None:
+            raise RuntimeError("Failed to initialize memory engine")
+            
     return _memory_engine
+    
+        return _memory_engine
+
+    async def start_reconciliation(self) -> None:
+        """Start the memory reconciliation scheduler if available"""
+        if self.reconciliation_scheduler:
+            await self.reconciliation_scheduler.start()
+            logger.info("Memory reconciliation scheduler started")
+        else:
+            logger.warning("Memory reconciliation scheduler not available")
+
+    async def stop_reconciliation(self) -> None:
+        """Stop the memory reconciliation scheduler if running"""
+        if self.reconciliation_scheduler:
+            await self.reconciliation_scheduler.stop()
+            logger.info("Memory reconciliation scheduler stopped")
+
+    async def run_reconciliation_now(self) -> Optional[ReconciliationReport]:
+        """
+        Run memory reconciliation immediately
+        
+        Returns:
+            ReconciliationReport if successful, None if scheduler not available
+        """
+        if self.reconciliation_scheduler:
+            report = await self.reconciliation_scheduler.run_now()
+            logger.info(
+                "Manual reconciliation completed",
+                diffs=report.total_diffs,
+                errors=len(report.errors or [])
+            )
+            return report
+        else:
+            logger.warning("Memory reconciliation scheduler not available")
+            return None
+
+    @property
+    def reconciliation_status(self) -> Optional[dict]:
+        """Get current reconciliation scheduler status"""
+        if self.reconciliation_scheduler:
+            return self.reconciliation_scheduler.status
+        return None

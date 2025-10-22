@@ -69,6 +69,10 @@ class ServiceRegistry:
         }
         self._initialized = False
         
+        # Create action registry
+        from astra.core.actions import ActionRegistry
+        self.action_registry = ActionRegistry()
+        
     def register_module(self, descriptor: ModuleDescriptor) -> None:
         """Register a module descriptor"""
         self._modules[descriptor.name] = descriptor

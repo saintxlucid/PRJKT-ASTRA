@@ -1,0 +1,75 @@
+# Default configuration for ASTRA Core
+
+# Model Surgery Settings
+surgery:
+  lora:
+    default_alpha: 0.8
+    merge_strategy: "weighted_sum"
+    validation_gates:
+      - "performance"
+      - "safety"
+      - "drift"
+  
+  rope:
+    default_freq_base: 10000
+    default_freq_scale: 1.0
+    default_dimensions: 128
+    validation_gates:
+      - "attention"
+      - "context"
+      - "drift"
+
+# Schema Settings
+schema:
+  enforce_types: true
+  enforce_shapes: true
+  enforce_ranges: true
+  auto_fix: false
+  validation_gates:
+    - "parameters"
+    - "tensors"
+    - "compatibility"
+
+# Validation Gates
+gates:
+  performance:
+    acc_threshold: 0.80
+    ppl_threshold: 10.0
+  safety:
+    guardrail_threshold: 0.95
+  drift:
+    max_drift: 0.15
+  attention:
+    score_threshold: 0.85
+  context:
+    retention_threshold: 0.90
+
+# Logging
+logging:
+  level: "INFO"
+  format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+  handlers:
+    - type: "console"
+    - type: "file"
+      path: "logs/astra.log"
+
+# Provenance
+provenance:
+  enable_signing: true
+  hash_algorithm: "sha256"
+  store_metadata: true
+
+# Paths
+paths:
+  models: "models/"
+  adapters: "adapters/"
+  schemas: "schemas/"
+  eval: "eval/"
+  logs: "logs/"
+
+# Performance
+performance:
+  num_workers: 4
+  batch_size: 32
+  use_gpu: true
+  precision: "float16"
