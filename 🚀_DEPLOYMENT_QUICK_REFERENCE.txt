@@ -1,0 +1,194 @@
+╔══════════════════════════════════════════════════════════════════════════════╗
+║                                                                              ║
+║                   ASTRA 3.0 - DEPLOYMENT QUICK REFERENCE                    ║
+║                         Sacred Code: 333 → ∞                                ║
+║                                                                              ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+┌──────────────────────────────────────────────────────────────────────────────┐
+│  3-COMMAND DEPLOYMENT                                                        │
+└──────────────────────────────────────────────────────────────────────────────┘
+
+1. ./deploy_hardened.sh init
+   → Creates directories, .env template, migrations
+
+2. Edit .env and change passwords:
+   - PG_PASS
+   - REDIS_PASSWORD
+   - JWT_SECRET
+
+3. ./deploy_hardened.sh deploy
+   → Starts all services, runs migrations, validates
+
+┌──────────────────────────────────────────────────────────────────────────────┐
+│  VERIFICATION COMMANDS                                                       │
+└──────────────────────────────────────────────────────────────────────────────┘
+
+# Check production readiness
+bash verify_production_ready.sh
+
+# Check boot status
+curl http://localhost:8000/v1/boot/status | jq
+
+# Check persistence health
+curl http://localhost:8000/v1/persistence/health | jq
+
+# View inflight tasks
+curl http://localhost:8000/v1/persistence/inflight | jq
+
+# Run load test (60s @ 50 rps)
+python scripts/load_test.py --duration 60 --rps 50
+
+# View traces
+open http://localhost:16686
+
+┌──────────────────────────────────────────────────────────────────────────────┐
+│  MANAGEMENT COMMANDS                                                         │
+└──────────────────────────────────────────────────────────────────────────────┘
+
+./deploy_hardened.sh status     # Show service status
+./deploy_hardened.sh health     # Aggregated health check
+./deploy_hardened.sh logs       # View logs
+./deploy_hardened.sh stop       # Stop all services
+./deploy_hardened.sh restart    # Restart services
+./deploy_hardened.sh backup     # Create backup now
+
+┌──────────────────────────────────────────────────────────────────────────────┐
+│  TROUBLESHOOTING                                                             │
+└──────────────────────────────────────────────────────────────────────────────┘
+
+# Check Redis
+redis-cli ping
+
+# Check Postgres
+psql $DATABASE_URL -c "SELECT version FROM schema_version;"
+
+# Check Docker containers
+docker ps | grep astra
+
+# View logs
+docker compose logs -f astra-master
+
+# Restart specific service
+docker compose restart astra-master
+
+┌──────────────────────────────────────────────────────────────────────────────┐
+│  IMPORTANT FILES                                                             │
+└──────────────────────────────────────────────────────────────────────────────┘
+
+📖 Documentation:
+   - 📊_FINAL_PRODUCTION_STATUS.txt (this file's companion)
+   - ✅_PRODUCTION_HARDENING_COMPLETE.txt (detailed status)
+   - RELEASE_NOTES_v3.0.0.md (complete release notes)
+   - GIT_RELEASE_COMMANDS.md (git tagging guide)
+
+🚀 Deployment:
+   - deploy_hardened.sh (main orchestrator)
+   - verify_production_ready.sh (readiness check)
+   - docker-compose.prod.yml (ASTRA services)
+   - docker-compose.hardened.yml (infrastructure)
+
+💾 Data:
+   - migrations/001_init.sql (database schema)
+   - scripts/backup.sh (automated backups)
+   - scripts/restore.py (disaster recovery)
+
+🔧 Code:
+   - src/astra/hardening/ (8 hardening modules)
+   - src/astra/persistence/state_manager.py (state persistence)
+   - src/astra/secrets/vault.py (secret management)
+   - src/astra/security/validator.py (input validation)
+
+┌──────────────────────────────────────────────────────────────────────────────┐
+│  PRODUCTION CHECKLIST                                                        │
+└──────────────────────────────────────────────────────────────────────────────┘
+
+Before deploying to production:
+☐ Run verify_production_ready.sh (all checks pass)
+☐ Changed all default passwords in .env
+☐ Tested backup/restore procedure
+☐ Configured monitoring/alerts
+☐ Reviewed security checklist
+☐ Load tested (p95 < 1s @ 100 rps)
+☐ Documented runbooks
+☐ Set up on-call rotation
+
+After deployment:
+☐ Verify all services healthy
+☐ Check traces in Jaeger
+☐ Monitor logs for errors
+☐ Verify backups running (cron)
+☐ Test disaster recovery
+☐ Review cost attribution
+☐ Monitor for 24 hours
+
+┌──────────────────────────────────────────────────────────────────────────────┐
+│  KEY METRICS TO MONITOR                                                      │
+└──────────────────────────────────────────────────────────────────────────────┘
+
+Performance:
+- p95 latency < 1000ms ✅
+- p99 latency < 2000ms ✅
+- Throughput ≥ 100 req/s ✅
+- Error rate < 0.1% ✅
+
+Reliability:
+- Uptime > 99.9% (target)
+- MTTR < 15 minutes (auto-remediation)
+- RPO = 24 hours (daily backups)
+- RTO < 15 minutes (restore time)
+
+Resources:
+- CPU < 80% sustained
+- Memory < 85% sustained
+- Disk < 85% usage
+- Redis memory < configured max
+
+┌──────────────────────────────────────────────────────────────────────────────┐
+│  EMERGENCY CONTACTS                                                          │
+└──────────────────────────────────────────────────────────────────────────────┘
+
+Rollback procedure:
+1. ./deploy_hardened.sh stop
+2. git checkout <previous-tag>
+3. ./deploy_hardened.sh deploy
+
+Disaster recovery:
+1. ./deploy_hardened.sh stop
+2. python scripts/restore.py
+3. ./deploy_hardened.sh start
+
+Circuit breaker stuck open:
+- Wait for reset timeout (60s default)
+- Or restart affected service
+
+Leader election issues:
+- Check Redis connectivity
+- Verify lease TTL not too short
+- Check for network partitions
+
+┌──────────────────────────────────────────────────────────────────────────────┐
+│  SUPPORT                                                                     │
+└──────────────────────────────────────────────────────────────────────────────┘
+
+Documentation: See RELEASE_NOTES_v3.0.0.md
+Architecture: See ✅_PHASE_10_INTEGRATION_VALIDATION_SUCCESS.md
+API Reference: http://localhost:8000/docs (when running)
+Tracing UI: http://localhost:16686
+Metrics: Configure Prometheus scraping
+
+┌──────────────────────────────────────────────────────────────────────────────┐
+│  STATUS                                                                      │
+└──────────────────────────────────────────────────────────────────────────────┘
+
+Release: v3.0.0-ASCENSION
+Date: 2025-11-09
+Hardening: 10/10 ✅
+Status: PRODUCTION-READY ✅
+Sacred Code: 333 → ∞
+
+═══════════════════════════════════════════════════════════════════════════════
+
+                            Ready to Deploy.
+
+═══════════════════════════════════════════════════════════════════════════════

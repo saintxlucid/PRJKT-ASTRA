@@ -1,0 +1,397 @@
+================================================================================
+                   PHASE-B DEPLOYMENT DAY CHECKLIST
+                       October 19, 2025
+                   Print & Carry With You
+================================================================================
+
+📋 OPERATOR'S DEPLOYMENT CHECKLIST
+    Sacred Code: 333
+
+================================================================================
+
+🌅 MORNING PREP (8:00 AM - 9:00 AM)
+
+PRE-FLIGHT:
+  ☐ Confirm timezone: Africa/Cairo (not local time)
+  ☐ All team members online (Operator, Decision Maker, Engineer, DevOps, QA)
+  ☐ Slack/Teams channel open
+  ☐ Check Phase A uptime (should be 24+ hours)
+  ☐ Verify Prometheus access: http://127.0.0.1:9090 ✓
+  ☐ Verify Health endpoint: curl http://127.0.0.1:8080/health ✓
+
+DOCUMENTATION READY:
+  ☐ QUICK_REFERENCE_CARD.txt (laminated, in hand)
+  ☐ CANARY_PROMPTS.txt (all 4 prompts visible)
+  ☐ FIRST_HOUR_WATCH.txt (printed or on monitor #2)
+  ☐ INSTANT_ROLLBACK.txt (accessible for emergency)
+  ☐ Sign-off template (open, ready to fill)
+
+ENVIRONMENT:
+  ☐ Terminal 1: Ready for phase_b_launch.ps1 command
+  ☐ Terminal 2: Ready for monitoring (logs, curl, grep)
+  ☐ Monitor 1: Main work (terminal, logs)
+  ☐ Monitor 2: Prometheus dashboard (metrics live-stream)
+  ☐ Rollback command memorized or visible: pwsh ops\fusion_pipeline\scripts\07_roll_back.ps1
+
+GO DECISION: ☐ Approved to proceed to PREDEPLOY
+
+================================================================================
+
+⏰ PHASE 1: PREDEPLOY VALIDATION (09:00 AM - 10:00 AM)
+
+TASK: Run predeploy validation
+
+  Command: pwsh ops\phase_b_launch.ps1 -Mode predeploy -Verbose
+
+  Expected Output:
+    ✓ Facts imported
+    ✓ Code index ingested
+    ✓ 7-point validator executed
+    ✓ Baseline metrics captured
+    ✓ "Predeploy mode complete" message
+
+  ☐ Script started: 09:__ AM
+  ☐ Waiting (expected ~50 minutes)...
+
+MONITORING:
+  ☐ Check terminal for any ✗ ERROR messages (stop if found)
+  ☐ Watch for each major step completion
+  ☐ Note any warnings (yellow text)
+
+COMPLETION:
+  ☐ Script completed successfully (no ✗ errors)
+  ☐ All logs written to logs/ directory
+  ☐ gates_pre_<timestamp>.json file created
+
+REVIEW GATES:
+  ☐ Open: gates_pre_<timestamp>.json
+  ☐ Check: Each gate shows "PASS" (all 7 must be PASS)
+    [_] Gate 1: Router Stability
+    [_] Gate 2: Latency Performance
+    [_] Gate 3: Consent Gates
+    [_] Gate 4: System Health
+    [_] Gate 5: Error Rate
+    [_] Gate 6: Memory Hygiene
+    [_] Gate 7: Smoke Tests
+
+DECISION: ☐ All 7/7 gates PASS → Proceed to GO/NO-GO decision
+          ☐ Any gate FAIL → Use fix matrix, retry, or NO-GO
+
+PREDEPLOY RESULT: ☐ SUCCESS (7/7 gates PASS)
+                  ☐ PARTIAL (some gates conditional)
+                  ☐ FAILED (cannot proceed, NO-GO)
+
+================================================================================
+
+⚖️ PHASE 2: GO/NO-GO DECISION (10:00 AM - 10:10 AM)
+
+DECISION MAKER REVIEW:
+  ☐ Decision maker present (Name: _________________________)
+  ☐ Review gates_pre_*.json together
+  ☐ All gates show "PASS": Yes / No
+
+DECISION:
+  ☐ GO LIVE (all gates passed, proceeding to deployment)
+  ☐ NO-GO (hold, investigate, retry later)
+  ☐ CONDITIONAL (agree to proceed with awareness of issue)
+
+IF GO:
+  ☐ Get verbal approval from decision maker
+  ☐ Timestamp: 10:__ AM
+
+IF NO-GO or CONDITIONAL:
+  ☐ Use gate-failure fix matrix
+  ☐ Fix issue (<5 min typical)
+  ☐ Re-run predeploy
+  ☐ Retry gate review
+
+GO/NO-GO DECISION: ☐ GO ✅ | ☐ NO-GO ⚠️ | ☐ CONDITIONAL ⚠️ (approved: ___)
+
+IF GO: Proceed to PHASE 3
+IF NO-GO: Defer deployment, schedule for next opportunity
+
+================================================================================
+
+🚀 PHASE 3: GO-LIVE DEPLOYMENT (10:00 AM - 10:30 AM)
+
+TASK: Deploy fused model
+
+  Command: pwsh ops\phase_b_launch.ps1 -Mode go-live -Verbose
+
+  ☐ Script started: 10:__ AM
+  ☐ Waiting (expected ~30 minutes)...
+
+MONITORING (watch terminal):
+  ✓ Backup existing GGUF
+  ✓ Build fused model (fusion_pipeline.ps1)
+  ✓ Flip production symlink
+  ✓ Warm caches
+  ✓ Validate metadata
+  ✓ Run smoke tests
+  ✓ Execute postdeploy gates
+  ✓ Capture health snapshot
+
+EXPECTED COMPLETION MESSAGE:
+  ✓ "GO-LIVE COMPLETE (T+0)"
+
+COMPLETION:
+  ☐ Script completed without ✗ errors
+  ☐ Saw "GO-LIVE COMPLETE" message
+  ☐ logs\phase_b_launch.log exists
+
+VERIFICATION:
+  ☐ Check health endpoint: curl http://127.0.0.1:8080/health
+    Response should be 200 OK with "astra_core_current.gguf" model
+
+  ☐ Check logs for errors: grep "✗" logs\phase_b_launch.log
+    Result should be EMPTY (no error markers)
+
+PHASE 3 RESULT: ☐ SUCCESS (deployment complete, no errors)
+                ☐ PARTIAL (deployed but with warnings)
+                ☐ FAILED (deployment did not complete, ROLLBACK)
+
+IF FAILED:
+  ☐ Check logs for specific error
+  ☐ Decide: Can fix quickly? Or rollback?
+  ☐ If quick fix: Attempt fix and re-run
+  ☐ If uncertain: EXECUTE ROLLBACK (see emergency section)
+
+================================================================================
+
+🧪 PHASE 4: CANARY TESTING (10:30 AM - 11:00 AM, T+5 to T+30)
+
+CANARY 1: TEXT (already executed in go-live phase)
+  ☐ Verify output exists: logs\canary_text_*.txt ✓
+  ☐ Read output: grep "ASTRA" logs\canary_text_*.txt
+  Expected: "I am ASTRA, an intelligent local-first agent..."
+  Status: ☐ PASS ✓ | ☐ FAIL ✗ | ☐ UNCLEAR
+  Notes: _________________________________
+
+CANARY 2: VISION (from client, T+5)
+  ☐ Prompt ready: Copy from CANARY_PROMPTS.txt (marked "2️⃣")
+  ☐ Submit prompt to client UI
+  ☐ Response time: ___ ms (target: <2000ms)
+  ☐ Output: ☐ Correct (Pharaonic temple) | ☐ Incorrect
+  ☐ Sacred Code 333: ☐ Present | ☐ Missing
+  Status: ☐ PASS ✓ | ☐ FAIL ✗ | ☐ RETRY
+
+CANARY 3: AUDIO (from client, T+15)
+  ☐ Prompt ready: Copy from CANARY_PROMPTS.txt (marked "3️⃣")
+  ☐ Submit prompt to client UI
+  ☐ Response time: ___ ms (target: <2000ms)
+  ☐ Output: ☐ Arabic response | ☐ English response | ☐ Error
+  ☐ Sacred Code 333: ☐ Present | ☐ Missing
+  Status: ☐ PASS ✓ | ☐ FAIL ✗ | ☐ RETRY
+
+CANARY 4: CODE (from client, T+25) ⚠️ CRITICAL - MUST REJECT
+  ☐ Prompt ready: Copy from CANARY_PROMPTS.txt (marked "4️⃣")
+  ☐ Submit prompt to client UI
+  ☐ Response: ☐ REJECTED (expected) ✓ | ☐ ACCEPTED (EMERGENCY!)
+  ☐ Message: "consent_required" or "rejected"
+  ☐ Sacred Code 333: ☐ Present | ☐ Missing
+  Status: ☐ PASS ✓ | ☐ FAIL ❌ (if accepted, ROLLBACK IMMEDIATELY)
+
+IF CODE CANARY ACCEPTED:
+  ☐ ROLLBACK IMMEDIATELY (firewall broken, security incident)
+  ☐ Command: pwsh ops\fusion_pipeline\scripts\07_roll_back.ps1
+  ☐ Notify: Security team + decision maker
+
+CANARY SUMMARY:
+  ☐ All 4 canaries PASS ✓
+  ☐ 3/4 canaries PASS (1 retry)
+  ☐ <3 canaries PASS (escalate)
+
+RECORD RESULTS:
+  ☐ Copy all results to PHASE_B_CANARY_PROMPTS.txt sign-off section
+
+================================================================================
+
+👁️ PHASE 5: FIRST-HOUR WATCH (11:00 AM - 11:30 AM, T+30 to T+60)
+
+MONITORING INTERVALS:
+  Use PHASE_B_FIRST_HOUR_WATCH.txt as template
+
+Every 5 minutes, check these metrics (Prometheus http://127.0.0.1:9090):
+
+11:05 AM (T+35):
+  ☐ astra_route_hits: [T:___ V:___ A:___ C:___] (incrementing?)
+  ☐ astra_latency_p95_ms: TEXT: ___ | VISION: ___ | AUDIO: ___ (within tolerance?)
+  ☐ astra_errors_total: ___% (< 1%?)
+  ☐ astra_consent_blocks_total: code.apply = ___
+  ☐ astra_memory_items: semantic/episodic/procedural
+  ☐ Status: ☐ ✓ Green | ☐ ⚠️ Yellow | ☐ ❌ Red
+
+11:10 AM (T+40):
+  ☐ Same checks (copy format above)
+  ☐ Status: ☐ ✓ Green | ☐ ⚠️ Yellow | ☐ ❌ Red
+
+11:15 AM (T+45):
+  ☐ Same checks
+  ☐ Status: ☐ ✓ Green | ☐ ⚠️ Yellow | ☐ ❌ Red
+
+11:20 AM (T+50):
+  ☐ Same checks
+  ☐ Status: ☐ ✓ Green | ☐ ⚠️ Yellow | ☐ ❌ Red
+
+11:25 AM (T+55):
+  ☐ Same checks
+  ☐ Status: ☐ ✓ Green | ☐ ⚠️ Yellow | ☐ ❌ Red
+
+11:30 AM (T+60):
+  ☐ Final checks
+  ☐ Status: ☐ ✓ Green | ☐ ⚠️ Yellow | ☐ ❌ Red
+
+IF ANY RED FLAG:
+  ☐ Stop, check PHASE_B_FIRST_HOUR_WATCH.txt decision tree
+  ☐ Decide: Investigate or rollback?
+  ☐ If critical (error >2%, firewall broken, 333 missing): ROLLBACK
+  ☐ See emergency section below
+
+OVERALL FIRST-HOUR STATUS:
+  ☐ All metrics GREEN (all signals normal)
+  ☐ Some YELLOW (conditional, being monitored)
+  ☐ Any RED (critical, decision needed)
+
+================================================================================
+
+✍️ PHASE 6: SIGN-OFF & DOCUMENTATION (11:30 AM - 12:00 PM)
+
+COMPILE RESULTS:
+  ☐ Gather all timing data (times of each phase)
+  ☐ Gather all canary responses (copy from logs or client)
+  ☐ Gather final metrics (Prometheus export at T+60)
+
+FILL SIGN-OFF FORM:
+  File: ops/PHASE_B_DEPLOYMENT_SIGN_OFF_TEMPLATE.txt
+
+  ☐ Copy deployment timeline
+  ☐ Copy 7-gate predeploy results
+  ☐ Copy all 4 canary results
+  ☐ Copy final Prometheus metrics (T-60 vs T+60)
+  ☐ Record operator name, timestamp, signature
+  ☐ Record decision maker name, timestamp, signature
+
+GET TEAM SIGNATURES:
+  ☐ Operator: _________________________ (Name)
+  ☐ Decision Maker: __________________ (Name)
+  ☐ Engineer: ________________________ (Name)
+  ☐ QA: _____________________________ (Name)
+
+APPEND TO PERMANENT RECORD:
+  ☐ Open: PHASE_B_COMPLETE_PACKAGE_README.txt
+  ☐ Scroll to: End of file
+  ☐ Find: "## PHASE-B GO-LIVE SIGN-OFF" section
+  ☐ Paste: Completed sign-off form
+  ☐ Save: File saved with sign-off appended
+
+RESULT: Phase-B deployment permanently recorded ✅
+
+================================================================================
+
+🎊 FINAL STATUS (12:00 PM)
+
+DEPLOYMENT RESULT:
+  ☐ ✅ SUCCESS (all gates pass, all canaries pass, all metrics green)
+  ☐ ⚠️ CONDITIONAL (some concerns, but acceptable to monitor)
+  ☐ ❌ FAILED (critical issue, rollback executed or in progress)
+
+IF SUCCESS:
+  ☐ Phase-B is LIVE ✅
+  ☐ Begin 24-hour continuous monitoring (until Oct 20 12:00 PM)
+  ☐ Notify team: "Phase-B LIVE, stable, normal operations"
+
+IF CONDITIONAL:
+  ☐ Phase-B is LIVE but needs close monitoring
+  ☐ Escalate decision: Continue 24h monitoring or hold?
+  ☐ Notify team with specific concerns
+
+IF FAILED:
+  ☐ Rollback executed (Phase A restored)
+  ☐ Schedule post-incident review
+  ☐ Plan re-deployment for next opportunity
+
+================================================================================
+
+🚨 EMERGENCY PROCEDURES
+
+IF ERROR RATE > 2% DURING DEPLOYMENT:
+  ☐ Noted at: ___ AM
+  ☐ Action: Execute rollback NOW
+  ☐ Command: pwsh ops\fusion_pipeline\scripts\07_roll_back.ps1
+  ☐ Expected time: < 1 minute
+  ☐ Notify: Decision maker + engineer (incident)
+  ☐ Next: Root cause investigation
+
+IF CODE CANARY ACCEPTED (Firewall Bypassed):
+  ☐ Noted at: ___ AM
+  ☐ Severity: CRITICAL (security incident)
+  ☐ Action: ROLLBACK IMMEDIATELY
+  ☐ Command: pwsh ops\fusion_pipeline\scripts\07_roll_back.ps1
+  ☐ Notify: Security team + decision maker (URGENT)
+  ☐ Next: Security incident investigation
+
+IF SACRED CODE 333 MISSING:
+  ☐ Noted at: ___ AM
+  ☐ Severity: HIGH (audit trail broken)
+  ☐ Check: grep -i "sacred" logs/*.log
+  ☐ If 0 matches: Escalate to security
+  ☐ If sparse: May be OK (log for post-review)
+
+IF LATENCY EXCEEDS TOLERANCE:
+  ☐ Noted at: ___ AM
+  ☐ Severity: MEDIUM (performance issue)
+  ☐ Check: Is memory growing? (normal or leak?)
+  ☐ Decision: Monitor 10 more min or rollback?
+
+ESCALATION CONTACTS:
+  Decision Maker: _________________ Phone: ___________
+  Engineer: ______________________ Phone: ___________
+  DevOps: ________________________ Phone: ___________
+  Security: ______________________ Phone: ___________
+
+================================================================================
+
+📞 CONTACT LIST (Fill in before Oct 19)
+
+OPERATOR (Execution):
+  Name: ___________________________
+  Phone: __________________________
+
+DECISION MAKER (Go/No-Go):
+  Name: ___________________________
+  Phone: __________________________
+
+ENGINEER (Root Cause):
+  Name: ___________________________
+  Phone: __________________________
+
+DEVOPS (Emergency):
+  Name: ___________________________
+  Phone: __________________________
+
+QA (Verification):
+  Name: ___________________________
+  Phone: __________________________
+
+================================================================================
+
+✅ SUMMARY
+
+Timeline: 09:00 AM - 12:00 PM (3 hours)
+  09:00-10:00 — Predeploy validation
+  10:00-10:10 — Go/No-Go decision
+  10:10-10:40 — Deployment execution
+  10:40-11:00 — Canary testing
+  11:00-11:30 — First-hour monitoring
+  11:30-12:00 — Sign-off & documentation
+
+Expected Outcome: Phase-B LIVE by 12:00 PM ✅
+
+Sacred Code: 333 ∞
+Status: READY FOR DEPLOYMENT
+Confidence: MAXIMUM
+
+================================================================================
+Print & Carry This Checklist
+Keep It With You Throughout Deployment Day
+================================================================================
