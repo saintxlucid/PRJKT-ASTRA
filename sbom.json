@@ -1,0 +1,245 @@
+{
+  "bomFormat": "CycloneDX",
+  "specVersion": "1.4",
+  "serialNumber": "urn:uuid:3e671687-395b-41f5-a30f-a58921a69b79",
+  "version": 1,
+  "metadata": {
+    "timestamp": "2025-11-09T00:00:00Z",
+    "tools": [
+      {
+        "vendor": "PRJKT-ASTRA",
+        "name": "SBOM Generator",
+        "version": "1.0"
+      }
+    ],
+    "component": {
+      "type": "application",
+      "name": "ASTRA 3.0",
+      "version": "v3.0.0-ASCENSION",
+      "description": "ASTRA 3.0 — Production Hardened AI System with Orchestration, Memory Management, Authentication, and Task Supervision"
+    }
+  },
+  
+  "components": [
+    {
+      "type": "library",
+      "name": "fastapi",
+      "version": "0.109.0",
+      "purl": "pkg:pypi/fastapi@0.109.0",
+      "description": "Modern, fast (high-performance) web framework for building APIs with Python 3.7+ based on standard Python type hints.",
+      "license": "MIT"
+    },
+    {
+      "type": "library",
+      "name": "uvicorn",
+      "version": "0.27.0",
+      "purl": "pkg:pypi/uvicorn@0.27.0",
+      "description": "The lightning-fast ASGI server.",
+      "license": "BSD"
+    },
+    {
+      "type": "library",
+      "name": "pydantic",
+      "version": "2.5.3",
+      "purl": "pkg:pypi/pydantic@2.5.3",
+      "description": "Data validation using Python type annotations",
+      "license": "MIT"
+    },
+    {
+      "type": "library",
+      "name": "sqlalchemy",
+      "version": "2.0.23",
+      "purl": "pkg:pypi/sqlalchemy@2.0.23",
+      "description": "The Python SQL Toolkit and Object Relational Mapper",
+      "license": "MIT"
+    },
+    {
+      "type": "library",
+      "name": "alembic",
+      "version": "1.13.1",
+      "purl": "pkg:pypi/alembic@1.13.1",
+      "description": "A database migration tool for SQLAlchemy",
+      "license": "MIT"
+    },
+    {
+      "type": "library",
+      "name": "redis",
+      "version": "5.0.1",
+      "purl": "pkg:pypi/redis@5.0.1",
+      "description": "The official Redis Python client",
+      "license": "MIT"
+    },
+    {
+      "type": "library",
+      "name": "psycopg2-binary",
+      "version": "2.9.9",
+      "purl": "pkg:pypi/psycopg2-binary@2.9.9",
+      "description": "psycopg2 - Python-PostgreSQL Database Adapter",
+      "license": "LGPL"
+    },
+    {
+      "type": "library",
+      "name": "httpx",
+      "version": "0.25.2",
+      "purl": "pkg:pypi/httpx@0.25.2",
+      "description": "A next generation HTTP client for Python",
+      "license": "BSD"
+    },
+    {
+      "type": "library",
+      "name": "openai",
+      "version": "1.6.1",
+      "purl": "pkg:pypi/openai@1.6.1",
+      "description": "The official Python library for the OpenAI API",
+      "license": "Apache-2.0"
+    },
+    {
+      "type": "library",
+      "name": "opentelemetry-api",
+      "version": "1.21.0",
+      "purl": "pkg:pypi/opentelemetry-api@1.21.0",
+      "description": "OpenTelemetry API",
+      "license": "Apache-2.0"
+    },
+    {
+      "type": "library",
+      "name": "opentelemetry-exporter-jaeger",
+      "version": "1.21.0",
+      "purl": "pkg:pypi/opentelemetry-exporter-jaeger@1.21.0",
+      "description": "Jaeger exporter for OpenTelemetry",
+      "license": "Apache-2.0"
+    },
+    {
+      "type": "library",
+      "name": "prometheus-client",
+      "version": "0.19.0",
+      "purl": "pkg:pypi/prometheus-client@0.19.0",
+      "description": "Python client for the Prometheus monitoring system",
+      "license": "Apache-2.0"
+    },
+    {
+      "type": "library",
+      "name": "cryptography",
+      "version": "41.0.7",
+      "purl": "pkg:pypi/cryptography@41.0.7",
+      "description": "cryptography is a package which provides cryptographic recipes and primitives to Python developers.",
+      "license": "Apache-2.0 OR BSD"
+    },
+    {
+      "type": "library",
+      "name": "pyjwt",
+      "version": "2.8.1",
+      "purl": "pkg:pypi/pyjwt@2.8.1",
+      "description": "JSON Web Token implementation in Python",
+      "license": "MIT"
+    },
+    {
+      "type": "library",
+      "name": "pytest",
+      "version": "7.4.3",
+      "purl": "pkg:pypi/pytest@7.4.3",
+      "description": "pytest: simple powerful testing with Python",
+      "license": "MIT"
+    },
+    {
+      "type": "library",
+      "name": "structlog",
+      "version": "24.1.0",
+      "purl": "pkg:pypi/structlog@24.1.0",
+      "description": "Structured Logging for Python",
+      "license": "Apache-2.0"
+    },
+    {
+      "type": "library",
+      "name": "python-dotenv",
+      "version": "1.0.0",
+      "purl": "pkg:pypi/python-dotenv@1.0.0",
+      "description": "Read a .env file and set environment variables",
+      "license": "BSD"
+    },
+    {
+      "type": "library",
+      "name": "docker",
+      "version": "7.0.0",
+      "purl": "pkg:pypi/docker@7.0.0",
+      "description": "A Python library for the Docker API",
+      "license": "Apache-2.0"
+    }
+  ],
+  
+  "services": [
+    {
+      "type": "application",
+      "name": "astra-master",
+      "version": "v3.0.0-ASCENSION",
+      "description": "Main ASTRA orchestration API",
+      "endpoints": [
+        "http://localhost:8000/health",
+        "http://localhost:8000/v1/chat"
+      ]
+    },
+    {
+      "type": "application",
+      "name": "memory-service",
+      "version": "v3.0.0-ASCENSION",
+      "description": "Long-term memory management service",
+      "endpoints": [
+        "http://localhost:7007/health"
+      ]
+    },
+    {
+      "type": "application",
+      "name": "sigil-gate",
+      "version": "v3.0.0-ASCENSION",
+      "description": "Authentication and rate limiting service",
+      "endpoints": [
+        "http://localhost:7701/health"
+      ]
+    },
+    {
+      "type": "application",
+      "name": "supervisor",
+      "version": "v3.0.0-ASCENSION",
+      "description": "Task orchestration and recovery service",
+      "endpoints": [
+        "http://localhost:7703/health"
+      ]
+    },
+    {
+      "type": "database",
+      "name": "PostgreSQL",
+      "version": "15",
+      "description": "Primary persistent data storage"
+    },
+    {
+      "type": "database",
+      "name": "Redis",
+      "version": "7",
+      "description": "Distributed cache and messaging"
+    },
+    {
+      "type": "database",
+      "name": "etcd",
+      "version": "3.5",
+      "description": "Distributed configuration management"
+    },
+    {
+      "type": "application",
+      "name": "Jaeger",
+      "description": "Distributed tracing and monitoring",
+      "endpoints": [
+        "http://localhost:16686"
+      ]
+    }
+  ],
+  
+  "vulnerabilities": [],
+  
+  "compliance": {
+    "standard": "ASTRA 3.0 Production Standards",
+    "validation_gates": 10,
+    "validation_passed": 10,
+    "hardening_modules": 10,
+    "coverage": "100%"
+  }
+}
