@@ -42,6 +42,11 @@ Welcome to the **ASTRA Prime System**, a sovereign, local-first AI deployment en
 
 ## 📂 Documentation Index
 
+### 🚀 Quick Start
+
+- **[⚡ 10-Minute Local Activation](LOCAL_ACTIVATION_10MIN.md)** — Boot ASTRA locally against custom GPT-OSS (zero drama)
+- **[Quick Start Guide](QUICK_START.md)** — 5-minute reference for rapid deployment
+
 ### Core Documentation
 
 - [System Architecture](docs/architecture.md)
