@@ -42,10 +42,12 @@ Welcome to the **ASTRA Prime System**, a sovereign, local-first AI deployment en
 
 ## 📂 Documentation Index
 
-### 🚀 Quick Start
+### 🚀 Quick Start & Verification
 
 - **[⚡ 10-Minute Local Activation](LOCAL_ACTIVATION_10MIN.md)** — Boot ASTRA locally against custom GPT-OSS (zero drama)
 - **[Quick Start Guide](QUICK_START.md)** — 5-minute reference for rapid deployment
+- **[⚙️ Sanity Sweep Script](sanity_sweep.ps1)** — PowerShell health check (30 seconds, all systems verified)
+- **[⚡ Live Handshake (60-second proof)](LIVE_HANDSHAKE_60SEC.md)** — End-to-end request loop → inference → ledger → recovery
 
 ### Core Documentation
 
