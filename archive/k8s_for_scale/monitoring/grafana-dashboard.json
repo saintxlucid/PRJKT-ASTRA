@@ -1,0 +1,119 @@
+{
+  "dashboard": {
+    "title": "ASTRA Core Production Metrics",
+    "uid": "astra-core-prod",
+    "tags": ["astra", "production", "ai"],
+    "timezone": "browser",
+    "schemaVersion": 16,
+    "version": 1,
+    "refresh": "10s",
+    "panels": [
+      {
+        "id": 1,
+        "title": "Request Rate",
+        "type": "graph",
+        "gridPos": {"x": 0, "y": 0, "w": 12, "h": 8},
+        "targets": [
+          {
+            "expr": "rate(astra_requests_total[5m])",
+            "legendFormat": "{{endpoint}}"
+          }
+        ]
+      },
+      {
+        "id": 2,
+        "title": "Latency P95 (ms)",
+        "type": "graph",
+        "gridPos": {"x": 12, "y": 0, "w": 12, "h": 8},
+        "targets": [
+          {
+            "expr": "astra_request_duration_seconds{quantile=\"0.95\"} * 1000",
+            "legendFormat": "{{endpoint}}"
+          }
+        ]
+      },
+      {
+        "id": 3,
+        "title": "Success Rate (%)",
+        "type": "stat",
+        "gridPos": {"x": 0, "y": 8, "w": 6, "h": 4},
+        "targets": [
+          {
+            "expr": "(sum(rate(astra_requests_total[5m])) - sum(rate(astra_errors_total[5m]))) / sum(rate(astra_requests_total[5m])) * 100"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "percent",
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {"value": 0, "color": "red"},
+                {"value": 95, "color": "orange"},
+                {"value": 99, "color": "green"}
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": 4,
+        "title": "Queue Depth",
+        "type": "graph",
+        "gridPos": {"x": 6, "y": 8, "w": 6, "h": 4},
+        "targets": [
+          {
+            "expr": "astra_queue_depth_avg",
+            "legendFormat": "Average"
+          },
+          {
+            "expr": "astra_queue_depth_max",
+            "legendFormat": "Maximum"
+          }
+        ]
+      },
+      {
+        "id": 5,
+        "title": "Circuit Breaker Trips",
+        "type": "graph",
+        "gridPos": {"x": 12, "y": 8, "w": 6, "h": 4},
+        "targets": [
+          {
+            "expr": "increase(astra_circuit_breaker_trips_total[5m])",
+            "legendFormat": "{{component}}"
+          }
+        ]
+      },
+      {
+        "id": 6,
+        "title": "Uptime (hours)",
+        "type": "stat",
+        "gridPos": {"x": 18, "y": 8, "w": 6, "h": 4},
+        "targets": [
+          {
+            "expr": "astra_uptime_seconds / 3600"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "h",
+            "decimals": 2
+          }
+        }
+      },
+      {
+        "id": 7,
+        "title": "Request Duration Distribution",
+        "type": "heatmap",
+        "gridPos": {"x": 0, "y": 12, "w": 24, "h": 8},
+        "targets": [
+          {
+            "expr": "rate(astra_request_duration_seconds_bucket[5m])",
+            "format": "heatmap",
+            "legendFormat": "{{le}}"
+          }
+        ]
+      }
+    ]
+  }
+}

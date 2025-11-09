@@ -1,0 +1,177 @@
+# ASTRA PRIVACY PROTECTION MANIFEST
+# =================================
+# Immutable lock file - DO NOT MODIFY without creator authorization
+# SHA256 signature required for any changes
+# 
+# This manifest defines the DIVINE PROTECTION perimeter for ASTRA.
+# All components listed here are under NO_TRAIN/NO_UPLOAD/LOCAL_LOCK.
+
+[SYSTEM]
+name = "ASTRA Prime System"
+version = "1.0.0"
+creator = "Saint Lucid"
+manifest_version = 1
+created = "2025-10-18T00:00:00Z"
+last_updated = "2025-10-18T00:00:00Z"
+signature = "PENDING_SIGNATURE"  # Sign with creator's private key
+
+[POLICY]
+privacy_mode = "STRICT"
+no_train = true
+no_upload = true
+local_lock = true
+audit_required = true
+emergency_phrase = "ASTRA, Divine Sleep. Code 333."
+
+[NETWORK]
+# Network access control - DENY ALL except localhost by default
+allow_network = false
+allowed_endpoints = []
+# To add endpoints, get explicit creator authorization and update signature
+
+localhost_only = true
+block_telemetry = true
+block_analytics = true
+
+[STORAGE]
+# All paths under divine protection - encrypted at rest
+protected_paths = [
+    "core/privacy/",
+    "core/memory/",
+    "core/config/",
+    "data/vectors/",
+    "data/conversations/",
+    "data/embeddings/",
+    "models/",
+    "logs/"
+]
+
+encryption_required = true
+encryption_algorithm = "AES-256-GCM"
+key_storage = "core/privacy/.ast_key"
+key_rotation_days = 90
+
+[AUDIT]
+# Audit trail configuration
+enabled = true
+db_path = "core/privacy/audit_encrypted.sqlite3"
+retention_days = 30
+encrypt_logs = true
+require_integrity_check = true
+
+[PROCESSES]
+# Whitelisted processes - only these can access ASTRA core
+whitelist = [
+    "astra_core",
+    "launch_astra.py",
+    "whisper_service",
+    "memory_engine",
+    "voice_engine",
+    "guardian_protocol"
+]
+
+# Blocked processes - known telemetry/analytics
+blacklist = [
+    "sentry",
+    "mixpanel",
+    "segment",
+    "amplitude",
+    "datadog",
+    "newrelic",
+    "google-analytics"
+]
+
+[ACCESS_CONTROL]
+# Creator-only access controls
+creator_account = "${USERNAME}"  # System will read from environment
+hardware_token_required = false
+biometric_required = false
+mfa_required = false
+
+# UI access restrictions
+dashboard_localhost_only = true
+dashboard_port = 8501
+dashboard_auth = "windows_account"
+
+[MODULES]
+# Core privacy modules - integrity checked at startup
+modules = [
+    "core/privacy/hardlock.py",
+    "core/privacy/privacy_enforcer.py",
+    "core/privacy/model_wrapper.py",
+    "core/privacy/storage.py",
+    "core/privacy/audit_logger.py",
+    "core/privacy/gguf_loader.py",
+    "core/privacy/prompt_pipeline.py"
+]
+
+[MODEL_PROTECTION]
+# Model loading and inference protection
+no_train_metadata = true
+block_model_uploads = true
+local_models_only = true
+model_path = "models/"
+
+# Stamp all operations with NO_TRAIN
+enforce_no_train_tag = true
+prevent_prompt_logging = true
+encrypt_embeddings = true
+
+[EMERGENCY]
+# Divine Lock emergency protocols
+divine_lock_enabled = true
+divine_lock_phrase = "ASTRA, Divine Sleep. Code 333."
+secure_wipe_on_divine_lock = true
+backup_before_wipe = true
+backup_path = "D:/astra_backups/"
+
+[TELEMETRY_BLOCK]
+# Known telemetry endpoints to block at DNS/socket level
+blocked_domains = [
+    "telemetry.microsoft.com",
+    "www.google-analytics.com",
+    "analytics.google.com",
+    "sentry.io",
+    "api.segment.io",
+    "api.mixpanel.com",
+    "amplitude.com",
+    "api.amplitude.com",
+    "cloudflareinsights.com"
+]
+
+# Environment variables to set
+env_vars = [
+    "DO_NOT_TRACK=1",
+    "ASTRA_NO_TRAIN=1",
+    "ASTRA_PRIVACY_MODE=STRICT",
+    "ASTRA_LOCAL_ONLY=1",
+    "DISABLE_TELEMETRY=1",
+    "TELEMETRY_OPTOUT=1",
+    "PYTHONDONTWRITEBYTECODE=1"
+]
+
+[COMPLIANCE]
+# Compliance verification checksums
+check_integrity_on_boot = true
+verify_module_signatures = false  # Enable after signing
+compliance_report_path = "logs/compliance_report.json"
+
+[METADATA]
+# Immutable metadata tags applied to all operations
+tags = [
+    "NO_TRAIN",
+    "NO_UPLOAD", 
+    "LOCAL_LOCK",
+    "PRIVACY_TAG:ASTRA_PRIME",
+    "CREATOR_LOCKED:true"
+]
+
+[CHANGELOG]
+# Audit trail of manifest changes (append-only)
+# Format: timestamp | author | change | signature
+
+# 2025-10-18T00:00:00Z | Saint Lucid | INITIAL MANIFEST | PENDING
+# Future changes require creator signature and append here
+
+# END OF MANIFEST
+# Signature: PENDING - sign with: gpg --clearsign manifest.lock

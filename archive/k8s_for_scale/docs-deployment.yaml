@@ -1,0 +1,89 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: docs
+  namespace: astra
+  labels:
+    app: docs
+    component: documents-service
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: docs
+  template:
+    metadata:
+      labels:
+        app: docs
+        component: documents-service
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1001
+        fsGroup: 1001
+      containers:
+        - name: docs
+          image: ghcr.io/your-org/astra-docs:latest
+          imagePullPolicy: Always
+          ports:
+            - name: http
+              containerPort: 8777
+              protocol: TCP
+          env:
+            - name: BRIDGE_KEYS_FILE
+              value: /run/secrets/bridge_keys
+            - name: BRIDGE_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: bridge-keys
+                  key: fallback_key
+                  optional: true
+            - name: USE_QDRANT
+              value: "true"
+            - name: QDRANT_URL
+              value: http://qdrant:6333
+            - name: QDRANT_COLLECTION
+              value: astra_docs
+            - name: EMBEDDING_MODEL
+              value: sentence-transformers/all-MiniLM-L6-v2
+            - name: DOC_INDEX_DIR
+              value: /data/index
+          volumeMounts:
+            - name: docs-index
+              mountPath: /data/index
+            - name: bridge-keys
+              mountPath: /run/secrets
+              readOnly: true
+          resources:
+            requests:
+              cpu: 500m
+              memory: 1Gi
+            limits:
+              cpu: 2000m
+              memory: 4Gi
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8777
+            initialDelaySeconds: 30
+            periodSeconds: 30
+            timeoutSeconds: 5
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8777
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            timeoutSeconds: 3
+            failureThreshold: 3
+      volumes:
+        - name: docs-index
+          persistentVolumeClaim:
+            claimName: docs-index
+        - name: bridge-keys
+          secret:
+            secretName: bridge-keys
+            items:
+              - key: bridge_keys
+                path: bridge_keys

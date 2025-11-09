@@ -1,0 +1,93 @@
+# ASTRA Core Configuration (Local-First, Offline Sovereign)
+# All operations are local-only. No cloud APIs permitted.
+
+# NETWORK POLICY: Hard offline
+network:
+  egress_enabled: false  # 🔒 LOCKED - No external network calls allowed
+
+# LLM: Local llama.cpp only
+llm:
+  provider: "llamacpp"  # Only llamacpp supported (no openai/anthropic)
+  model_path: "models/gpt-oss-20b.q5_k_m.gguf"
+  
+  # Context window
+  n_ctx: 8192
+  
+  # CPU Configuration (tune for your hardware)
+  n_threads: 12  # Adjust based on CPU cores
+  n_gpu_layers: 0  # 0 = CPU-only (safe for GTX 1650, increase if VRAM allows)
+  
+  # Generation parameters
+  temperature: 0.7
+  top_p: 0.9
+  max_tokens: 512
+  seed: 42  # Reproducible outputs (null for random)
+
+# Memory: Local ChromaDB with BGE-M3 embeddings
+memory:
+  backend: "chromadb"  # Local vector store
+  persist_directory: "data/memory_bge_m3"  # Separate directory for BGE-M3
+  collection_name: "astra_memories_bge_m3"
+  
+  # Embeddings: BGE-M3 (state-of-the-art, multi-lingual, 8192 context)
+  embeddings:
+    model: "BAAI/bge-m3"  # 1024D vectors, 100+ languages, 8192 tokens context
+    device: "cpu"  # Use "cuda" if GPU available (faster)
+    batch_size: 32  # Tune based on RAM (32 = ~200MB per batch)
+    max_length: 8192  # Max tokens per document (BGE-M3 supports 8192)
+    normalize_embeddings: true  # For cosine similarity
+  
+  # Memory signing (tamper detection)
+  signing:
+    hmac_key: "${ASTRA_MEMORY_KEY:-astra-default-key}"  # Set env var for production
+
+# Event Store: Local SQLite
+events:
+  backend: "sqlite"
+  db_path: "data/events.db"
+  enable_signing: true  # SHA256 tamper-evident chain
+
+# Security
+security:
+  # Prompt guard (3-layer defense)
+  prompt_guard:
+    enabled: true
+    heuristic_checks: true
+    contextual_policies: true
+    llm_judge: false  # Disable for performance (heuristics sufficient)
+  
+  # Secrets encryption
+  secrets:
+    backend: "gpg"  # GPG for .env encryption
+    keyring_path: "~/.gnupg"
+
+# Identity & Policies
+identity:
+  policies_path: "config/identity_policies.yaml"
+  constitution_path: "docs/ASTRA_CONSTITUTION.md"
+  deny_by_default: true
+
+# Observability (Local Prometheus)
+observability:
+  metrics:
+    enabled: true
+    port: 9090  # Prometheus metrics endpoint
+  logging:
+    level: "INFO"  # DEBUG for development
+    format: "json"
+    file: "logs/astra.log"
+
+# Tool Execution
+tools:
+  executor: "local"  # local or docker (docker = sandboxed)
+  timeout_seconds: 30
+  resource_limits:
+    max_memory_mb: 512
+    max_cpu_percent: 50
+
+# Server
+server:
+  host: "127.0.0.1"  # Localhost only (no external access)
+  port: 8000
+  workers: 1  # Single-threaded for local operation
+  reload: false  # Set true for development

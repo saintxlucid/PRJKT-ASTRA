@@ -7,8 +7,47 @@ from typing import Any, Dict, List
 import yaml
 import fnmatch
 import structlog
+from pathlib import Path
 
 logger = structlog.get_logger(__name__)
+
+_POLICY_ENGINE = None
+
+def get_policy_engine() -> 'PolicyEngine':
+    """Get the singleton policy engine instance."""
+    global _POLICY_ENGINE
+    if _POLICY_ENGINE is None:
+        # Default policy: allow everything in development mode
+        policy_yaml = """
+        rules:
+        - id: allow_all_dev
+          effect: allow
+        default: review
+        """
+        _POLICY_ENGINE = PolicyEngine(policy_yaml)
+    return _POLICY_ENGINE
+
+def initialize_policy_engine() -> 'PolicyEngine':
+    """Initialize and return the global policy engine."""
+    global _POLICY_ENGINE
+    
+    # Load policy configuration if it exists
+    config_path = Path(__file__).parent / "policy.yaml"
+    if config_path.exists():
+        with open(config_path) as f:
+            policy_yaml = f.read()
+    else:
+        # Default policy: allow everything in development mode
+        policy_yaml = """
+        rules:
+        - id: allow_all_dev
+          effect: allow
+        default: review
+        """
+    
+    _POLICY_ENGINE = PolicyEngine(policy_yaml)
+    logger.info("Policy engine initialized")
+    return _POLICY_ENGINE
 
 class PolicyRule:
     def __init__(self, rule_def: Dict[str, Any]):

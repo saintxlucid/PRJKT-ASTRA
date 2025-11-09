@@ -1,0 +1,246 @@
+# ASTRA Model Registry - Source of Truth
+# Version: 1.0 | Date: 2025-11-03
+# All models must declare capabilities, cost, VRAM, context, modalities, safety tier
+
+models:
+  # ========== REASONING TIER ==========
+  deepseek-v3.1:
+    provider: "vllm"
+    path: "deepseek-ai/DeepSeek-V3"
+    capabilities:
+      reasoning: 0.95
+      code: 0.92
+      planning: 0.94
+      analysis: 0.93
+      creative: 0.75
+    context_window: 131072  # 128K
+    vram_gb: 24
+    cost_per_1k_tokens: 0.0  # Local
+    latency_p95_ms: 2800
+    modalities: [text]
+    safety_tier: "medium"
+    features:
+      - "long_context"
+      - "chain_of_thought"
+      - "tool_calling"
+    notes: "Primary reasoning model. Use for complex planning, code analysis, architectural decisions."
+
+  qwen2.5-14b:
+    provider: "vllm"
+    path: "Qwen/Qwen2.5-14B-Instruct"
+    capabilities:
+      reasoning: 0.82
+      code: 0.85
+      planning: 0.80
+      analysis: 0.84
+      creative: 0.78
+    context_window: 32768
+    vram_gb: 14
+    cost_per_1k_tokens: 0.0
+    latency_p95_ms: 1800
+    modalities: [text]
+    safety_tier: "medium"
+    features:
+      - "tool_calling"
+      - "multilingual"
+    notes: "Reasoning fallback. Good for creative fusion tasks."
+
+  # ========== SPEED TIER ==========
+  phi-4-mini:
+    provider: "vllm"
+    path: "microsoft/phi-4-mini"
+    capabilities:
+      reasoning: 0.68
+      code: 0.72
+      planning: 0.65
+      analysis: 0.70
+      creative: 0.60
+    context_window: 16384
+    vram_gb: 4
+    cost_per_1k_tokens: 0.0
+    latency_p95_ms: 450
+    modalities: [text]
+    safety_tier: "low"
+    features:
+      - "fast_inference"
+      - "speculative_decoding"
+    notes: "Speed champion. Use for quick responses, drafting, UI interactions. Can draft for deepseek verification."
+
+  mistral-large-2:
+    provider: "vllm"
+    path: "mistralai/Mistral-Large-Instruct-2407"
+    capabilities:
+      reasoning: 0.88
+      code: 0.87
+      planning: 0.86
+      analysis: 0.89
+      creative: 0.85
+    context_window: 131072
+    vram_gb: 20
+    cost_per_1k_tokens: 0.0
+    latency_p95_ms: 2200
+    modalities: [text]
+    safety_tier: "medium"
+    features:
+      - "long_context"
+      - "tool_calling"
+      - "multilingual"
+    notes: "Creative fusion experiments. AB test candidate vs qwen2.5-14b."
+
+  # ========== VISION TIER ==========
+  llama-3.2-vision-11b:
+    provider: "vllm"
+    path: "meta-llama/Llama-3.2-11B-Vision-Instruct"
+    capabilities:
+      vision: 0.88
+      reasoning: 0.75
+      code: 0.70
+      scene_understanding: 0.85
+      ui_ocr: 0.82
+    context_window: 8192
+    vram_gb: 11
+    cost_per_1k_tokens: 0.0
+    latency_p95_ms: 3200
+    modalities: [text, image]
+    safety_tier: "medium"
+    features:
+      - "multimodal"
+      - "screen_perception"
+      - "ui_understanding"
+    notes: "Primary vision model. Use for screen capture analysis, UI perception, visual scene understanding."
+
+  qwen2-vl-7b:
+    provider: "vllm"
+    path: "Qwen/Qwen2-VL-7B-Instruct"
+    capabilities:
+      vision: 0.85
+      reasoning: 0.72
+      ui_ocr: 0.88
+      document: 0.90
+    context_window: 32768
+    vram_gb: 8
+    cost_per_1k_tokens: 0.0
+    latency_p95_ms: 2500
+    modalities: [text, image]
+    safety_tier: "medium"
+    features:
+      - "multimodal"
+      - "high_res_ocr"
+      - "document_understanding"
+    notes: "Vision fallback. Excellent OCR for UI elements and documents."
+
+  # ========== AUDIO TIER ==========
+  whisper-large-v3:
+    provider: "transformers"
+    path: "openai/whisper-large-v3"
+    capabilities:
+      audio: 0.95
+      transcription: 0.96
+      multilingual: 0.92
+    context_window: null
+    vram_gb: 6
+    cost_per_1k_tokens: 0.0
+    latency_p95_ms: 1200
+    modalities: [audio]
+    safety_tier: "low"
+    features:
+      - "audio_processing"
+      - "multilingual"
+      - "timestamps"
+    notes: "Audio transcription. Use for voice input, audio analysis, beat detection preprocessing."
+
+# ========== ROUTING PROFILES ==========
+profiles:
+  reasoning:
+    primary: "deepseek-v3.1"
+    fallback: "qwen2.5-14b"
+    min_complexity: 0.7
+    max_latency_ms: 3000
+
+  speed:
+    primary: "phi-4-mini"
+    fallback: "qwen2.5-14b"
+    max_latency_ms: 600
+    max_risk: "low"
+
+  vision:
+    primary: "llama-3.2-vision-11b"
+    fallback: "qwen2-vl-7b"
+    max_latency_ms: 3500
+
+  audio:
+    primary: "whisper-large-v3"
+    fallback: null
+    max_latency_ms: 1500
+
+  creative_fusion:
+    candidates: ["mistral-large-2", "qwen2.5-14b"]
+    ab_split: 0.5  # 50/50 split
+    min_creative_score: 0.75
+
+# ========== ADMISSION CONTROL ==========
+admission:
+  vram_threshold_pct: 85
+  queue_max_depth: 50
+  auto_demote_on_pressure: true
+  pressure_fallback_chain:
+    - from: "deepseek-v3.1"
+      to: "qwen2.5-14b"
+    - from: "llama-3.2-vision-11b"
+      to: "qwen2-vl-7b"
+    - from: "qwen2.5-14b"
+      to: "phi-4-mini"
+
+# ========== CACHE CONFIGURATION ==========
+caching:
+  kv_cache:
+    enabled: true
+    cross_request: true
+    group_by: "conversation_id"
+    ttl_seconds: 3600
+    
+  prefix_cache:
+    enabled: true
+    preloads:
+      - name: "identity_prelude"
+        path: "config/identity_prelude.txt"
+        priority: 1
+      - name: "tool_manifests"
+        path: "config/tool_manifests.json"
+        priority: 2
+      - name: "soul_purpose"
+        path: "soul/purpose.yaml"
+        priority: 3
+
+# ========== SPECULATIVE DECODING ==========
+speculative:
+  enabled: true
+  drafter: "phi-4-mini"
+  verifier: "deepseek-v3.1"
+  conditions:
+    - latency_budget_ms: [800, 2000]  # Use when latency is tight but not critical
+    - complexity: [0.4, 0.8]  # Not too simple, not too complex
+  acceptance_threshold: 0.75
+
+# ========== METRICS ==========
+metrics:
+  track:
+    - routing_hit_rate
+    - fallback_rate
+    - regret_score  # Post-hoc model scoring
+    - kv_cache_hit_ratio
+    - latency_p50_p95_p99
+    - cost_tokens_gpu_seconds
+    - soul_alignment_score
+  
+  targets:
+    reasoning_latency_p95_ms: 2800
+    speed_latency_p95_ms: 450
+    fallback_rate_pct: 3.0
+    regret_rate_pct: 10.0
+    kv_hit_ratio_pct: 60.0
+
+# ========== NOTES ==========
+# Update this file to add new models or adjust routing.
+# Changes take effect on next router reload (no redeploy needed).
+# Use `astra registry validate` to check syntax before commit.

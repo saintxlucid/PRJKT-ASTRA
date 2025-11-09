@@ -1,0 +1,75 @@
+# Prometheus Configuration for ASTRA Monitoring
+# Scrapes metrics from all ASTRA services
+
+global:
+  scrape_interval: 5s
+  evaluation_interval: 5s
+  external_labels:
+    cluster: 'astra-production'
+    environment: 'prod'
+
+scrape_configs:
+  # ASTRA Master API - Main unified endpoint
+  - job_name: 'astra-master'
+    static_configs:
+      - targets: ['astra-master:8000']
+        labels:
+          service: 'master-api'
+          tier: 'core'
+    metrics_path: '/metrics'
+    scrape_interval: 5s
+
+  # Memory Service - Vector embeddings and search
+  - job_name: 'memory-service'
+    static_configs:
+      - targets: ['memory-service:7007']
+        labels:
+          service: 'memory'
+          tier: 'data'
+    metrics_path: '/metrics'
+    scrape_interval: 10s
+
+  # Sigil Gate - Consent and authorization
+  - job_name: 'sigil-gate'
+    static_configs:
+      - targets: ['sigil-gate:7701']
+        labels:
+          service: 'sigil-gate'
+          tier: 'security'
+    metrics_path: '/metrics'
+    scrape_interval: 10s
+
+  # Supervisor - Job orchestration
+  - job_name: 'supervisor'
+    static_configs:
+      - targets: ['supervisor:7703']
+        labels:
+          service: 'supervisor'
+          tier: 'orchestration'
+    metrics_path: '/metrics'
+    scrape_interval: 10s
+
+  # PostgreSQL - Database metrics (requires postgres_exporter)
+  # Uncomment when postgres_exporter is deployed
+  # - job_name: 'postgres'
+  #   static_configs:
+  #     - targets: ['postgres-exporter:9187']
+  #       labels:
+  #         service: 'postgres'
+  #         tier: 'data'
+
+  # ChromaDB - Vector store (if it exposes metrics)
+  # - job_name: 'chromadb'
+  #   static_configs:
+  #     - targets: ['chromadb:8000']
+  #       labels:
+  #         service: 'chromadb'
+  #         tier: 'data'
+
+  # Prometheus self-monitoring
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+        labels:
+          service: 'prometheus'
+          tier: 'monitoring'

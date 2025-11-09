@@ -12,6 +12,7 @@ from pydantic import BaseModel, Field
 
 from astra.services.chat_service import ChatService
 from astra.utils.errors import AstraError, NotFoundError
+from astra.security.validator import PromptValidator
 
 router = APIRouter(prefix="/v1/chat", tags=["chat"])
 
@@ -66,6 +67,11 @@ async def chat(
     Returns the complete response after generation finishes.
     """
     try:
+        # Phase 0: Basic prompt injection guard
+        messages = [{"role": "user", "content": request.message}]
+        if not PromptValidator.validate_prompt(messages):
+            raise HTTPException(status_code=400, detail="Suspicious prompt detected")
+
         response = await chat_service.chat(
             conversation_id=request.conversation_id,
             user_message=request.message,
@@ -110,6 +116,12 @@ async def stream_chat(
     async def generate_sse() -> AsyncIterator[str]:
         """Generate SSE events"""
         try:
+            # Phase 0: Basic prompt injection guard
+            messages = [{"role": "user", "content": request_data.message}]
+            if not PromptValidator.validate_prompt(messages):
+                yield "event: error\ndata: Suspicious prompt detected\n\n"
+                return
+
             async for chunk in chat_service.stream_chat(
                 conversation_id=request_data.conversation_id,
                 user_message=request_data.message,

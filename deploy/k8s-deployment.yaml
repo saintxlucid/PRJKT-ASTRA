@@ -1,0 +1,74 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: astra-core
+  labels: { app: astra-core }
+spec:
+  replicas: 3
+  selector: { matchLabels: { app: astra-core } }
+  strategy:
+    type: RollingUpdate
+    rollingUpdate: { maxUnavailable: 1, maxSurge: 1 }
+  template:
+    metadata: { labels: { app: astra-core } }
+    spec:
+      terminationGracePeriodSeconds: 30
+      containers:
+      - name: astra
+        image: yourrepo/astra-core:v1.1.0-canary
+        ports: [{ containerPort: 8080 }]
+        envFrom:
+        - secretRef: { name: astra-secrets }
+        - configMapRef: { name: astra-config }
+        readinessProbe:
+          httpGet: { path: /ready, port: 8080 }
+          periodSeconds: 3
+          timeoutSeconds: 1
+          failureThreshold: 10
+        livenessProbe:
+          httpGet: { path: /live, port: 8080 }
+          periodSeconds: 5
+          timeoutSeconds: 1
+          failureThreshold: 6
+        resources:
+          requests: { cpu: "250m", memory: "512Mi" }
+          limits:   { cpu: "1",    memory: "2Gi" }
+        lifecycle:
+          preStop:
+            exec:
+              command: ["sh","-c","curl -s -X POST http://127.0.0.1:8080/admin/drain || true; sleep 10"]
+        securityContext:
+          allowPrivilegeEscalation: false
+          runAsNonRoot: true
+          runAsUser: 10001
+          readOnlyRootFilesystem: true
+---
+apiVersion: v1
+kind: Service
+metadata: { name: astra-core }
+spec:
+  selector: { app: astra-core }
+  ports: [{ port: 8080, targetPort: 8080 }]
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata: { name: astra-core-pdb }
+spec:
+  minAvailable: 2
+  selector: { matchLabels: { app: astra-core } }
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata: { name: astra-core-hpa }
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: astra-core
+  minReplicas: 3
+  maxReplicas: 10
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target: { type: Utilization, averageUtilization: 70 }

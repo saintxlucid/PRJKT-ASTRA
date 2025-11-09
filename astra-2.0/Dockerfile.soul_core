@@ -1,0 +1,26 @@
+FROM python:3.10-slim
+
+WORKDIR /app
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install Python dependencies
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Copy application code
+COPY astra-2.0/orchestration/soul_core.py .
+COPY astra-2.0/neural /app/astra/neural
+COPY astra-2.0/core /app/astra/core
+COPY config /app/config
+
+# Set environment variables
+ENV PYTHONPATH=/app
+ENV ASTRA_ENV=production
+
+# Run the service
+CMD ["python", "soul_core.py"]

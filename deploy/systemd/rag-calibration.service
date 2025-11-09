@@ -1,0 +1,15 @@
+[Unit]
+Description=RAG Nightly Calibration Service
+After=network.target
+
+[Service]
+Type=oneshot
+User=rag-service
+WorkingDirectory=/opt/astra/
+Environment=PYTHONPATH=/opt/astra
+ExecStart=/usr/bin/python3 src/astra/rag/tuning/nightly_calibration.py
+StandardOutput=append:/var/log/rag/calibration.log
+StandardError=append:/var/log/rag/calibration.log
+
+[Install]
+WantedBy=multi-user.target

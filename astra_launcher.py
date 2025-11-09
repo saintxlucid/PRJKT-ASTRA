@@ -24,6 +24,8 @@ import structlog
 import httpx
 from dotenv import load_dotenv
 
+from astra.launcher.cleanup import CleanupManager
+
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = structlog.get_logger()
@@ -41,6 +43,14 @@ class ASTRALauncher:
         self.skip_health_check = skip_health_check
         self.project_root = Path(__file__).parent
         self.privacy_mode = privacy_mode
+        
+        # Initialize cleanup manager
+        self.cleanup = CleanupManager()
+        
+        # Create runtime directory for temporary files
+        self.runtime_dir = self.project_root / "runtime"
+        self.runtime_dir.mkdir(exist_ok=True)
+        self.cleanup.register_temp_dir(self.runtime_dir)
         
         # Initialize privacy system first
         from core.privacy import initialize_privacy_system
@@ -312,6 +322,11 @@ Try these queries:
             # Step 4: Start ASTRA server
             server_process = self.start_astra_server()
             
+            # Register server process with the cleanup manager
+            if server_process and server_process.poll() is None:  # Only if process started successfully
+                self.cleanup.register_process(process=server_process)
+                logger.info("Registered server process for cleanup", pid=server_process.pid)
+            
             # Step 5: Wait for server to be ready
             server_ready = await self.wait_for_server_ready()
             if not server_ready:
@@ -376,15 +391,35 @@ def main():
                 while True:
                     time.sleep(1)
             except KeyboardInterrupt:
-                print("\n👋 ASTRA shutdown initiated. Goodbye!")
+                print("\n👋 ASTRA shutdown initiated...")
+                try:
+                    # Run cleanup and give it time to complete
+                    asyncio.run(launcher.cleanup.cleanup())
+                    logger.info("ASTRA shutdown completed successfully")
+                except Exception as e:
+                    logger.error(f"Error during cleanup: {e}")
+                finally:
+                    print("Goodbye!")
+                    sys.exit(0)
         else:
             print("\n❌ ASTRA activation failed. Check logs for details.")
+            # Run cleanup even on failed activation
+            try:
+                asyncio.run(launcher.cleanup.cleanup())
+            except Exception as e:
+                logger.error(f"Error during cleanup after failed activation: {e}")
             sys.exit(1)
             
     except KeyboardInterrupt:
-        print("\n👋 ASTRA activation cancelled. Goodbye!")
-        sys.exit(0)
-
-
+        print("\n👋 ASTRA activation cancelled.")
+        # Run cleanup on cancelled activation
+        try:
+            asyncio.run(launcher.cleanup.cleanup())
+            logger.info("Cleanup after cancelled activation completed")
+        except Exception as e:
+            logger.error(f"Error during cleanup after cancelled activation: {e}")
+        finally:
+            print("Goodbye!")
+            sys.exit(0)
 if __name__ == "__main__":
     main()

@@ -1,0 +1,122 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: astra-recording-rules
+  namespace: monitoring
+  labels:
+    app: astra
+    component: recording
+spec:
+  groups:
+  - name: astra-recordings
+    interval: 30s
+    rules:
+    # Bridge metrics - pre-aggregated for dashboards
+    - record: bridge:error_rate:5m
+      expr: |
+        sum(rate(bridge_calls_total{status="error"}[5m]))
+        / clamp_min(sum(rate(bridge_calls_total[5m])), 1)
+    
+    - record: bridge:success_rate:5m
+      expr: |
+        sum(rate(bridge_calls_total{status="success"}[5m]))
+        / clamp_min(sum(rate(bridge_calls_total[5m])), 1)
+    
+    - record: bridge:request_rate:1m
+      expr: sum(rate(bridge_calls_total[1m]))
+    
+    - record: bridge:latency:p50:5m
+      expr: |
+        histogram_quantile(
+          0.50,
+          sum by (le) (rate(bridge_call_duration_seconds_bucket[5m]))
+        )
+    
+    - record: bridge:latency:p90:5m
+      expr: |
+        histogram_quantile(
+          0.90,
+          sum by (le) (rate(bridge_call_duration_seconds_bucket[5m]))
+        )
+    
+    - record: bridge:latency:p95:5m
+      expr: |
+        histogram_quantile(
+          0.95,
+          sum by (le) (rate(bridge_call_duration_seconds_bucket[5m]))
+        )
+    
+    - record: bridge:latency:p99:5m
+      expr: |
+        histogram_quantile(
+          0.99,
+          sum by (le) (rate(bridge_call_duration_seconds_bucket[5m]))
+        )
+    
+    # Docs metrics
+    - record: docs:ingest_rate:1m
+      expr: sum(rate(docs_ingest_total[1m]))
+    
+    - record: docs:ingest_failure_rate:5m
+      expr: |
+        sum(rate(docs_ingest_total{status="error"}[5m]))
+        / clamp_min(sum(rate(docs_ingest_total[5m])), 1)
+    
+    - record: docs:search_rate:1m
+      expr: sum(rate(docs_search_total[1m]))
+    
+    - record: docs:search_latency:p95:5m
+      expr: |
+        histogram_quantile(
+          0.95,
+          sum by (le) (rate(docs_search_duration_seconds_bucket[5m]))
+        )
+    
+    # SLO metrics (99.5% availability target)
+    - record: bridge:availability:1h
+      expr: |
+        1 - clamp_max(
+          sum(rate(bridge_calls_total{status="error"}[1h]))
+          / clamp_min(sum(rate(bridge_calls_total[1h])), 1), 1)
+    
+    - record: bridge:availability:24h
+      expr: |
+        1 - clamp_max(
+          sum(rate(bridge_calls_total{status="error"}[24h]))
+          / clamp_min(sum(rate(bridge_calls_total[24h])), 1), 1)
+    
+    - record: bridge:availability:30d
+      expr: |
+        1 - clamp_max(
+          sum(rate(bridge_calls_total{status="error"}[30d]))
+          / clamp_min(sum(rate(bridge_calls_total[30d])), 1), 1)
+    
+    # Error budget remaining (99.5% SLO = 0.5% error budget)
+    - record: bridge:error_budget_remaining:30d
+      expr: |
+        0.005 - (1 - bridge:availability:30d)
+    
+    # Resource utilization
+    - record: bridge:cpu_usage:avg
+      expr: |
+        avg(rate(container_cpu_usage_seconds_total{pod=~"bridge-.*"}[5m]))
+    
+    - record: bridge:memory_usage:avg
+      expr: |
+        avg(container_memory_usage_bytes{pod=~"bridge-.*"})
+    
+    - record: docs:cpu_usage:avg
+      expr: |
+        avg(rate(container_cpu_usage_seconds_total{pod=~"docs-.*"}[5m]))
+    
+    - record: docs:memory_usage:avg
+      expr: |
+        avg(container_memory_usage_bytes{pod=~"docs-.*"})
+    
+    # Qdrant health
+    - record: qdrant:up
+      expr: up{job="qdrant"}
+    
+    - record: qdrant:memory_usage_ratio
+      expr: |
+        qdrant_memory_used_bytes / qdrant_memory_total_bytes

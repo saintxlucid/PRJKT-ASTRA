@@ -1,0 +1,7 @@
+phases:
+  - name: warmup
+    config: configs/run_phaseA.yaml
+  - name: core
+    config: configs/run_phaseB.yaml
+  - name: sharpen
+    config: configs/run_phaseC.yaml

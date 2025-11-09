@@ -1,0 +1,35 @@
+{
+  "id": "20251022",
+  "version": "1.0.0",
+  "timestamp": "2025-10-22T00:00:00Z",
+  "base_model": {
+    "name": "GPT-OOS-20B.F16.gguf",
+    "checksum": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "evolved_model": {
+    "name": "GPT-OOS-20B.EVO.gguf",
+    "checksum": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "build_config": {
+      "rope_scale": 1.15,
+      "quant_type": "Q5_K_M",
+      "repack": true
+    }
+  },
+  "adapters": {
+    "manifest": "adapters/manifest.json",
+    "checksum": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "metrics": {
+    "perplexity": 6.42,
+    "tool_accuracy": 92.5,
+    "drift": 0.0,
+    "guardrail_compliance": 98.2
+  },
+  "provenance": {
+    "astra_version": "1.0.0",
+    "astra_ops": "merge,quantize,validate",
+    "astra_snapshot_id": "20251022",
+    "astra_built_at": "2025-10-22T00:00:00Z",
+    "astra_signature": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  }
+}

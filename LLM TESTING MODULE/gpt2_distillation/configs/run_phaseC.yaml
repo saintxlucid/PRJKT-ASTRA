@@ -1,0 +1,4 @@
+temperature: 1.5
+loss_weights: {kd: 0.5, ce: 0.35, seq: 0.1, hint: 0.05}
+sched: {type: linear, warmup_steps: 0, total_steps: 5000}
+hard_set: data/hard.jsonl

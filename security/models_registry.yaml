@@ -1,0 +1,23 @@
+# ASTRA Model Registry - Supply Chain Security
+# Run: python security/verify_models.py --write (once to populate checksums)
+# Run: python security/verify_models.py (every boot to verify integrity)
+
+models:
+  - name: llama3.1-8b-instruct.gguf
+    path: models/llama3.1-8b-instruct.gguf
+    sha256: ""     # leave blank initially; script will populate
+    
+  - name: embed-bge-m3.gguf
+    path: models/embed-bge-m3.gguf
+    sha256: ""
+    
+  # Add all local models here before running verify_models.py --write
+  # Example entries (uncomment and adjust paths as needed):
+  
+  # - name: whisper-large-v3-turbo.gguf
+  #   path: whisper-large-v3-turbo-gguf/whisper-large-v3-turbo.gguf
+  #   sha256: ""
+  
+  # - name: bge-reranker-v2-m3.gguf
+  #   path: gguf-Q8_0-bge-reranker-v2-m3/bge-reranker-v2-m3.gguf
+  #   sha256: ""

@@ -1,0 +1,45 @@
+version: "0.3"
+meta:
+  id: "research_brief_demo"
+  policy: "action"
+  max_time_ms: 30000
+
+steps:
+  # Step 0: Capture initial context
+  - observe.context: {}
+
+  # Step 1: Navigate to research page
+  - browser.navigate:
+      url: "https://arxiv.org/list/cs.AI/recent"
+
+  # Step 2: Extract paper titles and abstracts
+  - browser.extract_markdown:
+      selector: "main"
+      max_tokens: 800
+      paginate: false
+
+  # Step 3: Save raw extraction to memory
+  - memory.save:
+      path: "/episodic/research_raw"
+      content: "{{step.2}}"
+
+  # Step 4: Request approval before composing
+  - approval.request:
+      summary: "Extracted research papers, compose brief?"
+      scope: "compose.document"
+
+  # Step 5: Compose structured brief (placeholder - requires compose skill)
+  - memory.save:
+      path: "/artifacts/research_brief.md"
+      content: |
+        # AI Research Brief
+        
+        Source: arXiv cs.AI
+        Extracted: {{step.0.elapsed_ms}}ms
+        
+        {{step.2}}
+
+  # Step 6: Notify user of completion
+  - notify.push:
+      channel: "telegram://user_id"
+      message: "Research brief ready at /artifacts/research_brief.md"

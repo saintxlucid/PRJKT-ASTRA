@@ -1,0 +1,12 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: astra-core
+  labels: { release: prometheus }   # match your operator's label
+spec:
+  selector:
+    matchLabels: { app: astra-core }
+  endpoints:
+  - port: 8080
+    path: /metrics
+    interval: 5s

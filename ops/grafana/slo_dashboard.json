@@ -1,0 +1,252 @@
+{
+  "annotations": {
+    "list": []
+  },
+  "editable": true,
+  "graphTooltip": 0,
+  "id": 2,
+  "links": [],
+  "panels": [
+    {
+      "title": "SLO Overview",
+      "type": "row",
+      "collapsed": false,
+      "panels": [
+        {
+          "title": "SLO Compliance Summary",
+          "type": "gauge",
+          "datasource": "Prometheus",
+          "targets": [
+            {
+              "expr": "avg(rate(astra_tool_execution_duration_seconds_bucket{le=\"2.5\"}[1h]) / ignoring(le) rate(astra_tool_execution_duration_seconds_count[1h]))",
+              "legendFormat": "API Latency",
+              "refId": "A"
+            },
+            {
+              "expr": "sum(rate(astra_router_heartbeat_success_total[24h])) / sum(rate(astra_router_heartbeat_total[24h]))",
+              "legendFormat": "WebSocket Uptime",
+              "refId": "B"
+            }
+          ],
+          "options": {
+            "minValue": 0,
+            "maxValue": 1,
+            "thresholds": [
+              { "value": 0, "color": "red" },
+              { "value": 0.95, "color": "yellow" },
+              { "value": 0.99, "color": "green" }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "title": "API Performance",
+      "type": "row",
+      "collapsed": false,
+      "panels": [
+        {
+          "title": "API Request Latency",
+          "type": "timeseries",
+          "datasource": "Prometheus",
+          "targets": [
+            {
+              "expr": "histogram_quantile(0.95, rate(astra_tool_execution_duration_seconds_bucket[5m]))",
+              "legendFormat": "p95"
+            }
+          ],
+          "alert": {
+            "name": "High API Latency",
+            "conditions": [
+              {
+                "evaluator": {
+                  "params": [2.5],
+                  "type": "gt"
+                },
+                "operator": {
+                  "type": "and"
+                },
+                "query": {
+                  "params": ["A", "5m", "now"]
+                },
+                "reducer": {
+                  "params": [],
+                  "type": "avg"
+                },
+                "type": "query"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "title": "WebSocket Health",
+      "type": "row",
+      "collapsed": false,
+      "panels": [
+        {
+          "title": "WebSocket Uptime",
+          "type": "stat",
+          "datasource": "Prometheus",
+          "targets": [
+            {
+              "expr": "sum(rate(astra_router_heartbeat_success_total[5m])) / sum(rate(astra_router_heartbeat_total[5m]))",
+              "legendFormat": "Success Rate"
+            }
+          ],
+          "options": {
+            "colorMode": "value",
+            "graphMode": "area",
+            "justifyMode": "auto",
+            "orientation": "horizontal",
+            "reduceOptions": {
+              "calcs": ["lastNotNull"],
+              "values": false
+            }
+          },
+          "alert": {
+            "name": "WebSocket Downtime",
+            "conditions": [
+              {
+                "evaluator": {
+                  "params": [0.999],
+                  "type": "lt"
+                },
+                "operator": {
+                  "type": "and"
+                },
+                "query": {
+                  "params": ["A", "5m", "now"]
+                },
+                "reducer": {
+                  "params": [],
+                  "type": "avg"
+                },
+                "type": "query"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "title": "Memory System",
+      "type": "row",
+      "collapsed": false,
+      "panels": [
+        {
+          "title": "Memory Operation Latency",
+          "type": "timeseries",
+          "datasource": "Prometheus",
+          "targets": [
+            {
+              "expr": "histogram_quantile(0.95, sum(rate(astra_memory_operation_duration_seconds_bucket[5m])) by (le, operation))",
+              "legendFormat": "{{operation}} p95"
+            }
+          ]
+        },
+        {
+          "title": "Memory Sync Health",
+          "type": "stat",
+          "datasource": "Prometheus",
+          "targets": [
+            {
+              "expr": "sum(increase(astra_memory_sync_diffs_total[24h])) / sum(astra_memory_entries_total)",
+              "legendFormat": "Diff Rate"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Resource Utilization",
+      "type": "row",
+      "collapsed": false,
+      "panels": [
+        {
+          "title": "CPU Usage",
+          "type": "gauge",
+          "datasource": "Prometheus",
+          "targets": [
+            {
+              "expr": "avg_over_time(astra_cpu_usage_percent[5m])",
+              "legendFormat": "CPU %"
+            }
+          ],
+          "options": {
+            "minValue": 0,
+            "maxValue": 100,
+            "thresholds": [
+              { "value": 0, "color": "green" },
+              { "value": 70, "color": "yellow" },
+              { "value": 85, "color": "red" }
+            ]
+          }
+        },
+        {
+          "title": "Budget Exhaustion",
+          "type": "timeseries",
+          "datasource": "Prometheus",
+          "targets": [
+            {
+              "expr": "sum(rate(astra_budget_exhaustion_events_total[1h])) / sum(rate(astra_tool_execution_total[1h]))",
+              "legendFormat": "Exhaustion Rate"
+            }
+          ],
+          "alert": {
+            "name": "High Budget Exhaustion",
+            "conditions": [
+              {
+                "evaluator": {
+                  "params": [0.05],
+                  "type": "gt"
+                },
+                "operator": {
+                  "type": "and"
+                },
+                "query": {
+                  "params": ["A", "15m", "now"]
+                },
+                "reducer": {
+                  "params": [],
+                  "type": "avg"
+                },
+                "type": "query"
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ],
+  "refresh": "10s",
+  "schemaVersion": 30,
+  "style": "dark",
+  "tags": ["astra", "slo"],
+  "templating": {
+    "list": []
+  },
+  "time": {
+    "from": "now-6h",
+    "to": "now"
+  },
+  "timepicker": {
+    "refresh_intervals": [
+      "5s",
+      "10s",
+      "30s",
+      "1m",
+      "5m",
+      "15m",
+      "30m",
+      "1h",
+      "2h",
+      "1d"
+    ]
+  },
+  "timezone": "browser",
+  "title": "ASTRA SLO Dashboard",
+  "uid": "astra-slo",
+  "version": 1
+}

@@ -1,0 +1,107 @@
+{
+  "rules": [
+    {
+      "id": "rule_block_suspicious_exe",
+      "event": "file_created",
+      "pattern": "*.exe",
+      "location": "Desktop|Downloads",
+      "action": "ask_user",
+      "confidence": 0.85,
+      "created_by": "system",
+      "learned_from": 0,
+      "enabled": true,
+      "description": "Ask user before allowing executable files in download areas"
+    },
+    {
+      "id": "rule_allow_documents",
+      "event": "file_created",
+      "pattern": "*.docx|*.pdf|*.txt",
+      "action": "allow",
+      "confidence": 0.99,
+      "created_by": "system",
+      "learned_from": 0,
+      "enabled": true,
+      "description": "Allow document creation (safe file types)"
+    },
+    {
+      "id": "rule_monitor_unknown_process",
+      "event": "process_spawned",
+      "pattern": "unknown",
+      "action": "log_and_monitor",
+      "confidence": 0.5,
+      "created_by": "system",
+      "learned_from": 0,
+      "enabled": true,
+      "description": "Monitor unknown processes, collect telemetry"
+    },
+    {
+      "id": "rule_allow_system_processes",
+      "event": "process_spawned",
+      "pattern": "svchost|explorer|dwm",
+      "action": "allow",
+      "confidence": 0.99,
+      "created_by": "system",
+      "learned_from": 0,
+      "enabled": true,
+      "description": "Trust system processes"
+    },
+    {
+      "id": "rule_warn_cpu_spike",
+      "event": "process_cpu_spike",
+      "action": "notify_user",
+      "confidence": 0.9,
+      "created_by": "system",
+      "learned_from": 0,
+      "enabled": true,
+      "description": "Notify when process uses >80% CPU"
+    },
+    {
+      "id": "rule_warn_memory_spike",
+      "event": "process_memory_spike",
+      "action": "notify_user",
+      "confidence": 0.9,
+      "created_by": "system",
+      "learned_from": 0,
+      "enabled": true,
+      "description": "Notify when process uses >50% memory"
+    }
+  ],
+  "autonomy_levels": {
+    "1": {
+      "name": "Paranoid",
+      "description": "Ask for approval on all suspicious actions",
+      "soft_security": true,
+      "hard_security": false,
+      "learning_enabled": true
+    },
+    "2": {
+      "name": "Careful",
+      "description": "Warn on suspicious, allow known-safe",
+      "soft_security": true,
+      "hard_security": false,
+      "learning_enabled": true
+    },
+    "3": {
+      "name": "Balanced",
+      "description": "Auto-allow known-safe, warn on unknown",
+      "soft_security": true,
+      "hard_security": false,
+      "learning_enabled": true
+    },
+    "4": {
+      "name": "Trusting",
+      "description": "Auto-act on most decisions, only block severe threats",
+      "soft_security": false,
+      "hard_security": true,
+      "learning_enabled": true
+    },
+    "5": {
+      "name": "Autonomous",
+      "description": "Full autonomy - act without asking",
+      "soft_security": false,
+      "hard_security": true,
+      "learning_enabled": true
+    }
+  },
+  "learned_rules": []
+}

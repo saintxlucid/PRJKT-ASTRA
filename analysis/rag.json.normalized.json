@@ -1,0 +1,56 @@
+{
+  "multi_rag": {
+    "dense_batch_size": 32,
+    "max_concurrent": 4,
+    "rerank_cutoff": 50,
+    "max_results": 10,
+    "cache_ttl": 3600,
+    "consent_required": true
+  },
+  "fusion": {
+    "rrf_k": 60,
+    "mmr_lambda": 0.7,
+    "rerank_cutoff": 50,
+    "min_score_threshold": 0.01
+  },
+  "dense_index": {
+    "type": "qdrant",
+    "config": {
+      "url": "http://localhost:6333",
+      "vector_size": 1024,
+      "distance": "Cosine",
+      "hnsw_config": {
+        "m": 32,
+        "ef_construct": 256,
+        "ef_search": 128
+      }
+    }
+  },
+  "router": {
+    "intent_weights": {
+      "keyword": {
+        "bm25": 0.8,
+        "dense": 0.2
+      },
+      "semantic": {
+        "bm25": 0.2,
+        "dense": 0.8
+      },
+      "code": {
+        "bm25": 0.4,
+        "dense": 0.6
+      }
+    },
+    "thresholds": {
+      "keyword_ratio": 0.3,
+      "code_ratio": 0.25,
+      "length_threshold": 4
+    }
+  },
+  "vector_sliding": {
+    "similarity_threshold": 0.85,
+    "max_merge_tokens": 1200,
+    "merge_stride": 0.3,
+    "require_adjacent": true
+  }
+}

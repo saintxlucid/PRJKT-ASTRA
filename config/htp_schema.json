@@ -1,0 +1,276 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Harmonic Tool Protocol v1",
+  "description": "OpenAI-compatible tool schema with safety, cost, and provenance extensions",
+  "version": "1.0.0",
+  "type": "object",
+  "required": ["type", "function"],
+  "properties": {
+    "type": {
+      "type": "string",
+      "enum": ["function"],
+      "description": "Tool type (currently only 'function' supported)"
+    },
+    "function": {
+      "type": "object",
+      "required": ["name", "description", "parameters"],
+      "properties": {
+        "name": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]*$",
+          "description": "Tool function name (snake_case)"
+        },
+        "description": {
+          "type": "string",
+          "minLength": 10,
+          "description": "Clear description of what the tool does"
+        },
+        "parameters": {
+          "type": "object",
+          "description": "JSON Schema for parameters (OpenAI-compatible)",
+          "required": ["type", "properties"],
+          "properties": {
+            "type": {"const": "object"},
+            "properties": {"type": "object"},
+            "required": {"type": "array", "items": {"type": "string"}}
+          }
+        },
+        "safety_tier": {
+          "type": "string",
+          "enum": ["low", "medium", "high"],
+          "default": "medium",
+          "description": "Safety tier controls sandboxing and confirmation flow"
+        },
+        "cost_estimate": {
+          "type": "object",
+          "description": "Declared resource costs for observability",
+          "properties": {
+            "cpu_ms": {
+              "type": "integer",
+              "minimum": 0,
+              "description": "Estimated CPU milliseconds"
+            },
+            "io_kb": {
+              "type": "integer",
+              "minimum": 0,
+              "description": "Estimated I/O in kilobytes"
+            },
+            "network_kb": {
+              "type": "integer",
+              "minimum": 0,
+              "description": "Estimated network transfer in kilobytes"
+            },
+            "gpu_ms": {
+              "type": "integer",
+              "minimum": 0,
+              "description": "Estimated GPU milliseconds"
+            }
+          }
+        },
+        "evidence": {
+          "type": "object",
+          "description": "Provenance and verification for tool outputs",
+          "properties": {
+            "capture_hashes": {
+              "type": "boolean",
+              "default": false,
+              "description": "Capture SHA256 hashes of files read/written"
+            },
+            "log_provenance": {
+              "type": "boolean",
+              "default": true,
+              "description": "Log tool invocation in event stream"
+            },
+            "require_signature": {
+              "type": "boolean",
+              "default": false,
+              "description": "Require cryptographic signature for outputs"
+            }
+          }
+        },
+        "sandbox": {
+          "type": "object",
+          "description": "Sandboxing configuration",
+          "properties": {
+            "allowed_paths": {
+              "type": "array",
+              "items": {"type": "string"},
+              "description": "Allowlist of file paths (glob patterns)"
+            },
+            "denied_paths": {
+              "type": "array",
+              "items": {"type": "string"},
+              "description": "Denylist of file paths (glob patterns)"
+            },
+            "network_access": {
+              "type": "boolean",
+              "default": false,
+              "description": "Allow network requests"
+            },
+            "max_execution_ms": {
+              "type": "integer",
+              "default": 5000,
+              "description": "Maximum execution time in milliseconds"
+            }
+          }
+        },
+        "confirmation": {
+          "type": "object",
+          "description": "User confirmation requirements",
+          "properties": {
+            "required": {
+              "type": "boolean",
+              "default": false,
+              "description": "Require explicit user confirmation"
+            },
+            "message_template": {
+              "type": "string",
+              "description": "Confirmation prompt template"
+            },
+            "auto_approve_conditions": {
+              "type": "array",
+              "items": {"type": "string"},
+              "description": "Conditions for auto-approval (e.g., 'file_size < 1MB')"
+            }
+          }
+        },
+        "deprecation": {
+          "type": "object",
+          "description": "Deprecation information",
+          "properties": {
+            "deprecated": {
+              "type": "boolean",
+              "default": false
+            },
+            "alternative": {
+              "type": "string",
+              "description": "Recommended alternative tool"
+            },
+            "sunset_date": {
+              "type": "string",
+              "format": "date",
+              "description": "Date when tool will be removed"
+            }
+          }
+        }
+      }
+    }
+  },
+  "examples": [
+    {
+      "type": "function",
+      "function": {
+        "name": "read_file",
+        "description": "Read contents of a file from the repository (sandboxed)",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "path": {
+              "type": "string",
+              "description": "Relative path to file"
+            },
+            "max_kb": {
+              "type": "integer",
+              "default": 256,
+              "description": "Maximum file size to read in KB"
+            },
+            "encoding": {
+              "type": "string",
+              "enum": ["utf-8", "ascii", "latin-1"],
+              "default": "utf-8"
+            }
+          },
+          "required": ["path"]
+        },
+        "safety_tier": "low",
+        "cost_estimate": {
+          "cpu_ms": 25,
+          "io_kb": 256
+        },
+        "evidence": {
+          "capture_hashes": true,
+          "log_provenance": true
+        },
+        "sandbox": {
+          "allowed_paths": ["src/**", "config/**", "tests/**"],
+          "denied_paths": [".env", "*.key", "*.pem"],
+          "max_execution_ms": 2000
+        }
+      }
+    },
+    {
+      "type": "function",
+      "function": {
+        "name": "delete_file",
+        "description": "Delete a file (creates shadow copy for safety)",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "path": {
+              "type": "string",
+              "description": "Path to file to delete"
+            },
+            "reason": {
+              "type": "string",
+              "description": "Reason for deletion (required for audit)"
+            }
+          },
+          "required": ["path", "reason"]
+        },
+        "safety_tier": "high",
+        "cost_estimate": {
+          "cpu_ms": 50,
+          "io_kb": 512
+        },
+        "evidence": {
+          "capture_hashes": true,
+          "log_provenance": true,
+          "require_signature": true
+        },
+        "confirmation": {
+          "required": true,
+          "message_template": "⚠️ Delete {path}? Reason: {reason}. (Shadow copy will be created)",
+          "auto_approve_conditions": []
+        },
+        "sandbox": {
+          "allowed_paths": ["temp/**", "build/**"],
+          "denied_paths": ["src/**", "config/**", ".git/**"],
+          "max_execution_ms": 5000
+        }
+      }
+    },
+    {
+      "type": "function",
+      "function": {
+        "name": "perceive_screen",
+        "description": "Capture and analyze screen content using vision model",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "region": {
+              "type": "string",
+              "enum": ["full", "active_window", "cursor_area"],
+              "default": "active_window"
+            },
+            "task": {
+              "type": "string",
+              "enum": ["ocr", "ui_understanding", "scene_analysis"],
+              "description": "Analysis task to perform"
+            }
+          },
+          "required": ["task"]
+        },
+        "safety_tier": "medium",
+        "cost_estimate": {
+          "cpu_ms": 500,
+          "gpu_ms": 2000,
+          "io_kb": 2048
+        },
+        "evidence": {
+          "capture_hashes": true,
+          "log_provenance": true
+        }
+      }
+    }
+  ]
+}

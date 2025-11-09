@@ -1,0 +1,26 @@
+site_name: PROJECT_ASTRA_1.0 (ASTRA_CORE) Docs
+theme:
+  name: material
+  features:
+    - navigation.sections
+    - navigation.expand
+    - search.suggest
+    - content.code.copy
+nav:
+  - Home: DOCUMENTATION_INDEX.md
+  - Quick Start: QUICKSTART.md
+  - Deployment: DEPLOYMENT_GUIDE_CONSOLIDATED.md
+  - Architecture: ARCHITECTURE_PRODUCTION.md
+  - Final Report: PROJECT_FINAL_REPORT.md
+  - Maintenance: DOCUMENTATION_MAINTENANCE.md
+markdown_extensions:
+  - admonition
+  - toc:
+      permalink: true
+  - tables
+plugins:
+  - search
+  - redirects:
+      redirect_maps:
+        'old-page.md': 'new-page.md'
+strict: true

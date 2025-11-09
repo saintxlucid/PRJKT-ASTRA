@@ -1,0 +1,16 @@
+# AICL - AI Interchange Chat Language
+# Requirements for basic functionality
+
+# Standard library dependencies (no additional packages required for basic AICL)
+# All dependencies are part of Python standard library:
+# - socket (networking)
+# - json (serialization)
+# - threading (concurrent execution)
+# - time (timing functions)
+# - ssl (TLS support)
+# - hashlib, hmac (security functions)
+# - collections (data structures)
+# - typing (type hints)
+
+# Optional dependencies for enhanced functionality:
+# - For compression support in logging: gzip (standard library)

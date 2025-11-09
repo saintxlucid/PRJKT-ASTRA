@@ -1,0 +1,241 @@
+---
+# Flagger MetricTemplates for ASTRA Core Canary Analysis
+# These templates define reusable Prometheus queries for canary validation
+
+apiVersion: flagger.app/v1beta1
+kind: MetricTemplate
+metadata:
+  name: p95-latency
+  namespace: astra-production
+spec:
+  provider:
+    type: prometheus
+    address: http://prometheus.monitoring:9090
+  query: |
+    histogram_quantile(0.95,
+      sum(rate(
+        astra_request_duration_seconds_bucket{
+          namespace="{{ namespace }}",
+          pod=~"{{ target }}-canary.*"
+        }[{{ interval }}]
+      )) by (le)
+    ) * 1000
+
+---
+apiVersion: flagger.app/v1beta1
+kind: MetricTemplate
+metadata:
+  name: p99-latency
+  namespace: astra-production
+spec:
+  provider:
+    type: prometheus
+    address: http://prometheus.monitoring:9090
+  query: |
+    histogram_quantile(0.99,
+      sum(rate(
+        astra_request_duration_seconds_bucket{
+          namespace="{{ namespace }}",
+          pod=~"{{ target }}-canary.*"
+        }[{{ interval }}]
+      )) by (le)
+    ) * 1000
+
+---
+apiVersion: flagger.app/v1beta1
+kind: MetricTemplate
+metadata:
+  name: error-rate-percentage
+  namespace: astra-production
+spec:
+  provider:
+    type: prometheus
+    address: http://prometheus.monitoring:9090
+  query: |
+    sum(rate(
+      astra_errors_total{
+        namespace="{{ namespace }}",
+        pod=~"{{ target }}-canary.*"
+      }[{{ interval }}]
+    ))
+    /
+    sum(rate(
+      astra_requests_total{
+        namespace="{{ namespace }}",
+        pod=~"{{ target }}-canary.*"
+      }[{{ interval }}]
+    )) * 100
+
+---
+apiVersion: flagger.app/v1beta1
+kind: MetricTemplate
+metadata:
+  name: success-rate-percentage
+  namespace: astra-production
+spec:
+  provider:
+    type: prometheus
+    address: http://prometheus.monitoring:9090
+  query: |
+    sum(rate(
+      astra_requests_total{
+        namespace="{{ namespace }}",
+        pod=~"{{ target }}-canary.*"
+      }[{{ interval }}]
+    ))
+    -
+    sum(rate(
+      astra_errors_total{
+        namespace="{{ namespace }}",
+        pod=~"{{ target }}-canary.*"
+      }[{{ interval }}]
+    ))
+    /
+    sum(rate(
+      astra_requests_total{
+        namespace="{{ namespace }}",
+        pod=~"{{ target }}-canary.*"
+      }[{{ interval }}]
+    )) * 100
+
+---
+apiVersion: flagger.app/v1beta1
+kind: MetricTemplate
+metadata:
+  name: vector-query-success-rate
+  namespace: astra-production
+spec:
+  provider:
+    type: prometheus
+    address: http://prometheus.monitoring:9090
+  query: |
+    sum(rate(
+      astra_vector_queries_total{
+        namespace="{{ namespace }}",
+        pod=~"{{ target }}-canary.*",
+        status="success"
+      }[{{ interval }}]
+    ))
+    /
+    sum(rate(
+      astra_vector_queries_total{
+        namespace="{{ namespace }}",
+        pod=~"{{ target }}-canary.*"
+      }[{{ interval }}]
+    )) * 100
+
+---
+apiVersion: flagger.app/v1beta1
+kind: MetricTemplate
+metadata:
+  name: vector-query-latency
+  namespace: astra-production
+spec:
+  provider:
+    type: prometheus
+    address: http://prometheus.monitoring:9090
+  query: |
+    histogram_quantile(0.95,
+      sum(rate(
+        astra_vector_query_duration_seconds_bucket{
+          namespace="{{ namespace }}",
+          pod=~"{{ target }}-canary.*"
+        }[{{ interval }}]
+      )) by (le)
+    ) * 1000
+
+---
+apiVersion: flagger.app/v1beta1
+kind: MetricTemplate
+metadata:
+  name: llm-token-throughput
+  namespace: astra-production
+spec:
+  provider:
+    type: prometheus
+    address: http://prometheus.monitoring:9090
+  query: |
+    sum(rate(
+      astra_llm_tokens_generated_total{
+        namespace="{{ namespace }}",
+        pod=~"{{ target }}-canary.*"
+      }[{{ interval }}]
+    ))
+
+---
+apiVersion: flagger.app/v1beta1
+kind: MetricTemplate
+metadata:
+  name: llm-error-rate
+  namespace: astra-production
+spec:
+  provider:
+    type: prometheus
+    address: http://prometheus.monitoring:9090
+  query: |
+    sum(rate(
+      astra_llm_errors_total{
+        namespace="{{ namespace }}",
+        pod=~"{{ target }}-canary.*"
+      }[{{ interval }}]
+    ))
+    /
+    sum(rate(
+      astra_llm_requests_total{
+        namespace="{{ namespace }}",
+        pod=~"{{ target }}-canary.*"
+      }[{{ interval }}]
+    )) * 100
+
+---
+apiVersion: flagger.app/v1beta1
+kind: MetricTemplate
+metadata:
+  name: memory-usage-percentage
+  namespace: astra-production
+spec:
+  provider:
+    type: prometheus
+    address: http://prometheus.monitoring:9090
+  query: |
+    avg(
+      container_memory_working_set_bytes{
+        namespace="{{ namespace }}",
+        pod=~"{{ target }}-canary.*",
+        container="astra-core"
+      }
+      /
+      container_spec_memory_limit_bytes{
+        namespace="{{ namespace }}",
+        pod=~"{{ target }}-canary.*",
+        container="astra-core"
+      }
+    ) * 100
+
+---
+apiVersion: flagger.app/v1beta1
+kind: MetricTemplate
+metadata:
+  name: cpu-usage-percentage
+  namespace: astra-production
+spec:
+  provider:
+    type: prometheus
+    address: http://prometheus.monitoring:9090
+  query: |
+    avg(
+      rate(
+        container_cpu_usage_seconds_total{
+          namespace="{{ namespace }}",
+          pod=~"{{ target }}-canary.*",
+          container="astra-core"
+        }[{{ interval }}]
+      )
+      /
+      container_spec_cpu_quota{
+        namespace="{{ namespace }}",
+        pod=~"{{ target }}-canary.*",
+        container="astra-core"
+      }
+      * 100000
+    ) * 100

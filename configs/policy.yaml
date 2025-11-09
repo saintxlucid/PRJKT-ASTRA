@@ -1,0 +1,62 @@
+# ASTRA Policy Configuration
+# Defines consent levels and security rules
+
+consent_levels:
+  info:
+    require_prompt: false
+    timeout_s: 0
+    description: "Read-only operations with no side effects"
+
+  action:
+    require_prompt: true
+    timeout_s: 20
+    description: "Actions that modify state (files, windows, processes)"
+
+  admin:
+    require_prompt: true
+    require_pin: true
+    timeout_s: 30
+    description: "Administrative operations requiring elevated consent"
+
+# File system restrictions
+fs_allowlist:
+  - "%USERPROFILE%\\Desktop"
+  - "%USERPROFILE%\\Downloads"
+  - "%USERPROFILE%\\Documents"
+  - "%USERPROFILE%\\Projects"
+  - "%USERPROFILE%\\.astra"
+
+fs_denylist:
+  - "C:\\Windows"
+  - "C:\\Program Files"
+  - "C:\\Program Files (x86)"
+  - "%SYSTEMROOT%"
+
+# Shell command restrictions
+shell:
+  max_concurrent: 3
+  timeout_default_ms: 5000
+  output_cap_kb: 256
+  denied_patterns:
+    - "(?i)rm\\s+-rf\\s+/"
+    - "(?i)del\\s+/f\\s+/s\\s+/q"
+    - "(?i)format\\s+"
+    - "(?i)cipher\\s+/w"
+
+# Browser restrictions
+browser:
+  blocked_schemes:
+    - "file://"
+    - "ftp://"
+  max_navigation_depth: 10
+  max_concurrent_tabs: 5
+
+# Process restrictions
+process:
+  denied_executables:
+    - "cmd.exe"
+    - "powershell.exe"
+    - "wsl.exe"
+  require_admin_for:
+    - "regedit.exe"
+    - "taskkill.exe"

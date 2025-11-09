@@ -69,12 +69,17 @@ class ToolRegistry:
             raise ValueError(f"Tool {name} already registered")
 
         # Create Pydantic model for args
+        fields = {}
+        for field_name, field_schema in schema["properties"].items():
+            field_type = self._get_type(field_schema)
+            is_required = field_name in schema.get("required", [])
+            default_value = ... if is_required else None
+            fields[field_name] = (field_type, default_value)
+
         model = create_model(
             f"{name.title()}Args",
-            **{
-                k: (self._get_type(v), ... if v.get("required") else None)
-                for k, v in schema["properties"].items()
-            }
+            __base__=BaseModel,
+            **fields
         )
 
         tool = Tool(
@@ -249,6 +254,14 @@ def get_registry() -> ToolRegistry:
     global _registry
     if _registry is None:
         _registry = ToolRegistry()
+    return _registry
+
+def initialize_registry() -> ToolRegistry:
+    """Initialize and return the global tool registry"""
+    global _registry
+    if _registry is None:
+        _registry = ToolRegistry()
+        logger.info("Tool registry initialized")
     return _registry
 
 def tool(

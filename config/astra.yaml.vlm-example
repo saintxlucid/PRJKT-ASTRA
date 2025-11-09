@@ -1,0 +1,88 @@
+# ASTRA Configuration Example - VLM Section
+# SPDX-License-Identifier: MIT
+#
+# This is a sample configuration showing how to enable the Vision-Language Model (VLM) service.
+# Copy the relevant section to your astra.yaml file.
+
+# ────────────────────────────────────────────────────────────────────────────
+# Vision-Language Model (VLM) Configuration
+# ────────────────────────────────────────────────────────────────────────────
+vlm:
+  # Path to local VLM model directory (REQUIRED)
+  # Must be a VisionEncoderDecoder-compatible model (e.g., BLIP, BLIP-2, GIT)
+  # Download models from HuggingFace and store locally to avoid network access
+  #
+  # Example models:
+  #   - Salesforce/blip-image-captioning-base (990MB)
+  #   - Salesforce/blip-image-captioning-large (1.9GB)
+  #   - microsoft/git-base (900MB)
+  #
+  # To download:
+  #   from transformers import VisionEncoderDecoderModel, AutoProcessor
+  #   model = VisionEncoderDecoderModel.from_pretrained("Salesforce/blip-image-captioning-base")
+  #   processor = AutoProcessor.from_pretrained("Salesforce/blip-image-captioning-base")
+  #   model.save_pretrained("models/vlm/blip-base")
+  #   processor.save_pretrained("models/vlm/blip-base")
+  #
+  model_name_or_path: "models/vlm/blip-base"
+
+  # Device selection (optional)
+  # Values: "cuda", "cpu", or null (auto-detect)
+  # If null, will use CUDA if available, otherwise CPU
+  device: null
+
+  # Input image size (pixels)
+  # All images will be resized to this square dimension
+  # Larger = better quality, slower inference
+  # BLIP models typically use 384
+  image_size: 384
+
+  # Batch size for caption generation
+  # Larger = faster throughput, more VRAM usage
+  # Tune based on GPU memory (8GB VRAM: 4-8, 16GB: 8-16, CPU: 1-2)
+  batch_size: 4
+
+  # Maximum tokens to generate per caption
+  # Typical captions are 10-30 tokens
+  # Higher values allow more detailed descriptions but slower inference
+  max_new_tokens: 64
+
+  # Data type for model weights
+  # Options: "fp16" (half precision, faster on CUDA), "fp32" (full precision)
+  # fp16 recommended for GPU, automatically falls back to fp32 on CPU
+  dtype: "fp16"
+
+  # Number of warmup inference runs
+  # Helps stabilize CUDA kernels and improve first-request latency
+  # Set to 0 to skip (useful for testing)
+  warmup_runs: 1
+
+# ────────────────────────────────────────────────────────────────────────────
+# Notes:
+# ────────────────────────────────────────────────────────────────────────────
+#
+# 1. VLM service is OPTIONAL and only loaded if dependencies are installed:
+#      pip install torch transformers pillow
+#
+# 2. For offline/air-gapped environments:
+#    - Download models on a connected machine
+#    - Transfer model directory to target system
+#    - Set model_name_or_path to the local directory path
+#
+# 3. For VQA (Visual Question Answering):
+#    - VLM generates caption
+#    - Caption + question passed to local LLM (llama.cpp)
+#    - LLM generates final answer
+#    - Ensure llm.model_path is configured separately
+#
+# 4. Memory requirements (approximate):
+#    - BLIP-base: 1GB VRAM + 2GB system RAM
+#    - BLIP-large: 2GB VRAM + 4GB system RAM
+#    - CPU-only: 4GB+ system RAM recommended
+#
+# 5. Performance benchmarks (BLIP-base, single image):
+#    - RTX 3090: ~50ms/image (batch=8)
+#    - GTX 1080: ~150ms/image (batch=4)
+#    - CPU (12-core): ~2s/image (batch=1)
+#
+# 6. See docs/VLM_SERVICE_GUIDE.md for complete setup instructions

@@ -1,0 +1,491 @@
+﻿#!/usr/bin/env python3
+"""
+ASTRA Test Server
+"""
+
+from fastapi import FastAPI, HTTPException
+from fastapi.responses import StreamingResponse, JSONResponse
+from pydantic import BaseModel
+import uvicorn
+import httpx
+import asyncio
+from typing import Dict, Any, List, AsyncIterator
+import json
+
+# Create FastAPI app
+app = FastAPI(title="ASTRA Test Server")
+
+
+class Answer(BaseModel):
+    answer: str
+
+
+class Query(BaseModel):
+    query: str
+
+
+@app.get("/live")
+async def live():
+    """Health check endpoint"""
+    return {"status": "live"}
+
+
+@app.get("/ready")
+async def ready():
+    """Readiness check"""
+    return {"status": "ready"}
+
+
+@app.get("/health/full")
+async def health_full():
+    """Detailed health check"""
+    return {
+        "status": "healthy",
+        "components": {
+            "llm": {"status": "healthy"},
+            "memory": {"status": "healthy"},
+            "identity": {"status": "healthy"}
+        },
+        "metrics": {
+            "latency_p95": 120,
+            "error_rate": 0.01,
+            "memory_usage_mb": 256
+        }
+    }
+
+
+@app.get("/drain", status_code=200)
+async def drain():
+    """Drain endpoint for graceful shutdown"""
+    return {"status": "draining"}
+
+
+@app.post("/answer")
+async def answer(query: Query):
+    """Basic answer endpoint"""
+    return {
+        "answer": f"Processed query: {query.query}",
+        "latency_ms": 100
+    }
+
+
+async def stream_generator(query: str) -> AsyncIterator[str]:
+    """Generate streaming response chunks"""
+    chunks = [
+        {"type": "start", "text": "Starting response..."},
+        {"type": "content", "text": f"Processing query: {query}"},
+        {"type": "content", "text": "Here is some more content..."},
+        {"type": "end", "text": "Response complete"}
+    ]
+    
+    for chunk in chunks:
+        # Server-sent events format
+        yield f"data: {json.dumps(chunk)}\n\n"
+        await asyncio.sleep(0.1)  # Simulate processing
+
+
+@app.post("/answer/stream")
+async def stream_answer(query: Query):
+    """Streaming answer endpoint"""
+    return StreamingResponse(
+        stream_generator(query.query),
+        media_type='text/event-stream'
+    )
+
+
+if __name__ == "__main__":
+    uvicorn.run("astra_core:app", host="127.0.0.1", port=8001, reload=True)
+    
+    Master orchestrator that brings ASTRA fully online with:
+    - Identity injection (personality, mission, values)
+    - Memory integration (semantic, episodic, procedural)
+    - LLM runtime (llama.cpp with GPT-OSS-20B)
+    - Backend services (FastAPI)
+    - Optional desktop UI
+    """
+    
+    def __init__(
+        self,
+        activate: bool = False,
+        quick: bool = False,
+        console: bool = False,
+        privacy_mode: str = "STRICT"
+    ):
+        from core.privacy import initialize_privacy_system
+        
+        # Initialize privacy system first
+        privacy_config = {
+            "PRIVACY_MODE": privacy_mode
+        }
+        if not initialize_privacy_system(privacy_config):
+            raise RuntimeError("Failed to initialize privacy system")
+            
+        #...
+        Initialize ASTRA Core.
+        
+        Args:
+            activate: Force first-time activation
+            quick: Skip health checks
+            console: Console mode (no UI)
+        """
+        self.activate = activate
+        self.quick = quick
+        self.console = console
+        
+        # Project paths
+        self.project_root = Path(__file__).parent
+        self.config_dir = self.project_root / "config"
+        self.data_dir = self.project_root / "data"
+        
+        # Load environment
+        env_file = self.project_root / ".env"
+        if env_file.exists():
+            load_dotenv(env_file)
+        else:
+            logger.warning(".env file not found, using defaults")
+        
+        # Configuration
+        self.llm_base_url = os.getenv('ASTRA_LLM_BASE_URL', 'http://127.0.0.1:8001')
+        self.server_port = int(os.getenv('ASTRA_SERVER_PORT', '8080'))
+        self.model_path = os.getenv('ASTRA_LLM_MODEL_PATH', '')
+        
+        # Component references
+        self.identity_engine = None
+        self.memory_engine = None
+        self.server_process = None
+        
+        # State
+        self.startup_time = time.time()
+        self.is_online = False
+        
+    def print_banner(self):
+        """Print ASTRA awakening banner"""
+        banner = """
+╔══════════════════════════════════════════════════════════════════════════════╗
+║                          🌟 ASTRA AWAKENING 🌟                               ║
+║                                                                              ║
+║                    PROJECT_ASTRA_1.0 (ASTRA_CORE)                           ║
+║          Advanced Structured Testing and Reasoning Assistant                ║
+║                                                                              ║
+║                    Creator: Saint Lucid (Karim Al-Sharif)                   ║
+║                    Philosophy: Soul-First Architecture                      ║
+║                    Mode: Local | Self-Contained | Living System             ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+"""
+        print(banner)
+        logger.info("ASTRA_CORE awakening sequence initiated", timestamp=datetime.now().isoformat())
+    
+    async def phase_1_identity(self):
+        """Phase 1: Load ASTRA's identity and personality"""
+        print("\n" + "━"*80)
+        print("🧠 PHASE 1: IDENTITY INJECTION")
+        print("━"*80)
+        
+        try:
+            from src.astra.core.identity_engine import IdentityEngine
+            
+            self.identity_engine = IdentityEngine(
+                config_path=self.config_dir / "astra_identity.yaml"
+            )
+            
+            identity = self.identity_engine.load_identity()
+            
+            print(f"✓ Identity loaded: {identity.name} v{identity.version}")
+            print(f"✓ Creator: {identity.creator}")
+            print(f"✓ Essence: {identity.essence}")
+            print(f"✓ Personality traits configured:")
+            print(f"  - Warmth: {identity.warmth:.2f}")
+            print(f"  - Precision: {identity.precision:.2f}")
+            print(f"  - Creativity: {identity.creativity:.2f}")
+            
+            logger.info("Identity injection complete", name=identity.name)
+            
+        except Exception as e:
+            logger.error(f"Failed to load identity: {e}")
+            print(f"❌ Identity injection failed: {e}")
+            return False
+        
+        return True
+    
+    async def phase_2_memory(self):
+        """Phase 2: Initialize memory systems"""
+        print("\n" + "━"*80)
+        print("🧠 PHASE 2: MEMORY INTEGRATION")
+        print("━"*80)
+        
+        try:
+            from src.astra.core.memory_engine import MemoryEngine
+            
+            # Get memory config from identity
+            memory_config = None
+            if self.identity_engine:
+                memory_config = self.identity_engine.get_memory_config()
+            
+            # Initialize memory engine
+            self.memory_engine = MemoryEngine(
+                database_path=self.data_dir / "astra.db",
+                memory_config=memory_config
+            )
+            
+            print("✓ Memory engine initialized")
+            
+            # Get memory statistics
+            stats = self.memory_engine.get_memory_stats()
+            print(f"✓ Memory systems connected:")
+            print(f"  - Semantic memories: {stats.get('semantic', 0)}")
+            print(f"  - Episodic memories: {stats.get('episodic', 0)}")
+            print(f"  - Procedural workflows: {stats.get('procedural', 0)}")
+            
+            logger.info("Memory integration complete", stats=stats)
+            
+        except Exception as e:
+            logger.error(f"Failed to initialize memory: {e}")
+            print(f"⚠ Memory initialization failed: {e}")
+            print("  (Continuing without memory - will be basic mode)")
+            return True  # Non-fatal
+        
+        return True
+    
+    async def phase_3_model(self):
+        """Phase 3: Verify LLM model and runtime"""
+        print("\n" + "━"*80)
+        print("🤖 PHASE 3: MODEL VERIFICATION")
+        print("━"*80)
+        
+        # Check if model file exists
+        if self.model_path:
+            model_full_path = self.project_root / self.model_path
+            if model_full_path.exists():
+                size_mb = model_full_path.stat().st_size / (1024 * 1024)
+                print(f"✓ Model found: {model_full_path.name}")
+                print(f"  Size: {size_mb:.1f} MB")
+            else:
+                print(f"⚠ Model not found at: {model_full_path}")
+                print("  Make sure ASTRA_LLM_MODEL_PATH is set correctly in .env")
+        else:
+            print("⚠ Model path not configured in .env")
+            print("  Set ASTRA_LLM_MODEL_PATH to your GGUF model file")
+        
+        # Check if llama.cpp server is running
+        try:
+            import httpx
+            async with httpx.AsyncClient(timeout=5.0) as client:
+                response = await client.get(f"{self.llm_base_url}/health")
+                if response.status_code == 200:
+                    print(f"✓ LLM server online: {self.llm_base_url}")
+                else:
+                    print(f"⚠ LLM server responded with status {response.status_code}")
+        except Exception as e:
+            print(f"⚠ LLM server not reachable: {self.llm_base_url}")
+            print("  Start llama.cpp server first:")
+            print(f"  llama-server -m {self.model_path} --host 127.0.0.1 --port 8001")
+        
+        return True
+    
+    async def phase_4_backend(self):
+        """Phase 4: Start backend services"""
+        print("\n" + "━"*80)
+        print("🚀 PHASE 4: BACKEND SERVICES")
+        print("━"*80)
+        
+        # Check if server is already running
+        try:
+            import httpx
+            async with httpx.AsyncClient(timeout=2.0) as client:
+                response = await client.get(f"http://127.0.0.1:{self.server_port}/health")
+                if response.status_code == 200:
+                    print(f"✓ Backend already running on port {self.server_port}")
+                    return True
+        except:
+            pass
+        
+        # Start backend
+        print(f"Starting backend on port {self.server_port}...")
+        print("  (Run 'python run_server.py' in a separate terminal)")
+        print("  (Or this will start automatically in background)")
+        
+        # For now, just show instructions
+        # In production, could start as subprocess
+        
+        return True
+    
+    async def phase_5_greeting(self):
+        """Phase 5: Display ASTRA greeting"""
+        print("\n" + "━"*80)
+        print("💫 PHASE 5: AWAKENING COMPLETE")
+        print("━"*80 + "\n")
+        
+        if self.identity_engine and self.memory_engine:
+            stats = self.memory_engine.get_memory_stats()
+            greeting = self.identity_engine.generate_greeting(
+                semantic_count=stats.get('semantic', 0)
+            )
+            print(greeting)
+        else:
+            print("ASTRA_CORE is online.")
+            print("Identity and memory systems are ready.")
+        
+        elapsed = time.time() - self.startup_time
+        print(f"\nTotal startup time: {elapsed:.2f}s")
+        print("\n" + "━"*80)
+        
+        self.is_online = True
+        logger.info("ASTRA awakening complete", startup_time=elapsed)
+    
+    async def run_awakening_sequence(self) -> bool:
+        """
+        Run complete awakening sequence.
+        
+        Returns:
+            True if successful
+        """
+        self.print_banner()
+        
+        # Phase 1: Identity
+        if not await self.phase_1_identity():
+            return False
+        
+        # Phase 2: Memory
+        if not await self.phase_2_memory():
+            return False
+        
+        # Phase 3: Model
+        if not await self.phase_3_model():
+            if not self.quick:
+                return False
+        
+        # Phase 4: Backend
+        if not await self.phase_4_backend():
+            if not self.quick:
+                return False
+        
+        # Phase 5: Greeting
+        await self.phase_5_greeting()
+        
+        return True
+    
+    async def interactive_mode(self):
+        """Run interactive console mode"""
+        print("\n" + "="*80)
+        print("ASTRA CONSOLE MODE")
+        print("="*80)
+        print("Type your messages below. Commands:")
+        print("  /help     - Show help")
+        print("  /memory   - Show memory stats")
+        print("  /status   - System status")
+        print("  /exit     - Exit")
+        print("="*80 + "\n")
+        
+        while True:
+            try:
+                user_input = input("You: ").strip()
+                
+                if not user_input:
+                    continue
+                
+                # Handle commands
+                if user_input.startswith('/'):
+                    await self.handle_command(user_input)
+                    continue
+                
+                # Process as chat message
+                # TODO: Integrate with actual chat service
+                print("ASTRA: [Chat integration pending - backend needed]")
+                
+            except (KeyboardInterrupt, EOFError):
+                print("\n\nShutting down...")
+                break
+    
+    async def handle_command(self, command: str):
+        """Handle console commands"""
+        cmd = command.lower()
+        
+        if cmd == '/help':
+            print("\nAvailable commands:")
+            print("  /help     - Show this help")
+            print("  /memory   - Show memory statistics")
+            print("  /status   - Show system status")
+            print("  /exit     - Exit ASTRA")
+            
+        elif cmd == '/memory':
+            if self.memory_engine:
+                stats = self.memory_engine.get_memory_stats()
+                print("\nMemory Statistics:")
+                print(f"  Semantic: {stats.get('semantic', 0)}")
+                print(f"  Episodic: {stats.get('episodic', 0)}")
+                print(f"  Procedural: {stats.get('procedural', 0)}")
+            else:
+                print("Memory engine not initialized")
+        
+        elif cmd == '/status':
+            print("\nSystem Status:")
+            print(f"  Online: {self.is_online}")
+            print(f"  Identity: {'✓' if self.identity_engine else '✗'}")
+            print(f"  Memory: {'✓' if self.memory_engine else '✗'}")
+            print(f"  Uptime: {time.time() - self.startup_time:.1f}s")
+        
+        elif cmd == '/exit':
+            raise KeyboardInterrupt()
+        
+        else:
+            print(f"Unknown command: {command}")
+            print("Type /help for available commands")
+
+
+async def main():
+    """Main entry point"""
+    parser = argparse.ArgumentParser(
+        description="ASTRA Core - Bring ASTRA fully online"
+    )
+    parser.add_argument(
+        "--activate",
+        action="store_true",
+        help="Force first-time activation"
+    )
+    parser.add_argument(
+        "--quick",
+        action="store_true",
+        help="Quick start (skip health checks)"
+    )
+    parser.add_argument(
+        "--console",
+        action="store_true",
+        help="Console mode (no UI)"
+    )
+    
+    args = parser.parse_args()
+    
+    # Create and run ASTRA Core
+    astra = ASTRACore(
+        activate=args.activate,
+        quick=args.quick,
+        console=args.console
+    )
+    
+    # Run awakening sequence
+    success = await astra.run_awakening_sequence()
+    
+    if not success:
+        print("\n❌ Awakening sequence failed. Check errors above.")
+        return 1
+    
+    # If console mode, enter interactive mode
+    if args.console:
+        await astra.interactive_mode()
+    else:
+        print("\nASTRA is online and waiting for connections.")
+        print(f"Backend should be running on http://127.0.0.1:{astra.server_port}")
+        print("\nPress Ctrl+C to shutdown...")
+        
+        try:
+            # Keep running
+            while True:
+                await asyncio.sleep(1)
+        except KeyboardInterrupt:
+            print("\n\nShutting down ASTRA...")
+    
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(asyncio.run(main()))

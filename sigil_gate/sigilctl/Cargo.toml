@@ -1,0 +1,18 @@
+[package]
+name = "sigilctl"
+version = "0.1.0"
+edition = "2021"
+authors = ["ASTRA Project"]
+description = "CLI for Sigil Gate token operations"
+
+[dependencies]
+sigil_gate_core = { path = "../core" }
+clap = { version = "4.4", features = ["derive"] }
+anyhow = { workspace = true }
+serde_json = { workspace = true }
+chrono = { workspace = true }
+tokio = { workspace = true }
+
+[[bin]]
+name = "sigilctl"
+path = "src/main.rs"

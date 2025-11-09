@@ -15,6 +15,11 @@ logger = structlog.get_logger()
 class LLMServerConfig:
     """LLM server configuration and startup"""
     
+    # GGUF magic bytes and version info
+    GGUF_MAGIC = b'GGUF'
+    GGUF_VERSION = 2  # Current version as of Oct 2025
+    GGUF_HEADER_SIZE = 16  # Basic header size: magic(4) + version(4) + tensor_count(8)
+    
     def __init__(
         self,
         model_path: Path,
@@ -31,12 +36,18 @@ class LLMServerConfig:
             lora_paths: Optional list of (path, scale) tuples for LoRA adapters
             host: Server host
             port: Server port
+            
+        Raises:
+            ValueError: If model file is invalid or corrupted
         """
         self.model_path = model_path
         self.grammar_path = grammar_path
         self.lora_paths = lora_paths or []
         self.host = host
         self.port = port
+        
+        # Validate GGUF header before proceeding
+        self._validate_gguf_header(model_path)
         
         # Load metadata from model
         self.metadata = MetadataHandler(model_path)
@@ -49,6 +60,74 @@ class LLMServerConfig:
             "Initialized LLM server config",
             model=str(model_path),
             metadata_version=self.metadata.metadata.identity_version
+        )
+        
+    def _validate_gguf_header(self, model_path: Path) -> None:
+        """
+        Validate GGUF model file header.
+        
+        Args:
+            model_path: Path to GGUF model file
+            
+        Raises:
+            ValueError: If header is invalid or file is corrupted
+            FileNotFoundError: If model file doesn't exist
+            IOError: If file read fails
+        """
+        if not model_path.exists():
+            raise FileNotFoundError(f"Model file not found: {model_path}")
+            
+        file_size = model_path.stat().st_size
+        if file_size < self.GGUF_HEADER_SIZE:
+            raise ValueError(
+                f"Model file too small ({file_size} bytes) to be valid GGUF. "
+                f"Minimum size is {self.GGUF_HEADER_SIZE} bytes."
+            )
+        
+        try:
+            with open(model_path, 'rb') as f:
+                # Read and validate magic bytes
+                magic = f.read(4)
+                if magic != self.GGUF_MAGIC:
+                    raise ValueError(
+                        f"Invalid GGUF magic bytes: {magic!r}, "
+                        f"expected {self.GGUF_MAGIC!r}"
+                    )
+                
+                # Read and validate version
+                version = int.from_bytes(f.read(4), 'little')
+                if version != self.GGUF_VERSION:
+                    logger.warning(
+                        f"Unexpected GGUF version: {version}, "
+                        f"expected {self.GGUF_VERSION}. Model may be incompatible."
+                    )
+                
+                # Read tensor count (sanity check for corruption)
+                tensor_count = int.from_bytes(f.read(8), 'little')
+                if tensor_count <= 0 or tensor_count > 10000:  # Reasonable limits
+                    raise ValueError(
+                        f"Invalid tensor count in GGUF header: {tensor_count}. "
+                        "Model file may be corrupted."
+                    )
+                
+                # Try reading a bit more to check for truncation
+                try:
+                    f.seek(-16, 2)  # Try reading last 16 bytes
+                    f.read(16)
+                except (IOError, OSError):
+                    raise ValueError(
+                        "Model file appears to be truncated. "
+                        "Please re-download or repair the file."
+                    )
+                
+        except (IOError, OSError) as e:
+            raise IOError(f"Failed to read model file: {e}")
+            
+        logger.info(
+            "GGUF header validation passed",
+            path=str(model_path),
+            version=version,
+            tensor_count=tensor_count
         )
     
     def get_server_args(self) -> List[str]:

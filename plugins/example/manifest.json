@@ -1,0 +1,64 @@
+{
+    "id": "example",
+    "version": "1.0.0",
+    "name": "Example Plugin",
+    "description": "Example plugin demonstrating ASTRA plugin system",
+    "capabilities": {
+        "actions": [
+            {
+                "name": "greet",
+                "description": "Return a greeting message",
+                "permissions": ["basic:interact"],
+                "parameters": {
+                    "type": "object",
+                    "properties": {
+                        "name": {
+                            "type": "string",
+                            "description": "Name to greet"
+                        }
+                    },
+                    "required": ["name"]
+                },
+                "returnType": {
+                    "type": "object",
+                    "properties": {
+                        "message": {
+                            "type": "string",
+                            "description": "Greeting message"
+                        }
+                    },
+                    "required": ["message"]
+                }
+            },
+            {
+                "name": "add",
+                "description": "Add two numbers",
+                "permissions": ["math:calculate"],
+                "parameters": {
+                    "type": "object",
+                    "properties": {
+                        "a": {
+                            "type": "number",
+                            "description": "First number"
+                        },
+                        "b": {
+                            "type": "number",
+                            "description": "Second number"
+                        }
+                    },
+                    "required": ["a", "b"]
+                },
+                "returnType": {
+                    "type": "object",
+                    "properties": {
+                        "result": {
+                            "type": "number",
+                            "description": "Sum of the numbers"
+                        }
+                    },
+                    "required": ["result"]
+                }
+            }
+        ]
+    }
+}

@@ -1,0 +1,11 @@
+src: ./raw_docs
+out_jsonl: ./artifacts/datasets/raw_chunks.jsonl
+student_tokenizer: gpt2
+max_tokens: 512
+overlap: 32
+prompt_template: |
+  You are a helpful assistant. Read the following context and answer questions.
+
+  {context}
+
+  Question: Summarize the key points.

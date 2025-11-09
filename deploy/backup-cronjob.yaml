@@ -1,0 +1,25 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata: { name: astra-backup }
+spec:
+  schedule: "0 3 * * *"
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+          - name: bk
+            image: alpine:3.20
+            command: ["/bin/sh","-c","/scripts/backup_nightly.sh"]
+            volumeMounts:
+            - { name: data, mountPath: /data/astra }
+            - { name: scripts, mountPath: /scripts }
+            - { name: backups, mountPath: /var/backups/astra }
+          restartPolicy: OnFailure
+          volumes:
+          - name: data
+            persistentVolumeClaim: { claimName: astra-pvc }
+          - name: scripts
+            configMap: { name: astra-backup-scripts }
+          - name: backups
+            persistentVolumeClaim: { claimName: astra-backups-pvc }

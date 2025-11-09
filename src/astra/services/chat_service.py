@@ -22,6 +22,7 @@ from astra.infrastructure.llm.sampling import (
 from astra.models.config import Settings
 from astra.services.conversation_service import ConversationService
 from astra.services.memory_service import MemoryService
+from astra.services.transcendent_service import TranscendentService
 from astra.utils.logging import LoggerMixin
 
 
@@ -55,8 +56,51 @@ class ChatService(LoggerMixin):
         # Note: Router requires tool_bus and consent services for full functionality
         # For now, router is initialized with None placeholders
         self.router = None  # Will be initialized when tool_bus and consent are available
+        
+        # Initialize Phase 10: TranscendentOS - Unified Cognitive System
+        self.transcendent_service = TranscendentService(settings)
+        use_transcendent = getattr(settings.llm, "use_transcendent_os", False)
+        
+        self.logger.info(
+            "chat_service_initialized",
+            transcendent_os_available=self.transcendent_service.is_available(),
+            transcendent_os_enabled=use_transcendent,
+        )
 
-        self.logger.info("chat_service_initialized")
+    async def generate_response(
+        self,
+        query: str,
+        conversation_id: Optional[str] = None,
+        temperature: Optional[float] = None,
+        max_tokens: Optional[int] = None,
+    ) -> str:
+        """
+        Generate a non-streaming response.
+
+        Args:
+            query: User's query
+            conversation_id: Optional conversation ID
+            temperature: Optional temperature override
+            max_tokens: Optional max tokens override
+
+        Returns:
+            Generated response text
+
+        Raises:
+            LLMError: If LLM request fails
+        """
+        # Create conversation if needed
+        if not conversation_id:
+            conversation_id = self.conversation_service.create_conversation()
+
+        response = await self.chat(
+            conversation_id=conversation_id,
+            user_message=query,
+            temperature=temperature,
+            max_tokens=max_tokens
+        )
+
+        return response.content
 
     async def close(self) -> None:
         """Close LLM provider connection"""
@@ -305,11 +349,83 @@ class ChatService(LoggerMixin):
             # This checks for <|mode_start|>, <|code_start|>, <|vision_start|>, <|audio_start|> markers
             # and routes to appropriate modality handlers (code consent gates, vision analysis, etc.)
             processed_message = user_message
+            
+            # Phase 10: Check if TranscendentOS unified processing is enabled
+            use_transcendent = getattr(self.settings.llm, "use_transcendent_os", False)
+            
+            if use_transcendent and self.transcendent_service.is_available():
+                # Process through Phase 10 unified cognitive pipeline
+                try:
+                    unified_context = {
+                        "conversation_id": conversation_id,
+                        "use_memory": use_memory,
+                        "temperature": temperature,
+                        "max_tokens": max_tokens,
+                        "system_prompt": system_prompt,
+                        "include_health": False,
+                        "include_behaviors": False,
+                    }
+                    
+                    unified_result = await self.transcendent_service.process_unified(
+                        query=user_message,
+                        context=unified_context,
+                    )
+                    
+                    # Extract response from unified processing
+                    processed_message = unified_result["response"]
+                    
+                    self.logger.info(
+                        "transcendent_os_processed",
+                        conversation_id=conversation_id,
+                        mode=unified_result.get("mode"),
+                        phases_executed=unified_result.get("phases_executed", 0),
+                        duration_ms=unified_result.get("duration_ms", 0),
+                    )
+                    
+                    # If unified processing generated complete response, use it directly
+                    if processed_message and processed_message != user_message:
+                        # Store assistant message immediately
+                        assistant_msg_id = self.conversation_service.add_message(
+                            conversation_id=conversation_id,
+                            role="assistant",
+                            content=processed_message,
+                        )
+                        
+                        if use_memory:
+                            self.memory_service.store_message(
+                                conversation_id=conversation_id,
+                                role="assistant",
+                                content=processed_message,
+                                message_id=assistant_msg_id,
+                            )
+                        
+                        # Return as ChatResponse
+                        return ChatResponse(
+                            content=processed_message,
+                            model="transcendent-os",
+                            finish_reason="stop",
+                            usage={
+                                "prompt_tokens": 0,
+                                "completion_tokens": len(processed_message.split()),
+                                "total_tokens": len(processed_message.split()),
+                            },
+                        )
+                    
+                except Exception as transcendent_error:
+                    # If TranscendentOS fails, log and continue with standard processing
+                    self.logger.warning(
+                        "transcendent_os_error",
+                        conversation_id=conversation_id,
+                        error=str(transcendent_error),
+                        fallback="standard_llm",
+                    )
+            
+            # Standard AstraRouter processing (if not handled by TranscendentOS)
             if self.router is not None:
                 try:
-                    router_result = self.router.handle(user_message)
+                    router_result = self.router.handle(processed_message)
                     # If router handled the message (returned non-empty string), use that result
-                    if router_result and router_result != user_message:
+                    if router_result and router_result != processed_message:
                         processed_message = router_result
                         self.logger.info(
                             "astra_router_dispatched",
@@ -456,10 +572,88 @@ class ChatService(LoggerMixin):
 
             # Pre-tokenization multimodal dispatch via AstraRouter
             processed_message = user_message
+            
+            # Phase 10: Check if TranscendentOS unified processing is enabled
+            use_transcendent = getattr(self.settings.llm, "use_transcendent_os", False)
+            
+            if use_transcendent and self.transcendent_service.is_available():
+                # Process through Phase 10 unified cognitive pipeline
+                try:
+                    unified_context = {
+                        "conversation_id": conversation_id,
+                        "use_memory": use_memory,
+                        "temperature": temperature,
+                        "max_tokens": max_tokens,
+                        "system_prompt": system_prompt,
+                        "streaming": True,
+                    }
+                    
+                    unified_result = await self.transcendent_service.process_unified(
+                        query=user_message,
+                        context=unified_context,
+                    )
+                    
+                    # Extract response from unified processing
+                    processed_message = unified_result["response"]
+                    
+                    self.logger.info(
+                        "transcendent_os_processed_stream",
+                        conversation_id=conversation_id,
+                        mode=unified_result.get("mode"),
+                        phases_executed=unified_result.get("phases_executed", 0),
+                        duration_ms=unified_result.get("duration_ms", 0),
+                    )
+                    
+                    # If unified processing generated complete response, stream it
+                    if processed_message and processed_message != user_message:
+                        # Simulate streaming by chunking the response
+                        chunk_size = 50  # characters per chunk
+                        for i in range(0, len(processed_message), chunk_size):
+                            chunk_text = processed_message[i:i + chunk_size]
+                            
+                            from astra.infrastructure.llm.base import StreamChunk
+                            yield StreamChunk(
+                                content=chunk_text,
+                                finish_reason=None if i + chunk_size < len(processed_message) else "stop",
+                            )
+                        
+                        # Store complete assistant message
+                        assistant_msg_id = self.conversation_service.add_message(
+                            conversation_id=conversation_id,
+                            role="assistant",
+                            content=processed_message,
+                        )
+                        
+                        if use_memory:
+                            self.memory_service.store_message(
+                                conversation_id=conversation_id,
+                                role="assistant",
+                                content=processed_message,
+                                message_id=assistant_msg_id,
+                            )
+                        
+                        self.logger.info(
+                            "stream_chat_completed_transcendent",
+                            conversation_id=conversation_id,
+                            response_length=len(processed_message),
+                        )
+                        
+                        return  # Exit generator after streaming unified response
+                    
+                except Exception as transcendent_error:
+                    # If TranscendentOS fails, log and continue with standard processing
+                    self.logger.warning(
+                        "transcendent_os_error_stream",
+                        conversation_id=conversation_id,
+                        error=str(transcendent_error),
+                        fallback="standard_llm",
+                    )
+            
+            # Standard AstraRouter processing (if not handled by TranscendentOS)
             if self.router is not None:
                 try:
-                    router_result = self.router.handle(user_message)
-                    if router_result and router_result != user_message:
+                    router_result = self.router.handle(processed_message)
+                    if router_result and router_result != processed_message:
                         processed_message = router_result
                         self.logger.info(
                             "astra_router_dispatched_stream",

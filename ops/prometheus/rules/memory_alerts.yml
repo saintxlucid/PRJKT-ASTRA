@@ -1,0 +1,54 @@
+groups:
+- name: astra_memory_alerts
+  rules:
+  - alert: MemoryUpsertLatencyHigh
+    expr: |
+      histogram_quantile(0.95, 
+        sum(rate(astra_memory_latency_seconds_bucket{operation="store"}[5m])) 
+        by (le, memory_type)
+      ) * 1000 > 250
+    for: 5m
+    labels:
+      severity: warning
+    annotations:
+      summary: Memory upsert p95 latency above 250ms
+      description: |
+        Memory {{ $labels.memory_type }} p95 upsert latency is {{ $value | printf "%.1f" }}ms
+        Target: <250ms
+        Duration: {{ $labels.duration }}
+
+  - alert: ReconciliationDiffsDetected
+    expr: |
+      sum(astra_memory_reconciliation_diffs) by (memory_type) > 0
+    for: 1h
+    labels:
+      severity: warning
+    annotations:
+      summary: Memory reconciliation differences detected
+      description: |
+        {{ $labels.memory_type }} store has {{ $value }} reconciliation differences
+        Check logs for details of mismatched entries
+
+  - alert: ReconciliationErrorsHigh
+    expr: |
+      sum(rate(astra_memory_reconciliation_errors_total[1h])) > 0.1
+    for: 15m
+    labels:
+      severity: warning
+    annotations:
+      summary: High rate of reconciliation errors
+      description: |
+        Reconciliation error rate is {{ $value | printf "%.2f" }}/hour
+        Check logs for error details and potential causes
+
+  - alert: MemoryStoreGrowthAbnormal
+    expr: |
+      rate(astra_memory_usage_bytes[24h]) > 1e9
+    for: 1h
+    labels:
+      severity: warning
+    annotations:
+      summary: Abnormal memory store growth detected
+      description: |
+        {{ $labels.store }} store growing at {{ $value | printf "%.2f" }}MB/day
+        Investigate potential memory leaks or unexpected growth

@@ -1,0 +1,47 @@
+apiVersion: monitoring.coreos.com/v1
+kind: Probe
+metadata:
+  name: astra-https-probe
+  namespace: monitoring
+  labels:
+    app: astra
+    component: synthetic-monitoring
+spec:
+  module: http_2xx
+  prober:
+    url: blackbox-exporter.monitoring.svc:9115
+  interval: 30s
+  scrapeTimeout: 10s
+  targets:
+    staticConfig:
+      static:
+        # Update these with your actual domains
+        - https://bridge.example.com/health
+        - https://docs.example.com/health
+      labels:
+        component: astra
+---
+apiVersion: monitoring.coreos.com/v1
+kind: Probe
+metadata:
+  name: astra-internal-probe
+  namespace: monitoring
+  labels:
+    app: astra
+    component: synthetic-monitoring
+spec:
+  module: http_2xx
+  prober:
+    url: blackbox-exporter.monitoring.svc:9115
+  interval: 30s
+  scrapeTimeout: 10s
+  targets:
+    staticConfig:
+      static:
+        # Internal health checks (cluster-internal)
+        - http://bridge.astra.svc.cluster.local:8888/health
+        - http://docs.astra.svc.cluster.local:8777/health
+        - http://qdrant.astra.svc.cluster.local:6333/health
+      labels:
+        component: astra
+        type: internal

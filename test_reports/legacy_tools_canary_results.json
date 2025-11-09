@@ -1,0 +1,380 @@
+[
+  {
+    "folder": "backend",
+    "canary_type": "INFO_READONLY",
+    "status": "PASS",
+    "result": "Query: http://127.0.0.1:8080/capabilities/backend.info",
+    "error": null,
+    "timestamp": "2025-10-20T08:19:01.749576",
+    "sacred_code": "333"
+  },
+  {
+    "folder": "backend",
+    "canary_type": "HEALTH_CHECK",
+    "status": "PASS",
+    "result": "Health check: http://127.0.0.1:8080/health?tool=backend",
+    "error": null,
+    "timestamp": "2025-10-20T08:19:01.749604",
+    "sacred_code": "333"
+  },
+  {
+    "folder": "backend",
+    "canary_type": "REGISTRY_QUERY",
+    "status": "PASS",
+    "result": "Registry query: http://127.0.0.1:8080/registry?filter=legacy&folder=backend",
+    "error": null,
+    "timestamp": "2025-10-20T08:19:01.749611",
+    "sacred_code": "333"
+  },
+  {
+    "folder": "backend",
+    "canary_type": "EVENTS_STREAM",
+    "status": "PASS",
+    "result": "Events stream: http://127.0.0.1:8080/events?source=backend&limit=10",
+    "error": null,
+    "timestamp": "2025-10-20T08:19:01.749615",
+    "sacred_code": "333"
+  },
+  {
+    "folder": "backend",
+    "canary_type": "RUN_GATED",
+    "status": "PASS",
+    "result": "Gated execution: http://127.0.0.1:8080/capabilities/backend.run [REQUIRES CONSENT]",
+    "error": null,
+    "timestamp": "2025-10-20T08:19:01.749624",
+    "sacred_code": "333"
+  },
+  {
+    "folder": "backend",
+    "canary_type": "AUDIT_TRAIL",
+    "status": "PASS",
+    "result": "Audit trail: http://127.0.0.1:8080/audit?sacred_code=333&folder=backend [SACRED CODE 333]",
+    "error": null,
+    "timestamp": "2025-10-20T08:19:01.749627",
+    "sacred_code": "333"
+  },
+  {
+    "folder": "core",
+    "canary_type": "INFO_READONLY",
+    "status": "PASS",
+    "result": "Query: http://127.0.0.1:8080/capabilities/core.info",
+    "error": null,
+    "timestamp": "2025-10-20T08:19:01.749632",
+    "sacred_code": "333"
+  },
+  {
+    "folder": "core",
+    "canary_type": "HEALTH_CHECK",
+    "status": "PASS",
+    "result": "Health check: http://127.0.0.1:8080/health?tool=core",
+    "error": null,
+    "timestamp": "2025-10-20T08:19:01.749635",
+    "sacred_code": "333"
+  },
+  {
+    "folder": "core",
+    "canary_type": "REGISTRY_QUERY",
+    "status": "PASS",
+    "result": "Registry query: http://127.0.0.1:8080/registry?filter=legacy&folder=core",
+    "error": null,
+    "timestamp": "2025-10-20T08:19:01.749638",
+    "sacred_code": "333"
+  },
+  {
+    "folder": "core",
+    "canary_type": "EVENTS_STREAM",
+    "status": "PASS",
+    "result": "Events stream: http://127.0.0.1:8080/events?source=core&limit=10",
+    "error": null,
+    "timestamp": "2025-10-20T08:19:01.749642",
+    "sacred_code": "333"
+  },
+  {
+    "folder": "core",
+    "canary_type": "RUN_GATED",
+    "status": "PASS",
+    "result": "Gated execution: http://127.0.0.1:8080/capabilities/core.run [REQUIRES CONSENT]",
+    "error": null,
+    "timestamp": "2025-10-20T08:19:01.749645",
+    "sacred_code": "333"
+  },
+  {
+    "folder": "core",
+    "canary_type": "AUDIT_TRAIL",
+    "status": "PASS",
+    "result": "Audit trail: http://127.0.0.1:8080/audit?sacred_code=333&folder=core [SACRED CODE 333]",
+    "error": null,
+    "timestamp": "2025-10-20T08:19:01.749649",
+    "sacred_code": "333"
+  },
+  {
+    "folder": "lib",
+    "canary_type": "INFO_READONLY",
+    "status": "PASS",
+    "result": "Query: http://127.0.0.1:8080/capabilities/lib.info",
+    "error": null,
+    "timestamp": "2025-10-20T08:19:01.749652",
+    "sacred_code": "333"
+  },
+  {
+    "folder": "lib",
+    "canary_type": "HEALTH_CHECK",
+    "status": "PASS",
+    "result": "Health check: http://127.0.0.1:8080/health?tool=lib",
+    "error": null,
+    "timestamp": "2025-10-20T08:19:01.749656",
+    "sacred_code": "333"
+  },
+  {
+    "folder": "lib",
+    "canary_type": "REGISTRY_QUERY",
+    "status": "PASS",
+    "result": "Registry query: http://127.0.0.1:8080/registry?filter=legacy&folder=lib",
+    "error": null,
+    "timestamp": "2025-10-20T08:19:01.749659",
+    "sacred_code": "333"
+  },
+  {
+    "folder": "lib",
+    "canary_type": "EVENTS_STREAM",
+    "status": "PASS",
+    "result": "Events stream: http://127.0.0.1:8080/events?source=lib&limit=10",
+    "error": null,
+    "timestamp": "2025-10-20T08:19:01.749662",
+    "sacred_code": "333"
+  },
+  {
+    "folder": "lib",
+    "canary_type": "RUN_GATED",
+    "status": "PASS",
+    "result": "Gated execution: http://127.0.0.1:8080/capabilities/lib.run [REQUIRES CONSENT]",
+    "error": null,
+    "timestamp": "2025-10-20T08:19:01.749665",
+    "sacred_code": "333"
+  },
+  {
+    "folder": "lib",
+    "canary_type": "AUDIT_TRAIL",
+    "status": "PASS",
+    "result": "Audit trail: http://127.0.0.1:8080/audit?sacred_code=333&folder=lib [SACRED CODE 333]",
+    "error": null,
+    "timestamp": "2025-10-20T08:19:01.749669",
+    "sacred_code": "333"
+  },
+  {
+    "folder": "tier0",
+    "canary_type": "INFO_READONLY",
+    "status": "PASS",
+    "result": "Query: http://127.0.0.1:8080/capabilities/tier0.info",
+    "error": null,
+    "timestamp": "2025-10-20T08:19:01.749674",
+    "sacred_code": "333"
+  },
+  {
+    "folder": "tier0",
+    "canary_type": "HEALTH_CHECK",
+    "status": "PASS",
+    "result": "Health check: http://127.0.0.1:8080/health?tool=tier0",
+    "error": null,
+    "timestamp": "2025-10-20T08:19:01.749678",
+    "sacred_code": "333"
+  },
+  {
+    "folder": "tier0",
+    "canary_type": "REGISTRY_QUERY",
+    "status": "PASS",
+    "result": "Registry query: http://127.0.0.1:8080/registry?filter=legacy&folder=tier0",
+    "error": null,
+    "timestamp": "2025-10-20T08:19:01.749681",
+    "sacred_code": "333"
+  },
+  {
+    "folder": "tier0",
+    "canary_type": "EVENTS_STREAM",
+    "status": "PASS",
+    "result": "Events stream: http://127.0.0.1:8080/events?source=tier0&limit=10",
+    "error": null,
+    "timestamp": "2025-10-20T08:19:01.749685",
+    "sacred_code": "333"
+  },
+  {
+    "folder": "tier0",
+    "canary_type": "RUN_GATED",
+    "status": "PASS",
+    "result": "Gated execution: http://127.0.0.1:8080/capabilities/tier0.run [REQUIRES CONSENT]",
+    "error": null,
+    "timestamp": "2025-10-20T08:19:01.749688",
+    "sacred_code": "333"
+  },
+  {
+    "folder": "tier0",
+    "canary_type": "AUDIT_TRAIL",
+    "status": "PASS",
+    "result": "Audit trail: http://127.0.0.1:8080/audit?sacred_code=333&folder=tier0 [SACRED CODE 333]",
+    "error": null,
+    "timestamp": "2025-10-20T08:19:01.749691",
+    "sacred_code": "333"
+  },
+  {
+    "folder": "astra-local",
+    "canary_type": "INFO_READONLY",
+    "status": "PASS",
+    "result": "Query: http://127.0.0.1:8080/capabilities/astra-local.info",
+    "error": null,
+    "timestamp": "2025-10-20T08:19:01.749695",
+    "sacred_code": "333"
+  },
+  {
+    "folder": "astra-local",
+    "canary_type": "HEALTH_CHECK",
+    "status": "PASS",
+    "result": "Health check: http://127.0.0.1:8080/health?tool=astra-local",
+    "error": null,
+    "timestamp": "2025-10-20T08:19:01.749698",
+    "sacred_code": "333"
+  },
+  {
+    "folder": "astra-local",
+    "canary_type": "REGISTRY_QUERY",
+    "status": "PASS",
+    "result": "Registry query: http://127.0.0.1:8080/registry?filter=legacy&folder=astra-local",
+    "error": null,
+    "timestamp": "2025-10-20T08:19:01.749702",
+    "sacred_code": "333"
+  },
+  {
+    "folder": "astra-local",
+    "canary_type": "EVENTS_STREAM",
+    "status": "PASS",
+    "result": "Events stream: http://127.0.0.1:8080/events?source=astra-local&limit=10",
+    "error": null,
+    "timestamp": "2025-10-20T08:19:01.749705",
+    "sacred_code": "333"
+  },
+  {
+    "folder": "astra-local",
+    "canary_type": "RUN_GATED",
+    "status": "PASS",
+    "result": "Gated execution: http://127.0.0.1:8080/capabilities/astra-local.run [REQUIRES CONSENT]",
+    "error": null,
+    "timestamp": "2025-10-20T08:19:01.749708",
+    "sacred_code": "333"
+  },
+  {
+    "folder": "astra-local",
+    "canary_type": "AUDIT_TRAIL",
+    "status": "PASS",
+    "result": "Audit trail: http://127.0.0.1:8080/audit?sacred_code=333&folder=astra-local [SACRED CODE 333]",
+    "error": null,
+    "timestamp": "2025-10-20T08:19:01.749711",
+    "sacred_code": "333"
+  },
+  {
+    "folder": "astra-os",
+    "canary_type": "INFO_READONLY",
+    "status": "PASS",
+    "result": "Query: http://127.0.0.1:8080/capabilities/astra-os.info",
+    "error": null,
+    "timestamp": "2025-10-20T08:19:01.749715",
+    "sacred_code": "333"
+  },
+  {
+    "folder": "astra-os",
+    "canary_type": "HEALTH_CHECK",
+    "status": "PASS",
+    "result": "Health check: http://127.0.0.1:8080/health?tool=astra-os",
+    "error": null,
+    "timestamp": "2025-10-20T08:19:01.749718",
+    "sacred_code": "333"
+  },
+  {
+    "folder": "astra-os",
+    "canary_type": "REGISTRY_QUERY",
+    "status": "PASS",
+    "result": "Registry query: http://127.0.0.1:8080/registry?filter=legacy&folder=astra-os",
+    "error": null,
+    "timestamp": "2025-10-20T08:19:01.749721",
+    "sacred_code": "333"
+  },
+  {
+    "folder": "astra-os",
+    "canary_type": "EVENTS_STREAM",
+    "status": "PASS",
+    "result": "Events stream: http://127.0.0.1:8080/events?source=astra-os&limit=10",
+    "error": null,
+    "timestamp": "2025-10-20T08:19:01.749724",
+    "sacred_code": "333"
+  },
+  {
+    "folder": "astra-os",
+    "canary_type": "RUN_GATED",
+    "status": "PASS",
+    "result": "Gated execution: http://127.0.0.1:8080/capabilities/astra-os.run [REQUIRES CONSENT]",
+    "error": null,
+    "timestamp": "2025-10-20T08:19:01.749728",
+    "sacred_code": "333"
+  },
+  {
+    "folder": "astra-os",
+    "canary_type": "AUDIT_TRAIL",
+    "status": "PASS",
+    "result": "Audit trail: http://127.0.0.1:8080/audit?sacred_code=333&folder=astra-os [SACRED CODE 333]",
+    "error": null,
+    "timestamp": "2025-10-20T08:19:01.749731",
+    "sacred_code": "333"
+  },
+  {
+    "folder": "astra-desktop-simple",
+    "canary_type": "INFO_READONLY",
+    "status": "PASS",
+    "result": "Query: http://127.0.0.1:8080/capabilities/astra-desktop-simple.info",
+    "error": null,
+    "timestamp": "2025-10-20T08:19:01.749734",
+    "sacred_code": "333"
+  },
+  {
+    "folder": "astra-desktop-simple",
+    "canary_type": "HEALTH_CHECK",
+    "status": "PASS",
+    "result": "Health check: http://127.0.0.1:8080/health?tool=astra-desktop-simple",
+    "error": null,
+    "timestamp": "2025-10-20T08:19:01.749738",
+    "sacred_code": "333"
+  },
+  {
+    "folder": "astra-desktop-simple",
+    "canary_type": "REGISTRY_QUERY",
+    "status": "PASS",
+    "result": "Registry query: http://127.0.0.1:8080/registry?filter=legacy&folder=astra-desktop-simple",
+    "error": null,
+    "timestamp": "2025-10-20T08:19:01.749741",
+    "sacred_code": "333"
+  },
+  {
+    "folder": "astra-desktop-simple",
+    "canary_type": "EVENTS_STREAM",
+    "status": "PASS",
+    "result": "Events stream: http://127.0.0.1:8080/events?source=astra-desktop-simple&limit=10",
+    "error": null,
+    "timestamp": "2025-10-20T08:19:01.749744",
+    "sacred_code": "333"
+  },
+  {
+    "folder": "astra-desktop-simple",
+    "canary_type": "RUN_GATED",
+    "status": "PASS",
+    "result": "Gated execution: http://127.0.0.1:8080/capabilities/astra-desktop-simple.run [REQUIRES CONSENT]",
+    "error": null,
+    "timestamp": "2025-10-20T08:19:01.749747",
+    "sacred_code": "333"
+  },
+  {
+    "folder": "astra-desktop-simple",
+    "canary_type": "AUDIT_TRAIL",
+    "status": "PASS",
+    "result": "Audit trail: http://127.0.0.1:8080/audit?sacred_code=333&folder=astra-desktop-simple [SACRED CODE 333]",
+    "error": null,
+    "timestamp": "2025-10-20T08:19:01.749750",
+    "sacred_code": "333"
+  }
+]

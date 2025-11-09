@@ -1,0 +1,6 @@
+compute_environment: LOCAL_MACHINE
+distributed_type: NO
+num_processes: 1
+mixed_precision: fp16
+gradient_accumulation_steps: 8
+dynamo_backend: no

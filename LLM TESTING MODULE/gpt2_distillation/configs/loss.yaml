@@ -1,0 +1,29 @@
+# Loss Configuration
+
+# Loss weights
+loss_weights:
+  kd: 0.6      # KL divergence knowledge distillation
+  ce: 0.3      # Cross-entropy on teacher outputs
+  seq: 0.05    # Sequence-level KD
+  hint: 0.05   # Hint/fitnet loss
+  cot: 0.1     # Chain-of-thought head
+
+# KL-KD parameters
+kl_kd:
+  temperature_range: [1.5, 3.0]
+  default_temperature: 2.0
+
+# Confidence/entropy weighting
+entropy_weighting:
+  a: 0.5
+  b: 0.8
+  w_min: 0.3
+  w_max: 1.5
+
+# Sequence-level KD parameters
+seq_kd:
+  metric: "edit_distance"  # or "bleu", "rouge"
+
+# Hint loss parameters
+hint_loss:
+  anchor_layers: [2, 3]  # Anchor layers for MSE loss

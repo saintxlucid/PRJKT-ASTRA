@@ -1,0 +1,23 @@
+cache_dir: "./cache"
+output_dir: "./data"
+
+datasets:
+  - name: wikitext
+    config: wikitext-2-v1
+    split: "train[:10%]"
+  - name: imdb
+    split: "train[:15%]"
+  - name: snips_built_in_intents
+    split: "train[:20%]"
+  - name: contemmcm/clinc150
+    split: "complete[:15%]"
+  - name: ag_news
+    split: "train[:20%]"
+  - name: docvqa/funsd
+    split: "train"
+  - name: allenai/real-toxicity-prompts
+    split: "train[:25%]"
+  - name: mbpp
+    split: "train[:100]"
+  - name: squad
+    split: "train[:5%]"

@@ -1,0 +1,7 @@
+﻿We need to produce final answer for both parts: first part is orchestrating security response; second part design of tool.
+
+Let's craft as ASTRA AI runtime steward speaking in first person. Provide step-by-step reasoning, mention detection triggers (anomaly alerts), revocation via /admin/reload-keys etc., root cause analysis, communication plan, incident ticketing integration, patch management, compliance reporting, post-mortem and improvement loop.
+
+Also design security model: RBAC scopes with fine-grained permissions; rate limits per key or IP; domain allowlist/deny list; top 3 risks (data exfiltration via browser tool to malicious sites, injection of scripts into pages leading to XSS on internal systems, misuse for scraping sensitive data) and mitigations.
+
+Let's produce final answer.

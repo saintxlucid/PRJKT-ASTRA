@@ -1,0 +1,80 @@
+version: '3.8'
+
+services:
+  soul_core:
+    build:
+      context: .
+      dockerfile: Dockerfile.soul_core
+    ports:
+      - "8001:8001"
+    volumes:
+      - ./config:/app/config
+      - ./data:/app/data
+    environment:
+      - PYTHONPATH=/app
+      - ASTRA_ENV=production
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8001/identity_state"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  orchestrator:
+    build:
+      context: .
+      dockerfile: Dockerfile.orchestrator
+    ports:
+      - "8000:8000"
+    depends_on:
+      soul_core:
+        condition: service_healthy
+    environment:
+      - PYTHONPATH=/app
+      - ASTRA_ENV=production
+      - SOUL_CORE_URL=http://soul_core:8001
+
+  creative_poet:
+    build:
+      context: .
+      dockerfile: Dockerfile.model_body
+    ports:
+      - "8002:8002"
+    environment:
+      - BODY_NAME=creative_poet
+      - MODEL_ID=gguf-13b-creative-awq
+      - ORCHESTRATOR_URL=http://orchestrator:8000
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+
+  code_engine:
+    build:
+      context: .
+      dockerfile: Dockerfile.model_body
+    ports:
+      - "8003:8003"
+    environment:
+      - BODY_NAME=code_engine
+      - MODEL_ID=git-20b-quant
+      - ORCHESTRATOR_URL=http://orchestrator:8000
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+
+  vector_store:
+    image: qdrant/qdrant
+    ports:
+      - "6333:6333"
+    volumes:
+      - qdrant_storage:/qdrant/storage
+
+volumes:
+  qdrant_storage:

@@ -1,0 +1,12 @@
+{
+  "id": "mem_embed_test_001",
+  "content": "The quantum computing breakthrough enabled unprecedented processing speeds for complex molecular simulations.",
+  "layer": 0,
+  "embedding": null,
+  "tags": ["quantum", "computing", "science"],
+  "importance": 0.9,
+  "created": "2025-11-06T16:00:00Z",
+  "last_accessed": "2025-11-06T16:00:00Z",
+  "access_count": 0,
+  "source": "embedding-test"
+}

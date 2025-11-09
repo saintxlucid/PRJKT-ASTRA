@@ -1,0 +1,278 @@
+# ASTRA 3.x — Unified LLM Configuration
+# Place at: config/llm.yaml
+
+version: 3
+sacred_code: 333
+
+################################################################################
+# GLOBAL DEFAULTS
+################################################################################
+defaults:
+  generation:
+    temperature: 0.3
+    top_p: 0.95
+    top_k: 50
+    presence_penalty: 0.0
+    frequency_penalty: 0.0
+    stop: ["<|end|>", "</s>", "<|eot_id|>"]
+    max_tokens: 768
+  safety:
+    max_temperature: 1.2
+    max_max_tokens: 4096
+    disallow_functions_without_consent: true
+  cache:
+    enable: true
+    kv_cache_reuse: true
+    disk_cache_dir: "data/cache"
+    max_disk_gb: 40
+  rate_limits:
+    rps: 16
+    burst: 32
+    max_queue: 64
+  tracing:
+    enable: true
+    provider: "prometheus"
+  retry_policy:
+    max_retries: 2
+    backoff_ms: 200
+    jitter: true
+
+################################################################################
+# AUTOTUNE GOVERNOR (24/7 friendly)
+################################################################################
+autotune:
+  mode: auto              # eco | balanced | turbo | auto
+  targets:
+    cpu: 0.65
+    gpu: 0.70
+    ram: 0.75
+    vram: 0.80
+    temp_max_c: 82
+  loops:
+    fast_period_s: 2
+    slow_period_s: 90
+    cooldown_fast_s: 15
+    cooldown_slow_s: 120
+  modes:
+    eco:      { rate_rps: 6,  max_queue: 32,  ctx_factor: 0.5, batch_factor: 0.6 }
+    balanced: { rate_rps: 16, max_queue: 64,  ctx_factor: 1.0, batch_factor: 1.0 }
+    turbo:    { rate_rps: 32, max_queue: 128, ctx_factor: 1.3, batch_factor: 1.25 }
+  brownout:
+    enable: true
+    fallback_model: "gpt-oss-7b-q4"
+    trigger: { oom_errors: 1, timeouts_in_60s: 5, vram_free_gb: 1.0 }
+
+################################################################################
+# PROVIDERS
+################################################################################
+providers:
+  llama_cpp:
+    type: http
+    base_url: "${LLAMA_CPP_BASE_URL:http://localhost:9010/v1}"
+    server:
+      cmd: "llama-server"
+      args_template: >
+        --model {model_path}
+        --port {port}
+        --ctx-size {ctx}
+        --batch-size {batch}
+        --threads {threads}
+        --ngl {gpu_layers}
+        --parallel {parallel}
+        --embeddings
+      health:
+        url: "/health"
+        timeout_s: 10
+        expect_http: 200
+  vllm:
+    type: http
+    base_url: "${VLLM_BASE_URL:http://localhost:9020/v1}"
+    server:
+      cmd: "python"
+      args_template: >
+        -m vllm.entrypoints.openai.api_server
+        --model {hf_repo}
+        --port {port}
+        --gpu-memory-utilization {gpu_util}
+        --max-model-len {ctx}
+        --max-num-batched-tokens {max_batched_tokens}
+        --tensor-parallel-size {tp}
+        --trust-remote-code
+      health:
+        url: "/health"
+        timeout_s: 10
+        expect_http: 200
+  ollama:
+    type: http
+    base_url: "${OLLAMA_BASE_URL:http://localhost:11434/v1}"
+  openai:
+    type: http
+    base_url: "${OPENAI_BASE_URL:https://api.openai.com/v1}"
+    api_key: "${OPENAI_API_KEY:}"
+  azure_openai:
+    type: http
+    base_url: "${AZURE_OPENAI_BASE_URL:}"
+    api_key: "${AZURE_OPENAI_API_KEY:}"
+    api_version: "${AZURE_OPENAI_API_VERSION:2024-02-15-preview}"
+
+################################################################################
+# MODELS (multi-LLM expert mesh)
+################################################################################
+models:
+  # Local — llama.cpp (GPT-OSS 20B)
+  - name: gpt-oss-20b
+    provider: llama_cpp
+    family: "gpt-oss"
+    endpoint: "chat/completions"
+    profiles:
+      eco:      { ctx: 8192,  batch: 256, threads: 8,  gpu_layers: 20, parallel: 1, quant: "Q4_K_M" }
+      balanced: { ctx: 16384, batch: 384, threads: 12, gpu_layers: 30, parallel: 2, quant: "Q4_K_M" }
+      turbo:    { ctx: 32768, batch: 512, threads: 16, gpu_layers: 40, parallel: 3, quant: "Q5_K_M" }
+    paths:
+      model_path: "models/gpt-oss-20b-q4_k_m.gguf"
+    strengths: [reasoning, long_context, general]
+    cost_weight: 0.2
+    healthcheck: { url: "/health", interval_s: 10 }
+
+  # Local — vLLM (Mixtral 22B for code)
+  - name: mixtral-22b
+    provider: vllm
+    family: "mixtral"
+    endpoint: "chat/completions"
+    profiles:
+      eco:      { ctx: 8192,  gpu_util: 0.6, max_batched_tokens: 4096, tp: 1 }
+      balanced: { ctx: 16384, gpu_util: 0.8, max_batched_tokens: 8192, tp: 1 }
+      turbo:    { ctx: 32768, gpu_util: 0.92, max_batched_tokens: 12288, tp: 1 }
+    paths:
+      hf_repo: "mistralai/Mixtral-8x22B-Instruct-v0.1"
+    strengths: [code, tools, reasoning]
+    cost_weight: 0.35
+    healthcheck: { url: "/health", interval_s: 10 }
+
+  # Local — Ollama (fallback / light)
+  - name: llama3.1-8b
+    provider: ollama
+    family: "llama3.1"
+    endpoint: "chat/completions"
+    profiles:
+      eco:      { ctx: 4096 }
+      balanced: { ctx: 8192 }
+      turbo:    { ctx: 8192 }
+    strengths: [lightweight, always_on]
+    cost_weight: 0.05
+    healthcheck: { url: "/models", interval_s: 20 }
+
+  # Cloud — OpenAI (burst / safety net)
+  - name: gpt-4o
+    provider: openai
+    family: "openai"
+    endpoint: "chat/completions"
+    profiles:
+      eco:      { ctx: 8192 }
+      balanced: { ctx: 16384 }
+      turbo:    { ctx: 32768 }
+    strengths: [vision, general, safety]
+    cost_weight: 0.9
+    healthcheck: { url: "/models", interval_s: 30 }
+
+################################################################################
+# EMBEDDINGS (memory/RAG)
+################################################################################
+embeddings:
+  default:
+    provider: openai
+    model: "text-embedding-3-large"
+    dim: 3072
+  local_fallback:
+    provider: llama_cpp
+    model: "bge-m3.gguf"
+    dim: 1024
+
+################################################################################
+# ROUTING (capability matrix + policies)
+################################################################################
+routing:
+  policy: "verify"
+  selection:
+    weights:
+      reasoning:
+        gpt-oss-20b: 0.55
+        mixtral-22b: 0.35
+        gpt-4o: 0.10
+      code:
+        mixtral-22b: 0.65
+        gpt-oss-20b: 0.25
+        gpt-4o: 0.10
+      long_context:
+        gpt-oss-20b: 0.70
+        gpt-4o: 0.30
+      lightweight:
+        llama3.1-8b: 1.00
+      general:
+        gpt-oss-20b: 0.45
+        gpt-4o: 0.30
+        mixtral-22b: 0.25
+  ensemble:
+    verify:
+      verifier_model: "gpt-oss-20b"
+      max_tokens: 256
+      timeout_ms: 18000
+    debate:
+      participants: 2
+      judge_model: "gpt-oss-20b"
+      max_tokens: 256
+
+################################################################################
+# BUDGETS & LIMITS
+################################################################################
+budgets:
+  default:
+    daily_tokens_out: 1_500_000
+    max_tool_calls_per_turn: 8
+    max_steps_per_job: 16
+  per_mode:
+    eco:      { max_tokens_out: 4096,  rps: 6,  max_queue: 32 }
+    balanced: { max_tokens_out: 16384, rps: 16, max_queue: 64 }
+    turbo:    { max_tokens_out: 32768, rps: 32, max_queue: 128 }
+
+################################################################################
+# SAFETY / CONSENT
+################################################################################
+consent:
+  gate_url: "http://localhost:7701"
+  require_for_tools: true
+  scopes:
+    - web
+    - system
+    - filesystem
+    - code_exec
+
+################################################################################
+# HEALTHCHECKS & SLA
+################################################################################
+health:
+  sla:
+    p95_ms: 1000
+    error_rate: 0.01
+  endpoints:
+    - name: master
+      url: "http://localhost:8000/v1/system/health"
+      interval_s: 10
+    - name: memory
+      url: "http://localhost:7007/health"
+      interval_s: 10
+    - name: sigil_gate
+      url: "http://localhost:7701/health"
+      interval_s: 10
+    - name: supervisor
+      url: "http://localhost:7703/health"
+      interval_s: 10
+
+################################################################################
+# PROFILES (how AUTOTUNE maps mode → profile)
+################################################################################
+profiles:
+  map:
+    eco:      [ "llama3.1-8b", "gpt-oss-20b:eco" ]
+    balanced: [ "gpt-oss-20b:balanced", "mixtral-22b:balanced" ]
+    turbo:    [ "gpt-oss-20b:turbo", "mixtral-22b:turbo", "gpt-4o:turbo" ]

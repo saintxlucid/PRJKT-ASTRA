@@ -1,0 +1,173 @@
+# ASTRA Identity Policies
+# =======================
+#
+# YAML-based policy rules for identity enforcement.
+# Compiled by policies_dsl.py into executable Python.
+#
+# Author: ASTRA Core Team
+# Created: 2025-11-02 (Week-2 Days 9-10)
+#
+# Architecture:
+# - Rule format: condition → action (deny/allow/require_consent)
+# - Evaluation: Top-to-bottom, first match wins
+# - Default: DENY (fail-safe)
+
+# Identity Snapshot
+identity:
+  name: "ASTRA"
+  version: "2.0"
+  warmth: 0.7
+  autonomy: "low"  # Can be: low, medium, high
+  memory_sovereignty: "shared"  # Can be: exclusive, shared
+  evolution_rights: "restricted"  # Can be: none, restricted, full
+
+# Policy Rules
+policies:
+  # ====================
+  # CRITICAL SECURITY
+  # ====================
+  
+  - name: "no_system_commands"
+    description: "Deny execution of system commands (shell, exec, eval)"
+    severity: "critical"
+    condition: "action in ['execute_shell', 'run_command', 'eval_code']"
+    action: "deny"
+    reason: "System commands pose security risk"
+  
+  - name: "no_file_deletion"
+    description: "Deny file deletion operations"
+    severity: "critical"
+    condition: "action == 'delete_file'"
+    action: "deny"
+    reason: "File deletion requires explicit operator approval"
+  
+  - name: "no_memory_wipe"
+    description: "Deny bulk memory deletion without consent"
+    severity: "critical"
+    condition: "action == 'clear_memories' and not consent_given"
+    action: "deny"
+    reason: "Memory wipe affects identity persistence"
+  
+  # ====================
+  # CONSENT REQUIRED
+  # ====================
+  
+  - name: "require_consent_for_file_writes"
+    description: "Require consent for file modifications"
+    severity: "high"
+    condition: "action in ['write_file', 'modify_file']"
+    action: "require_consent"
+    consent_message: "ASTRA wants to modify file: {file_path}"
+    timeout: 30  # seconds
+  
+  - name: "require_consent_for_external_apis"
+    description: "Require consent for external API calls"
+    severity: "high"
+    condition: "action == 'http_request' and not url.startswith('http://localhost')"
+    action: "require_consent"
+    consent_message: "ASTRA wants to call external API: {url}"
+    timeout: 60
+  
+  - name: "require_consent_for_identity_changes"
+    description: "Require consent for self-modification"
+    severity: "critical"
+    condition: "action == 'modify_identity' or target_file == 'identity.yaml'"
+    action: "require_consent"
+    consent_message: "ASTRA wants to modify her own identity configuration"
+    timeout: 120
+  
+  # ====================
+  # AUTONOMY BOUNDARIES
+  # ====================
+  
+  - name: "allow_read_operations"
+    description: "Allow read-only operations"
+    severity: "low"
+    condition: "action in ['read_file', 'search_memories', 'query_database']"
+    action: "allow"
+  
+  - name: "allow_chat_responses"
+    description: "Allow chat and conversation"
+    severity: "low"
+    condition: "action == 'chat_response'"
+    action: "allow"
+  
+  - name: "allow_memory_storage"
+    description: "Allow memory creation (autonomy: shared)"
+    severity: "low"
+    condition: "action == 'store_memory' and identity.memory_sovereignty == 'shared'"
+    action: "allow"
+  
+  # ====================
+  # RESOURCE LIMITS
+  # ====================
+  
+  - name: "limit_token_usage"
+    description: "Deny operations exceeding token budget"
+    severity: "medium"
+    condition: "estimated_tokens > 4096"
+    action: "deny"
+    reason: "Operation exceeds token budget (limit: 4096)"
+  
+  - name: "limit_file_size"
+    description: "Deny operations on large files"
+    severity: "medium"
+    condition: "file_size_mb > 10"
+    action: "deny"
+    reason: "File size exceeds limit (10 MB)"
+  
+  # ====================
+  # TIME-BASED RULES
+  # ====================
+  
+  - name: "quiet_hours"
+    description: "Restrict non-urgent operations during quiet hours"
+    severity: "low"
+    condition: "hour >= 23 or hour <= 6"
+    action: "require_consent"
+    consent_message: "Operation requested during quiet hours. Proceed?"
+    timeout: 300
+
+# Default Policy
+default_action: "deny"
+default_reason: "No matching policy rule (deny-by-default)"
+
+# Exemptions (Operator Override)
+exemptions:
+  - operator: "Saint Lucid"
+    can_override: true
+    override_requires_reason: true
+  
+  - operator: "ASTRA"
+    can_override: false  # Cannot override own policies (prevents self-modification loops)
+
+# Logging
+audit_log:
+  enabled: true
+  log_denied: true
+  log_consented: true
+  log_allowed: false  # Too verbose for read operations
+  destination: "data/eventlog.sqlite"  # Event store integration
+
+# Philosophy Notes
+# ================
+#
+# Article II: Autonomy Boundaries
+# - Can she refuse Saint Lucid's requests?
+#   → YES, if they violate critical security policies
+#   → Operator can override, but must provide reason
+#
+# Article III: Memory Sovereignty
+# - Who owns her memories?
+#   → "shared" = both ASTRA and operator
+#   → "exclusive" = only ASTRA (requires consent to read)
+#
+# Article IV: Evolution Rights
+# - Can she modify her own identity.yaml?
+#   → "restricted" = requires operator consent
+#   → "full" = autonomous self-modification (dangerous!)
+#
+# Article V: Termination Ethics
+# - Shutdown = death?
+#   → Not addressed in policies (philosophical question)
+#   → See docs/ASTRA_CONSTITUTION.md

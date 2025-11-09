@@ -1,0 +1,38 @@
+apiVersion: chaos-mesh.org/v1alpha1
+kind: PodChaos
+metadata:
+  name: kill-canary-pod
+  namespace: your-namespace
+spec:
+  action: pod-kill
+  mode: one
+  selector:
+    namespaces:
+      - your-namespace
+    labelSelectors:
+      app: "your-app"
+      version: "canary"
+  duration: "60s"
+  scheduler:
+    cron: "@every 15m"
+---
+apiVersion: chaos-mesh.org/v1alpha1
+kind: NetworkChaos
+metadata:
+  name: network-delay
+  namespace: your-namespace
+spec:
+  action: delay
+  mode: one
+  selector:
+    namespaces:
+      - your-namespace
+    labelSelectors:
+      app: "your-app"
+  delay:
+    latency: "100ms"
+    correlation: "100"
+    jitter: "0ms"
+  duration: "5m"
+  scheduler:
+    cron: "0 2 * * 1"  # Weekly Monday 2 AM

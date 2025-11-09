@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites><testsuite name="pytest" errors="5" failures="0" skipped="0" tests="5" time="22.421" timestamp="2025-10-16T23:11:56.064542+03:00" hostname="SL-WS03"><testcase classname="" name="tests.astra.test_metrics" time="0.000"><error message="collection failure">ImportError while importing test module 'X:\PROJECT_ASTRA_1.0 (ASTRA_CORE)\tests\astra\test_metrics.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+tests\astra\test_metrics.py:8: in &lt;module&gt;
+    from astra.core.metrics import SafetyMetrics
+E   ImportError: cannot import name 'SafetyMetrics' from 'astra.core.metrics' (X:\PROJECT_ASTRA_1.0 (ASTRA_CORE)\src\astra\core\metrics.py)</error></testcase><testcase classname="" name="tests.astra.test_safety" time="0.000"><error message="collection failure">ImportError while importing test module 'X:\PROJECT_ASTRA_1.0 (ASTRA_CORE)\tests\astra\test_safety.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+tests\astra\test_safety.py:9: in &lt;module&gt;
+    from ..core.contracts import (
+E   ModuleNotFoundError: No module named 'tests.core'</error></testcase><testcase classname="" name="tests.astra.test_safety_policy" time="0.000"><error message="collection failure">ImportError while importing test module 'X:\PROJECT_ASTRA_1.0 (ASTRA_CORE)\tests\astra\test_safety_policy.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+tests\astra\test_safety_policy.py:8: in &lt;module&gt;
+    from ..core.safety_policy import (
+E   ModuleNotFoundError: No module named 'tests.core'</error></testcase><testcase classname="" name="tests.unit.test_queue_metrics" time="0.000"><error message="collection failure">tests\unit\test_queue_metrics.py:9: in &lt;module&gt;
+    from astra.metrics import QUEUE_DEPTH, QUEUE_WAIT_SECONDS, LIMITER_PER_KEY_ALLOWED, LIMITER_PER_KEY_BLOCKED
+src\astra\metrics.py:109: in &lt;module&gt;
+    LLM_LATENCY = Histogram(
+X:\PROJECT_ASTRA_2.0\New folder\Lib\site-packages\prometheus_client\metrics.py:577: in __init__
+    super().__init__(
+X:\PROJECT_ASTRA_2.0\New folder\Lib\site-packages\prometheus_client\metrics.py:132: in __init__
+    registry.register(self)
+X:\PROJECT_ASTRA_2.0\New folder\Lib\site-packages\prometheus_client\registry.py:43: in register
+    raise ValueError(
+E   ValueError: Duplicated timeseries in CollectorRegistry: {'astra_llm_latency_seconds_bucket', 'astra_llm_latency_seconds', 'astra_llm_latency_seconds_count', 'astra_llm_latency_seconds_created', 'astra_llm_latency_seconds_sum'}</error></testcase><testcase classname="" name="tests.unit.test_streaming" time="0.000"><error message="collection failure">tests\unit\test_streaming.py:15: in &lt;module&gt;
+    from astra.api.routes.chat import router, set_chat_service
+src\astra\api\__init__.py:7: in &lt;module&gt;
+    from astra.api.app import app, create_app
+src\astra\api\app.py:22: in &lt;module&gt;
+    from astra.metrics import MetricsMiddleware, metrics_endpoint
+src\astra\metrics.py:32: in &lt;module&gt;
+    REQUESTS = Counter(
+X:\PROJECT_ASTRA_2.0\New folder\Lib\site-packages\prometheus_client\metrics.py:132: in __init__
+    registry.register(self)
+X:\PROJECT_ASTRA_2.0\New folder\Lib\site-packages\prometheus_client\registry.py:43: in register
+    raise ValueError(
+E   ValueError: Duplicated timeseries in CollectorRegistry: {'astra_requests', 'astra_requests_total', 'astra_requests_created'}</error></testcase></testsuite></testsuites>

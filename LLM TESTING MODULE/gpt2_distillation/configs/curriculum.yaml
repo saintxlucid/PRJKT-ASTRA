@@ -1,0 +1,64 @@
+# Curriculum Learning Configuration
+
+# Three-phase schedule
+phases:
+  A:
+    name: "warm"
+    temperature: 3.0
+    context_length: 512
+    freeze_layers: 0.5  # Freeze bottom 50% layers
+    epochs: 1
+    loss_weights:
+      kd: 0.8
+      ce: 0.2
+      seq: 0.0
+      hint: 0.0
+    data_mix:
+      general_instruct: 0.4
+      CoT_reasoning: 0.2
+      coding: 0.2
+      Arabic-Egyptian: 0.1
+      EN-creative: 0.1
+      
+  B:
+    name: "core"
+    temperature: 2.0
+    context_length: 1024
+    freeze_layers: 0.0  # Unfreeze all layers
+    epochs: 1.5
+    loss_weights:
+      kd: 0.6
+      ce: 0.3
+      seq: 0.05
+      hint: 0.05
+    data_mix:
+      general_instruct: 0.3
+      CoT_reasoning: 0.25
+      coding: 0.2
+      Arabic-Egyptian: 0.15
+      EN-creative: 0.1
+      
+  C:
+    name: "sharpen"
+    temperature: 1.5
+    context_length: 1024
+    freeze_layers: 0.0
+    epochs: 0.5
+    loss_weights:
+      kd: 0.5
+      ce: 0.35
+      seq: 0.1
+      hint: 0.05
+    data_mix:
+      general_instruct: 0.2
+      CoT_reasoning: 0.3
+      coding: 0.2
+      Arabic-Egyptian: 0.2
+      EN-creative: 0.1
+    hard_set: data/hard.jsonl
+
+# Batching policy
+batching:
+  packing: true
+  gradient_accumulation_steps: 8
+  effective_batch_size_tokens_per_gpu: 128

@@ -18,6 +18,22 @@ import structlog
 
 logger = structlog.get_logger(__name__)
 
+def verify_execution_token(token: str) -> Dict[str, Any]:
+    """
+    Verify an execution token and return the decoded payload if valid.
+    Raises an exception if token is invalid.
+    """
+    tokenizer = Tokenizer(os.getenv("ASTRA_TOKEN_SECRET", "default").encode())
+    valid, reason, payload = tokenizer.verify(token, set())
+    if not valid:
+        raise ValueError(f"Invalid token: {reason}")
+    return payload
+
+def create_execution_token(tool: str, trace_id: str = None) -> str:
+    """Create a new execution token for a tool."""
+    tokenizer = Tokenizer(os.getenv("ASTRA_TOKEN_SECRET", "default").encode())
+    return tokenizer.create("system", {tool}, trace_id=trace_id)
+
 USED_NONCES = set()
 
 def b64u_encode(data: bytes) -> bytes:

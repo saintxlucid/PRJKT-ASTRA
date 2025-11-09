@@ -1,0 +1,60 @@
+version: '3.8'
+services:
+  redis:
+    image: redis:7-alpine
+    container_name: astra_redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+
+  postgres:
+    image: postgres:15
+    container_name: astra_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: astra
+      POSTGRES_USER: astra
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-astra_pass}
+    ports:
+      - "5432:5432"
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+
+volumes:
+  redis_data:
+  pg_data:
+services:
+#   bridge:
+#     image: REGISTRY/your-org/astra-bridge:latest
+#     restart: always
+#     environment:
+#       - BRIDGE_API_KEY=${BRIDGE_API_KEY}
+#       - BRIDGE_AUDIT_LOG=/data/bridge_audit.log
+#       - BRIDGE_SAFE_ROOT=/data/safe
+#       - LLAMA_URL=http://llama:11434/v1/chat/completions
+#     volumes:
+#       - bridge-data:/data
+#       - ./config/bridge-safe:/data/safe:ro
+#     ports:
+#       - "8888:8888"
+#     logging:
+#       driver: "json-file"
+#       options:
+#         max-size: "50m"
+#         max-file: "5"
+
+#   llama:
+#     image: ghcr.io/ggerganov/llama.cpp:latest
+#     restart: on-failure
+
+  qdrant:
+    image: qdrant/qdrant:latest
+    restart: always
+    volumes:
+      - qdrant-data:/qdrant/storage
+
+volumes:
+  bridge-data:
+  qdrant-data:

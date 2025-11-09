@@ -1,0 +1,260 @@
+# ASTRA Routing Policy DSL - Edit Without Redeploys
+# Version: 1.0 | Date: 2025-11-03
+# Rules evaluated top-to-bottom; first match wins
+
+# ========== ROUTING RULES ==========
+rules:
+  # Vision/Perception
+  - name: "vision_required"
+    when: "has(image) or tool:perceive_screen or tool:analyze_ui"
+    route: "vision.primary"
+    priority: 100
+    notes: "Any visual input triggers vision model"
+
+  # Complex Reasoning
+  - name: "high_complexity_reasoning"
+    when: "complexity >= 0.7 or keywords:['plan','architect','design','refactor','analyze']"
+    route: "reasoning.primary"
+    priority: 90
+    notes: "Deep thinking tasks go to reasoning tier"
+
+  - name: "code_analysis"
+    when: "tool:read_file and (ext:['.py','.ts','.rs'] or complexity >= 0.6)"
+    route: "reasoning.primary"
+    priority: 85
+    notes: "Code reading/analysis uses reasoning model"
+
+  - name: "test_generation"
+    when: "keywords:['test','unittest','pytest','coverage'] and complexity >= 0.5"
+    route: "reasoning.primary"
+    priority: 85
+    notes: "Test generation requires reasoning"
+
+  # Speed/Interactive
+  - name: "fast_interactive"
+    when: "latency <= 0.5s and risk <= low and complexity < 0.5"
+    route: "speed.primary"
+    priority: 80
+    notes: "Quick responses for UI interactions"
+
+  - name: "ui_feedback"
+    when: "keywords:['status','health','metrics','quick','simple'] and length < 200"
+    route: "speed.primary"
+    priority: 75
+    notes: "Simple queries use speed model"
+
+  # Creative Tasks
+  - name: "creative_fusion"
+    when: "mode:MUSIC or mode:FILM or keywords:['lyric','beat','scene','shot']"
+    route: "creative_fusion"
+    ab_test:
+      candidates: ["mistral-large-2", "qwen2.5-14b"]
+      split: 0.5  # 50/50
+      metric: "creative_score"
+    priority: 70
+    notes: "Creative work gets AB tested for best model"
+
+  - name: "synesthetic"
+    when: "tool:sound_to_visual or tool:visual_to_sound"
+    route: "reasoning.primary"  # Requires deep understanding
+    priority: 70
+    notes: "Synesthetic conversion needs reasoning"
+
+  # Audio Processing
+  - name: "audio_transcription"
+    when: "has(audio) or tool:transcribe_audio"
+    route: "audio.primary"
+    priority: 65
+    notes: "Audio input triggers audio model"
+
+  # Tool Execution
+  - name: "high_risk_tools"
+    when: "tool_risk:high and safety_tier:high"
+    route: "reasoning.primary"
+    require_confirmation: true
+    priority: 95
+    notes: "High-risk tools require reasoning model + confirmation"
+
+  - name: "medium_risk_tools"
+    when: "tool_risk:medium"
+    route: "reasoning.primary"
+    priority: 60
+    notes: "Medium-risk tools use reasoning for safety"
+
+  # Memory Operations
+  - name: "memory_search_complex"
+    when: "tool:memory_search and (semantic_depth > 0.7 or results > 20)"
+    route: "reasoning.primary"
+    priority: 55
+    notes: "Complex memory queries need reasoning"
+
+  - name: "memory_search_simple"
+    when: "tool:memory_search"
+    route: "speed.primary"
+    priority: 50
+    notes: "Simple memory lookups can use speed model"
+
+  # Fallback - Default to balanced model
+  - name: "default_balanced"
+    when: "true"  # Catch-all
+    route: "reasoning.fallback"  # qwen2.5-14b is good balance
+    priority: 0
+    notes: "Default route for unmatched requests"
+
+# ========== CONTEXT EVALUATION ==========
+context_scoring:
+  complexity:
+    # How to calculate complexity score (0.0-1.0)
+    factors:
+      - name: "length"
+        weight: 0.2
+        ranges:
+          - [0, 100]: 0.1
+          - [100, 500]: 0.3
+          - [500, 2000]: 0.6
+          - [2000, null]: 0.9
+      
+      - name: "technical_keywords"
+        weight: 0.3
+        keywords: ["architecture", "refactor", "optimize", "algorithm", "design pattern", 
+                   "concurrent", "async", "distributed", "performance", "security"]
+        per_match: 0.15
+      
+      - name: "code_presence"
+        weight: 0.2
+        detect: ["```", "def ", "class ", "function ", "import ", "const "]
+        per_match: 0.2
+      
+      - name: "planning_keywords"
+        weight: 0.3
+        keywords: ["plan", "strategy", "roadmap", "phases", "timeline", "dependencies",
+                   "architecture", "design", "approach", "solution"]
+        per_match: 0.12
+
+  risk:
+    # Risk level determination
+    low:
+      - "read_file"
+      - "search_memory"
+      - "list_directory"
+      - "health_check"
+      - "get_metrics"
+    
+    medium:
+      - "write_file"
+      - "create_directory"
+      - "execute_code"
+      - "run_command"
+      - "api_call"
+    
+    high:
+      - "delete_file"
+      - "move_file"
+      - "system_command"
+      - "network_request"
+      - "database_write"
+
+# ========== ADMISSION CONTROL ==========
+backpressure:
+  enabled: true
+  
+  triggers:
+    - name: "vram_pressure"
+      condition: "vram_usage_pct > 85"
+      action: "demote_to_fallback"
+      cooldown_seconds: 60
+    
+    - name: "queue_depth"
+      condition: "queue_size > 50"
+      action: "reject_with_429"
+      message: "System at capacity. Retry after 30s."
+    
+    - name: "high_latency"
+      condition: "avg_latency_p95 > 4000"
+      action: "switch_to_speed_tier"
+      duration_seconds: 300
+
+  auto_recovery:
+    - name: "vram_recovered"
+      condition: "vram_usage_pct < 70 and stable_for_seconds >= 120"
+      action: "restore_normal_routing"
+    
+    - name: "queue_cleared"
+      condition: "queue_size < 10 and stable_for_seconds >= 60"
+      action: "restore_normal_routing"
+
+# ========== SOUL LAYER INTEGRATION ==========
+soul_checks:
+  enabled: true
+  
+  gates:
+    - event: "before_route"
+      check: "alignment"
+      on_misaligned: "require_confirmation"
+    
+    - event: "before_tool_execute"
+      check: "purpose_alignment"
+      on_grey: "suggest_alternative"
+      on_misaligned: "block_with_reason"
+    
+    - event: "after_creative_output"
+      check: "value_match"
+      track_metric: "soul_alignment_score"
+
+# ========== AB TESTING ==========
+ab_testing:
+  enabled: true
+  
+  experiments:
+    - name: "creative_fusion_models"
+      variants:
+        - model: "mistral-large-2"
+          weight: 0.5
+        - model: "qwen2.5-14b"
+          weight: 0.5
+      conditions:
+        - mode: ["MUSIC", "FILM"]
+        - complexity: [0.5, 0.9]
+      metrics:
+        - "creative_score"
+        - "usefulness_rating"
+        - "latency"
+      min_samples: 100
+      confidence: 0.95
+      promote_threshold: 0.15  # 15% improvement needed
+    
+    - name: "speed_vs_reasoning_edge"
+      variants:
+        - model: "phi-4-mini"
+          weight: 0.5
+        - model: "qwen2.5-14b"
+          weight: 0.5
+      conditions:
+        - complexity: [0.4, 0.6]  # Edge cases
+        - latency_budget: [500, 1500]
+      metrics:
+        - "correctness_score"
+        - "latency"
+        - "user_satisfaction"
+      min_samples: 200
+      confidence: 0.95
+
+# ========== OVERRIDES (Emergency) ==========
+overrides:
+  # Force all requests to specific model (debugging)
+  force_model: null  # Set to model name to override all routing
+  
+  # Disable specific models temporarily
+  disabled_models: []
+  
+  # Bypass soul layer (use with caution)
+  bypass_soul_checks: false
+  
+  # Bypass admission control
+  bypass_admission: false
+
+# ========== NOTES ==========
+# Hot-reload: Changes to this file are picked up within 5s (no restart)
+# Validation: Run `astra routes validate` before commit
+# Testing: Use `astra routes test --input examples/` for dry-run
+# Metrics: View routing dashboard at http://localhost:3000/d/routing

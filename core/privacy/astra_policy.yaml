@@ -1,0 +1,271 @@
+# ASTRA Privacy Protection Policy
+# ================================
+# Machine-readable privacy policy for audit and compliance
+# Author: Saint Lucid
+# Date: 2025-10-18
+# Version: 1.0.0
+
+version: 1
+name: astra_privacy_policy
+author: Saint Lucid
+date: "2025-10-18"
+schema_version: "1.0"
+
+# =============================================================================
+# POLICY DECLARATION
+# =============================================================================
+policy:
+  privacy_mode: STRICT  # STRICT | LENIENT | CUSTOM
+  description: >
+    All ASTRA user data is local-only. No third-party telemetry, no auto-training, 
+    no passive logging. Divine protection for creator sovereignty.
+  
+  # Network control
+  allow_network: false
+  allowed_endpoints: []
+  # To add endpoints: astra_policy.yaml -> allowed_endpoints -> ['api.local.dev:8080']
+  
+  # Training protection
+  no_train: true
+  no_upload: true
+  local_lock: true
+  
+  # Audit configuration
+  audit:
+    enabled: true
+    db_path: core/privacy/audit_encrypted.sqlite3
+    retention_days: 30
+    encrypt_logs: true
+    integrity_checks: true
+    export_format: json
+  
+  # Encryption settings
+  encryption:
+    key_path: core/privacy/.ast_key
+    algorithm: fernet  # Fernet (AES-128-CBC + HMAC)
+    key_rotation_days: 90
+    backup_key_required: true
+  
+  # Protected storage paths
+  storage:
+    encrypted_paths:
+      - core/privacy/
+      - core/memory/
+      - core/config/
+      - data/vectors/
+      - data/conversations/
+      - models/local/
+    
+    secure_wipe_passes: 3  # DoD 5220.22-M standard
+    backup_path: D:/astra_backups/
+  
+  # Emergency protocols
+  emergency:
+    divine_lock_enabled: true
+    divine_lock_phrase: "ASTRA, Divine Sleep. Code 333."
+    secure_wipe_on_divine_lock: true
+    backup_before_wipe: true
+    emergency_contact: ""  # Optional: secure contact method
+
+# =============================================================================
+# HARD LOCKS - Cannot be overridden without manifest.lock signature update
+# =============================================================================
+hard_locks:
+  disable_cloud_sync: true
+  disable_auto_backup: true
+  disable_passive_logging: true
+  disable_telemetry: true
+  disable_analytics: true
+  force_local_models: true
+  block_remote_model_downloads: true
+  prevent_prompt_uploads: true
+
+# =============================================================================
+# ACCESS CONTROL
+# =============================================================================
+access:
+  creator_account: "${USERNAME}"  # Will read from environment
+  
+  # Authentication methods (all optional, can be combined)
+  auth_methods:
+    windows_account: true
+    hardware_token: false  # Set to true for YubiKey/FIDO2
+    biometric: false       # Set to true for Windows Hello
+    mfa: false            # Set to true for TOTP/authenticator app
+  
+  # UI restrictions
+  dashboard:
+    localhost_only: true
+    port: 8501
+    require_auth: true
+    session_timeout_minutes: 30
+
+# =============================================================================
+# PROCESS WHITELIST/BLACKLIST
+# =============================================================================
+processes:
+  whitelist:
+    - astra_core
+    - launch_astra.py
+    - whisper_service
+    - memory_engine
+    - voice_engine
+    - guardian_protocol
+    - streamlit  # For privacy dashboard
+  
+  blacklist:
+    - sentry_sdk
+    - analytics
+    - mixpanel
+    - segment
+    - newrelic
+    - datadog
+    - google.analytics
+    - amplitude
+
+# =============================================================================
+# MODEL PROTECTION
+# =============================================================================
+model_protection:
+  no_train_metadata: true
+  local_models_only: true
+  model_base_path: models/
+  
+  # Stamp all model operations with NO_TRAIN
+  enforce_no_train_tag: true
+  prevent_prompt_logging: true
+  encrypt_embeddings: true
+  
+  # GGUF-specific settings
+  gguf:
+    allow_remote_download: false
+    verify_checksums: true
+    checksum_file: models/checksums.sha256
+    trusted_sources: []  # Empty = no remote sources allowed
+
+# =============================================================================
+# TELEMETRY BLOCKING
+# =============================================================================
+telemetry:
+  # Known telemetry domains to block
+  blocked_domains:
+    - telemetry.microsoft.com
+    - www.google-analytics.com
+    - analytics.google.com
+    - sentry.io
+    - api.segment.io
+    - api.mixpanel.com
+    - amplitude.com
+    - api.amplitude.com
+    - cloudflareinsights.com
+    - browser-intake-datadoghq.com
+  
+  # Environment variables to enforce no-tracking
+  env_vars:
+    DO_NOT_TRACK: "1"
+    ASTRA_NO_TRAIN: "1"
+    ASTRA_PRIVACY_MODE: STRICT
+    ASTRA_LOCAL_ONLY: "1"
+    DISABLE_TELEMETRY: "1"
+    TELEMETRY_OPTOUT: "1"
+    PYTHONDONTWRITEBYTECODE: "1"
+
+# =============================================================================
+# COMPLIANCE & VALIDATION
+# =============================================================================
+compliance:
+  check_integrity_on_boot: true
+  verify_module_signatures: false  # Enable after signing modules
+  compliance_report_path: logs/compliance_report.json
+  
+  # Compliance checks run at startup
+  startup_checks:
+    - hardlock_active
+    - no_train_enabled
+    - network_blocked
+    - audit_enabled
+    - creator_verified
+    - encryption_active
+  
+  # Fail-safe: if any critical check fails, prevent startup
+  fail_safe_mode: true
+
+# =============================================================================
+# METADATA TAGS (Applied to all operations)
+# =============================================================================
+metadata_tags:
+  no_train: true
+  no_upload: true
+  local_lock: true
+  privacy_tag: "ASTRA_PRIME"
+  creator_locked: true
+  timestamp_utc: true
+  audit_trail: true
+
+# =============================================================================
+# LOGGING & AUDIT
+# =============================================================================
+logging:
+  # Audit events to track
+  tracked_events:
+    - hardlock_activated
+    - model_loaded
+    - prompt_sent
+    - prompt_result
+    - network_blocked
+    - file_encrypted
+    - file_decrypted
+    - key_rotated
+    - divine_lock_activated
+    - compliance_check
+    - unauthorized_access
+  
+  # Log levels
+  console_level: INFO
+  file_level: DEBUG
+  audit_level: INFO
+  
+  # Retention
+  max_log_files: 10
+  max_log_size_mb: 50
+
+# =============================================================================
+# NOTES & WARNINGS
+# =============================================================================
+notes:
+  - "Rotate encryption keys carefully; rotating will invalidate existing encrypted logs."
+  - "To relax policy: set privacy_mode to LENIENT and add allowed_endpoints."
+  - "Hardware token binding requires YubiKey or FIDO2 device."
+  - "Biometric auth requires Windows Hello capable hardware."
+  - "Divine Lock phrase is case-sensitive and must be exact."
+  - "Backup encryption key to secure USB before rotating."
+  - "Secure wipe is IRREVERSIBLE - ensure backups exist."
+
+# =============================================================================
+# AUDIT TRAIL (Append-only change log)
+# =============================================================================
+audit_trail:
+  - change: "PRIVACY POLICY INITIAL COMMIT"
+    author: "Saint Lucid"
+    date: "2025-10-18"
+    note: "Strict local-only policy created - Divine Protection activated"
+    signature: "PENDING"
+  
+  # Future changes append here with format:
+  # - change: "Description of change"
+  #   author: "Name"
+  #   date: "YYYY-MM-DD"
+  #   note: "Reason for change"
+  #   signature: "GPG signature or hash"
+
+# =============================================================================
+# INTEGRATION INSTRUCTIONS
+# =============================================================================
+integration:
+  # 1. Place this file at: core/privacy/astra_policy.yaml
+  # 2. Ensure hardlock.py loads this config
+  # 3. Run compliance check: python -m core.privacy.hardlock
+  # 4. Verify all checks pass before production deployment
+  # 5. Sign manifest.lock and this file with GPG for immutability
+
+# END OF POLICY

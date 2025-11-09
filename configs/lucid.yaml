@@ -1,0 +1,45 @@
+# Lucid Protocol Configuration
+# Philosophical alignment vectors for ASTRA OS
+
+weights:
+  truth_compassion: 0.5      # 0.0 = pure truth, 1.0 = pure compassion
+  logic_intuition: 0.4       # 0.0 = pure logic, 1.0 = pure intuition
+  order_freedom: 0.4         # 0.0 = pure order, 1.0 = pure freedom
+  efficiency_safety: 0.6     # 0.0 = pure efficiency, 1.0 = pure safety
+
+# Cognitive governor settings
+governor:
+  creativity:
+    low_risk: 0.7           # Temperature for low-risk tasks
+    medium_risk: 0.5        # Temperature for medium-risk tasks
+    high_risk: 0.2          # Temperature for high-risk tasks
+  
+  risk_keywords:
+    high:
+      - delete
+      - remove
+      - drop
+      - truncate
+      - uninstall
+      - rm
+      - format
+    medium:
+      - update
+      - modify
+      - rename
+      - move
+      - deploy
+      - publish
+    low:
+      - read
+      - list
+      - get
+      - query
+      - search
+      - analyze
+
+# Meta-controller preferences
+meta_controller:
+  prefer_procedural: false   # Prefer learned macros over LLM when available
+  min_macro_confidence: 0.85 # Minimum confidence to use macro
+  budget_per_task_ms: 5000   # Default time budget per task

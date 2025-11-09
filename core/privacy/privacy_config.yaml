@@ -1,0 +1,45 @@
+# ASTRA Privacy Protection Protocol (A.P.P.P) Configuration
+PRIVACY_MODE: STRICT   # STRICT | LENIENT
+ALLOW_NETWORK: false
+ALLOWED_ENDPOINTS: []  # List of exact hostnames or 'localhost'
+NO_TRAIN: true
+ENCRYPTION_KEY_PATH: core/privacy/.ast_key  # Created on bootstrap
+AUDIT_DB_PATH: core/privacy/audit_encrypted.sqlite3
+LOG_RETENTION_DAYS: 30
+AUTO_BACKUP: false
+
+# System core process whitelist
+WHITELISTED_PROCESSES:
+  - astra_core.py
+  - whisper_service
+  - memory_engine
+
+# Data sovereignty settings
+DATA_STORAGE:
+  local_only: true
+  encrypt_logs: true
+  encrypt_memory: true
+  secure_wipe_enabled: true
+
+# Privacy defense settings
+PRIVACY_DEFENSE:
+  block_telemetry: true
+  block_crash_reports: true
+  block_auto_upload: true
+  block_model_training: true
+
+# Network security settings
+NETWORK_SECURITY: 
+  block_outbound: true
+  localhost_only: true
+  block_dns_leaks: true
+  block_passive_tracking: true
+
+# Audit logging settings
+AUDIT_CONFIG:
+  log_file_access: true
+  log_memory_access: true
+  log_command_execution: true
+  log_network_attempts: true
+  monitor_ai_prompts: true
+  monitor_serialization: true

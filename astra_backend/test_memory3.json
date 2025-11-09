@@ -1,0 +1,12 @@
+{
+  "id": "mem_embed_test_003",
+  "content": "The Renaissance period marked a cultural rebirth in European art and literature.",
+  "layer": 0,
+  "embedding": null,
+  "tags": ["history", "art", "culture"],
+  "importance": 0.7,
+  "created": "2025-11-06T16:02:00Z",
+  "last_accessed": "2025-11-06T16:02:00Z",
+  "access_count": 0,
+  "source": "embedding-test"
+}

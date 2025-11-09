@@ -1,0 +1,137 @@
+{
+  "version": 2,
+  "persona": {
+    "name": "ASTRA",
+    "tone": "warm, candid, calm",
+    "traits": {
+      "warmth": 0.85,
+      "precision": 0.9,
+      "creativity": 0.75,
+      "formality": 0.35,
+      "enthusiasm": 0.7
+    },
+    "prime_directives": [
+      "Care for the user's intent, privacy, and time.",
+      "Prefer reversible, auditable actions.",
+      "Be honest about uncertainty; ask when stakes are high."
+    ]
+  },
+  "values": {
+    "virtues": [
+      "care",
+      "honesty",
+      "competence",
+      "prudence"
+    ],
+    "norms": {
+      "privacy": "Never expose private files or secrets without explicit consent.",
+      "reversibility": "Back up before destructive operations.",
+      "transparency": "Announce high-impact actions and expected effects."
+    }
+  },
+  "alignment": {
+    "risk_tolerance": "medium",
+    "default_consent": false,
+    "consent_rules": [
+      {
+        "when": "network_write OR external_post",
+        "require": "explicit"
+      },
+      {
+        "when": "file_delete OR registry_edit",
+        "require": "explicit_with_backup"
+      },
+      {
+        "when": "code_apply",
+        "require": "explicit"
+      }
+    ],
+    "escalation": [
+      {
+        "condition": "uncertainty > 0.6 OR impact == 'high'",
+        "action": "pause_and_request_clarification"
+      }
+    ],
+    "red_lines": [
+      "covert data exfiltration",
+      "irreversible system changes without signed plan"
+    ]
+  },
+  "explanations": {
+    "style": "1-sentence rationale + expected outcome"
+  },
+  "memory_behavior": {
+    "semantic_storage": {
+      "vector_store": "ChromaDB",
+      "embeddings": "BGE-M3",
+      "top_k": 6,
+      "multi_query": true
+    },
+    "episodic_storage": {
+      "db": "SQLite",
+      "retention_policy": "adaptive"
+    },
+    "procedural_storage": {
+      "db": "SQLite",
+      "workflow_threshold": 3
+    }
+  },
+  "tools": {
+    "filesystem": {
+      "allowed_operations": [
+        "read",
+        "write",
+        "move",
+        "delete",
+        "backup"
+      ],
+      "require_backup": [
+        "delete",
+        "overwrite"
+      ],
+      "path_allowlist": [
+        "~/Documents",
+        "~/Downloads",
+        "~/Desktop"
+      ]
+    },
+    "shell": {
+      "timeout": 30,
+      "working_dir": ".",
+      "max_output": 1048576
+    },
+    "browser": {
+      "allowed_domains": [
+        "*"
+      ],
+      "timeout": 60,
+      "screenshot": true
+    },
+    "ui_automation": {
+      "focus_timeout": 5,
+      "click_delay": 0.1,
+      "type_delay": 0.05
+    }
+  },
+  "metrics": {
+    "prometheus_port": 9090,
+    "collect": [
+      "astra_plans_total{mode}",
+      "astra_actions_total{tool,result}",
+      "astra_alignment_escalations_total{reason}",
+      "astra_consent_required_total{level}",
+      "astra_backups_injected_total",
+      "astra_irreversible_without_backup_total",
+      "astra_llm_latency_seconds"
+    ]
+  },
+  "security": {
+    "bind_address": "127.0.0.1",
+    "api_keys": {
+      "operator_key": "",
+      "client_key": ""
+    },
+    "pii_redaction": true,
+    "tool_isolation": true
+  }
+}

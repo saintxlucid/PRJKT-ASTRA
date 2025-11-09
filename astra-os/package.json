@@ -1,0 +1,68 @@
+{
+  "name": "astra-os",
+  "version": "1.0.0",
+  "private": true,
+  "description": "ASTRA OS - Local AI Assistant Desktop Application",
+  "author": "Saint Lucid",
+  "main": "electron/main.js",
+  "type": "module",
+  "scripts": {
+    "dev": "concurrently \"vite\" \"npm:dev:electron\"",
+    "dev:electron": "wait-on http://localhost:5173 && electron .",
+    "build:ui": "vite build",
+    "build:electron": "tsc -p electron/tsconfig.json",
+    "dist": "npm run build:ui && npm run build:electron && electron-builder",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "electron-updater": "^6.3.9",
+    "framer-motion": "^11.11.11"
+  },
+  "devDependencies": {
+    "@types/node": "^22.9.0",
+    "@types/react": "^18.3.12",
+    "@types/react-dom": "^18.3.1",
+    "@vitejs/plugin-react": "^4.3.3",
+    "autoprefixer": "^10.4.20",
+    "concurrently": "^9.1.0",
+    "electron": "^33.2.0",
+    "electron-builder": "^25.1.8",
+    "postcss": "^8.4.49",
+    "tailwindcss": "^3.4.15",
+    "typescript": "^5.6.3",
+    "vite": "^5.4.11",
+    "wait-on": "^8.0.1"
+  },
+  "build": {
+    "appId": "com.saintlucid.astraos",
+    "productName": "ASTRA OS",
+    "files": [
+      "dist/**/*",
+      "electron/*.js",
+      "electron/*.map",
+      "electron/icon.ico"
+    ],
+    "extraResources": [],
+    "win": {
+      "target": ["nsis"],
+      "icon": "electron/icon.ico",
+      "publisherName": "Saint Lucid"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "runAfterFinish": true
+    },
+    "publish": [
+      {
+        "provider": "github",
+        "owner": "saintlucid",
+        "repo": "astra-os"
+      }
+    ]
+  }
+}

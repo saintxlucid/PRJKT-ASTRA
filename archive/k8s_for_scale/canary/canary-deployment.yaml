@@ -1,0 +1,264 @@
+---
+# Canary Deployment for ASTRA Core using Flagger
+apiVersion: flagger.app/v1beta1
+kind: Canary
+metadata:
+  name: astra-core
+  namespace: astra-production
+spec:
+  # Target deployment
+  targetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: astra-core
+  
+  # Service configuration
+  service:
+    port: 8001
+    targetPort: 8001
+    name: astra-core
+    
+  # Canary analysis configuration
+  analysis:
+    # Schedule interval (default 60s)
+    interval: 1m
+    
+    # Max traffic percentage during canary analysis
+    maxWeight: 50
+    
+    # Max traffic increase per interval
+    stepWeight: 10
+    
+    # Number of successful checks required before promotion
+    threshold: 5
+    
+    # Prometheus metrics for canary validation
+    metrics:
+    - name: request-success-rate
+      # Success rate must be above 99%
+      thresholdRange:
+        min: 99
+      interval: 1m
+      query: |
+        sum(rate(
+          astra_requests_total{
+            namespace="astra-production",
+            pod=~"astra-core-canary.*"
+          }[1m]
+        ))
+        -
+        sum(rate(
+          astra_errors_total{
+            namespace="astra-production",
+            pod=~"astra-core-canary.*"
+          }[1m]
+        ))
+        /
+        sum(rate(
+          astra_requests_total{
+            namespace="astra-production",
+            pod=~"astra-core-canary.*"
+          }[1m]
+        )) * 100
+    
+    - name: request-duration
+      # P95 latency must be below 2500ms
+      thresholdRange:
+        max: 2500
+      interval: 1m
+      query: |
+        histogram_quantile(0.95,
+          sum(rate(
+            astra_request_duration_seconds_bucket{
+              namespace="astra-production",
+              pod=~"astra-core-canary.*"
+            }[1m]
+          )) by (le)
+        ) * 1000
+    
+    - name: error-rate
+      # Error rate must be below 1%
+      thresholdRange:
+        max: 1
+      interval: 1m
+      query: |
+        sum(rate(
+          astra_errors_total{
+            namespace="astra-production",
+            pod=~"astra-core-canary.*"
+          }[1m]
+        ))
+        /
+        sum(rate(
+          astra_requests_total{
+            namespace="astra-production",
+            pod=~"astra-core-canary.*"
+          }[1m]
+        )) * 100
+    
+    - name: vector-query-success
+      # Vector query success rate must be above 98%
+      thresholdRange:
+        min: 98
+      interval: 1m
+      query: |
+        sum(rate(
+          astra_vector_queries_total{
+            namespace="astra-production",
+            pod=~"astra-core-canary.*",
+            status="success"
+          }[1m]
+        ))
+        /
+        sum(rate(
+          astra_vector_queries_total{
+            namespace="astra-production",
+            pod=~"astra-core-canary.*"
+          }[1m]
+        )) * 100
+    
+    # Webhooks for notifications (optional)
+    webhooks:
+    - name: load-test
+      type: pre-rollout
+      url: http://flagger-loadtester.astra-production/
+      metadata:
+        type: bash
+        cmd: |
+          curl -X POST http://astra-core-canary:8001/answer \
+            -H "Content-Type: application/json" \
+            -d '{"query":"test","max_tokens":100}' \
+            || true
+    
+    - name: acceptance-test
+      type: rollout
+      url: http://flagger-loadtester.astra-production/
+      timeout: 15s
+      metadata:
+        type: bash
+        cmd: |
+          # Run acceptance tests
+          curl -f http://astra-core-canary:8001/health/full || exit 1
+          curl -f http://astra-core-canary:8001/live || exit 1
+          curl -f http://astra-core-canary:8001/ready || exit 1
+---
+# Base Deployment (managed by Flagger)
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: astra-core
+  namespace: astra-production
+  labels:
+    app: astra-core
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: astra-core
+  template:
+    metadata:
+      labels:
+        app: astra-core
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8001"
+        prometheus.io/path: "/metrics"
+    spec:
+      containers:
+      - name: astra-core
+        image: astra-core:latest  # Will be updated with new version
+        ports:
+        - containerPort: 8001
+          name: http
+          protocol: TCP
+        env:
+        - name: ENVIRONMENT
+          value: "production"
+        - name: LOG_LEVEL
+          value: "info"
+        resources:
+          requests:
+            cpu: 500m
+            memory: 512Mi
+          limits:
+            cpu: 2000m
+            memory: 2Gi
+        livenessProbe:
+          httpGet:
+            path: /live
+            port: 8001
+          initialDelaySeconds: 10
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /ready
+            port: 8001
+          initialDelaySeconds: 5
+          periodSeconds: 5
+          timeoutSeconds: 3
+          failureThreshold: 2
+---
+# Service (managed by Flagger)
+apiVersion: v1
+kind: Service
+metadata:
+  name: astra-core
+  namespace: astra-production
+  labels:
+    app: astra-core
+spec:
+  type: ClusterIP
+  ports:
+  - name: http
+    port: 8001
+    targetPort: 8001
+    protocol: TCP
+  selector:
+    app: astra-core
+---
+# HorizontalPodAutoscaler
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: astra-core
+  namespace: astra-production
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: astra-core
+  minReplicas: 3
+  maxReplicas: 10
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 70
+  - type: Pods
+    pods:
+      metric:
+        name: astra_queue_depth_avg
+      target:
+        type: AverageValue
+        averageValue: "50"
+  behavior:
+    scaleDown:
+      stabilizationWindowSeconds: 300
+      policies:
+      - type: Percent
+        value: 50
+        periodSeconds: 60
+    scaleUp:
+      stabilizationWindowSeconds: 0
+      policies:
+      - type: Percent
+        value: 100
+        periodSeconds: 30
+      - type: Pods
+        value: 2
+        periodSeconds: 30
+      selectPolicy: Max

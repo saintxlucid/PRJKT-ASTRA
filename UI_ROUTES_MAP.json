@@ -1,0 +1,615 @@
+{
+  "metadata": {
+    "generated": "2025-01",
+    "version": "1.0.0",
+    "canonical_router": "TanStack Router v1.134.15",
+    "legacy_router": "Manual switch statement (deprecated)",
+    "total_routes": 9,
+    "lazy_loaded": 8
+  },
+  
+  "canonical_routes": {
+    "/": {
+      "component": "AEON",
+      "file": "astra-os/apps/pantheon/src/realms/AEON.tsx",
+      "lazy": true,
+      "preload": "hover:100ms",
+      "backend": "static",
+      "metadata": {
+        "icon": "◈",
+        "color": "lucid-teal",
+        "sigil": "✦",
+        "label": "AEON",
+        "description": "Agent orchestration"
+      },
+      "status": "active",
+      "migration_status": "complete"
+    },
+    
+    "/aeon": {
+      "component": "AEON",
+      "file": "astra-os/apps/pantheon/src/realms/AEON.tsx",
+      "lazy": true,
+      "preload": "hover:100ms",
+      "backend": "static",
+      "metadata": {
+        "icon": "◈",
+        "color": "lucid-teal",
+        "sigil": "✦",
+        "label": "AEON",
+        "description": "Agent orchestration"
+      },
+      "status": "active",
+      "migration_status": "complete"
+    },
+    
+    "/loom": {
+      "component": "AetherLoom",
+      "file": "astra-os/apps/pantheon/src/realms/AetherLoom.tsx",
+      "lazy": true,
+      "preload": "hover:100ms",
+      "backend": "localStorage",
+      "metadata": {
+        "icon": "⟡",
+        "color": "lucid-violet",
+        "sigil": "☉",
+        "label": "Aether Loom",
+        "description": "Workflow builder"
+      },
+      "status": "active",
+      "migration_status": "complete"
+    },
+    
+    "/grove": {
+      "component": "DreamGrove",
+      "file": "astra-os/apps/pantheon/src/realms/DreamGrove.tsx",
+      "lazy": true,
+      "preload": "hover:100ms",
+      "backend": "http://localhost:7007",
+      "api_endpoints": [
+        "GET /memory/search",
+        "POST /memory/add",
+        "GET /memory/health"
+      ],
+      "query_keys": [
+        "['memory', 'search', query]",
+        "['memory', 'health']"
+      ],
+      "metadata": {
+        "icon": "♆",
+        "color": "lucid-mint",
+        "sigil": "ღ",
+        "label": "Dream Grove",
+        "description": "Memory system"
+      },
+      "status": "active",
+      "migration_status": "complete"
+    },
+    
+    "/sigil": {
+      "component": "SigilGate",
+      "file": "astra-os/apps/pantheon/src/realms/SigilGate.tsx",
+      "lazy": true,
+      "preload": "hover:100ms",
+      "backend": "http://localhost:7701",
+      "api_endpoints": [
+        "POST /seal",
+        "POST /verify",
+        "DELETE /journal/:id",
+        "POST /rollback/:id",
+        "GET /health"
+      ],
+      "query_keys": [
+        "['sigil', 'verify', token]",
+        "['sigil', 'journal']"
+      ],
+      "metadata": {
+        "icon": "✠",
+        "color": "limestone",
+        "sigil": "✠",
+        "label": "Sigil Gate",
+        "description": "Consent system"
+      },
+      "status": "active",
+      "migration_status": "complete",
+      "showcase": "ConsentCard integration"
+    },
+    
+    "/weaver": {
+      "component": "Weaver",
+      "file": "astra-os/apps/pantheon/src/realms/Weaver.tsx",
+      "lazy": true,
+      "preload": "hover:100ms",
+      "backend": "http://localhost:7703",
+      "api_endpoints": [
+        "POST /jobs",
+        "GET /jobs",
+        "GET /jobs/:id",
+        "POST /heartbeat",
+        "GET /health"
+      ],
+      "query_keys": [
+        "['supervisor', 'jobs']",
+        "['supervisor', 'job', id]"
+      ],
+      "metadata": {
+        "icon": "⚡",
+        "color": "lucid-gold",
+        "sigil": "⚗",
+        "label": "Weaver",
+        "description": "Job orchestration"
+      },
+      "status": "active",
+      "migration_status": "complete"
+    },
+    
+    "/settings": {
+      "component": "Settings",
+      "file": "astra-os/apps/pantheon/src/views/Settings.tsx",
+      "lazy": true,
+      "preload": "hover:100ms",
+      "backend": "static",
+      "metadata": {
+        "icon": "⚙",
+        "color": "text-muted",
+        "label": "Settings",
+        "description": "Preferences"
+      },
+      "status": "active",
+      "migration_status": "complete"
+    },
+    
+    "/logs": {
+      "component": "Logs",
+      "file": "astra-os/apps/pantheon/src/views/Logs.tsx",
+      "lazy": true,
+      "preload": "hover:100ms",
+      "backend": "static",
+      "metadata": {
+        "icon": "📋",
+        "color": "text-muted",
+        "label": "Logs",
+        "description": "Event log"
+      },
+      "status": "active",
+      "migration_status": "complete"
+    },
+    
+    "*": {
+      "component": "NotFound",
+      "file": "astra-os/apps/pantheon/src/routes.tsx",
+      "lazy": false,
+      "backend": "static",
+      "metadata": {
+        "label": "404 Not Found",
+        "description": "Page not found"
+      },
+      "status": "active"
+    }
+  },
+  
+  "legacy_routes": {
+    "aeon": {
+      "component": "AeonDeck",
+      "file": "pantheon_ui/src/realms/aeon/AeonDeck.tsx",
+      "routing_method": "manual_switch_statement",
+      "status": "deprecated",
+      "canonical_equivalent": "/aeon",
+      "migrationPath": "DELETE - replaced by canonical AEON"
+    },
+    
+    "lumen": {
+      "component": "LumenChat",
+      "file": "pantheon_ui/src/realms/lumen/LumenChat.tsx",
+      "routing_method": "manual_switch_statement",
+      "status": "missing_in_canonical",
+      "canonical_equivalent": null,
+      "backend": "unknown",
+      "priority": "HIGH",
+      "lines": 373,
+      "migrationPath": "IF backend exists → CREATE /lumen route, migrate to TanStack patterns"
+    },
+    
+    "seraph": {
+      "component": "SeraphVoice",
+      "file": "pantheon_ui/src/realms/seraph/SeraphVoice.tsx",
+      "routing_method": "manual_switch_statement",
+      "status": "missing_in_canonical",
+      "canonical_equivalent": null,
+      "backend": "unknown",
+      "priority": "MEDIUM",
+      "lines": 487,
+      "migrationPath": "IF backend exists → CREATE /seraph route, migrate to TanStack patterns"
+    },
+    
+    "obelisk": {
+      "component": "Obelisk",
+      "file": "pantheon_ui/src/realms/obelisk/Obelisk.tsx",
+      "routing_method": "manual_switch_statement",
+      "status": "missing_in_canonical",
+      "canonical_equivalent": null,
+      "backend": "unknown",
+      "priority": "MEDIUM",
+      "lines": 403,
+      "migrationPath": "IF backend exists → CREATE /obelisk route, migrate to TanStack patterns"
+    },
+    
+    "aether-loom": {
+      "component": "AetherLoom",
+      "file": "pantheon_ui/src/realms/aether-loom/AetherLoom.tsx",
+      "routing_method": "manual_switch_statement",
+      "status": "deprecated",
+      "canonical_equivalent": "/loom",
+      "migrationPath": "DELETE - replaced by canonical AetherLoom"
+    },
+    
+    "aetherglass": {
+      "component": "Aetherglass",
+      "file": "pantheon_ui/src/realms/aetherglass/Aetherglass.tsx",
+      "routing_method": "manual_switch_statement",
+      "status": "missing_in_canonical",
+      "canonical_equivalent": null,
+      "backend": "none (pure UI)",
+      "priority": "LOW",
+      "lines": 258,
+      "migrationPath": "Easy migration → CREATE /browser route (pure UI, no backend)"
+    },
+    
+    "dream-grove": {
+      "component": "DreamGrove",
+      "file": "pantheon_ui/src/realms/dream-grove/DreamGrove.tsx",
+      "routing_method": "manual_switch_statement",
+      "status": "deprecated",
+      "canonical_equivalent": "/grove",
+      "migrationPath": "DELETE - replaced by canonical DreamGrove"
+    }
+  },
+  
+  "proposed_new_routes": {
+    "/lumen": {
+      "component": "Lumen (proposed)",
+      "file": "astra-os/apps/pantheon/src/realms/Lumen.tsx (to create)",
+      "lazy": true,
+      "preload": "hover:100ms",
+      "backend": "http://localhost:7xxx (unknown)",
+      "api_endpoints_needed": [
+        "POST /chat/send",
+        "GET /agents/list",
+        "GET /chat/history",
+        "WS /chat/stream (optional)"
+      ],
+      "query_keys_proposed": [
+        "['chat', 'history']",
+        "['chat', 'agents']",
+        "['chat', 'send', messageId]"
+      ],
+      "metadata": {
+        "icon": "💬",
+        "color": "lucid-blue",
+        "sigil": "◈",
+        "label": "Lumen",
+        "description": "Multi-agent chat"
+      },
+      "status": "proposed",
+      "priority": "HIGH",
+      "complexity": "MEDIUM",
+      "dependencies": [
+        "Chat backend service",
+        "TanStack Query mutations for streaming",
+        "Agent selection UI",
+        "Token counting"
+      ],
+      "migration_effort": "2-3 days",
+      "decision_required": "Check if backend exists"
+    },
+    
+    "/seraph": {
+      "component": "Seraph (proposed)",
+      "file": "astra-os/apps/pantheon/src/realms/Seraph.tsx (to create)",
+      "lazy": true,
+      "preload": "hover:100ms",
+      "backend": "http://localhost:7xxx (unknown)",
+      "api_endpoints_needed": [
+        "POST /voice/transcribe",
+        "POST /voice/synthesize",
+        "WS /voice/stream",
+        "GET /voice/health"
+      ],
+      "query_keys_proposed": [
+        "['voice', 'session', id]",
+        "['voice', 'history']"
+      ],
+      "metadata": {
+        "icon": "🎤",
+        "color": "lucid-purple",
+        "sigil": "⚡",
+        "label": "Seraph",
+        "description": "Voice interaction"
+      },
+      "status": "proposed",
+      "priority": "MEDIUM",
+      "complexity": "HIGH",
+      "dependencies": [
+        "Voice backend (Whisper?)",
+        "WebRTC audio handling",
+        "MediaRecorder API",
+        "Audio visualization",
+        "Text-to-speech"
+      ],
+      "migration_effort": "4-5 days",
+      "decision_required": "Check if Whisper service running, evaluate complexity"
+    },
+    
+    "/obelisk": {
+      "component": "Obelisk (proposed)",
+      "file": "astra-os/apps/pantheon/src/realms/Obelisk.tsx (to create)",
+      "lazy": true,
+      "preload": "hover:100ms",
+      "backend": "http://localhost:7xxx OR localStorage",
+      "api_endpoints_needed": [
+        "GET /notes",
+        "GET /notes/:id",
+        "POST /notes",
+        "PUT /notes/:id",
+        "DELETE /notes/:id",
+        "GET /notes/search"
+      ],
+      "query_keys_proposed": [
+        "['notes', 'list']",
+        "['notes', 'detail', id]",
+        "['notes', 'search', query]"
+      ],
+      "metadata": {
+        "icon": "📝",
+        "color": "lucid-amber",
+        "sigil": "✍",
+        "label": "Obelisk",
+        "description": "Note management"
+      },
+      "status": "proposed",
+      "priority": "MEDIUM",
+      "complexity": "MEDIUM",
+      "dependencies": [
+        "Notes backend (optional - can use localStorage)",
+        "Rich text editor (Lexical?)",
+        "Tagging system",
+        "Wiki-style linking"
+      ],
+      "migration_effort": "3-4 days",
+      "decision_required": "Backend or localStorage? Feature priority?"
+    },
+    
+    "/browser": {
+      "component": "Aetherglass (proposed)",
+      "file": "astra-os/apps/pantheon/src/realms/Aetherglass.tsx (to create)",
+      "lazy": true,
+      "preload": "hover:100ms",
+      "backend": "none (pure UI)",
+      "api_endpoints_needed": [],
+      "metadata": {
+        "icon": "🌐",
+        "color": "lucid-cyan",
+        "sigil": "◎",
+        "label": "Aetherglass",
+        "description": "Browser interface"
+      },
+      "status": "proposed",
+      "priority": "LOW",
+      "complexity": "LOW",
+      "dependencies": [
+        "None (pure UI)",
+        "Tab state management",
+        "Bookmark storage (localStorage)"
+      ],
+      "migration_effort": "1 day",
+      "decision_required": "Is browser UI needed in v1.0?"
+    },
+    
+    "/evolution": {
+      "component": "Evolution (proposed)",
+      "file": "astra-os/apps/pantheon/src/realms/Evolution.tsx (to create)",
+      "lazy": true,
+      "preload": "hover:100ms",
+      "backend": "static (visualization only)",
+      "metadata": {
+        "icon": "🧠",
+        "color": "lucid-indigo",
+        "sigil": "✧",
+        "label": "Evolution",
+        "description": "Telemetry & visualization"
+      },
+      "status": "proposed",
+      "priority": "LOW",
+      "complexity": "LOW",
+      "dependencies": [
+        "Import evolution components from src/astra/evolution/",
+        "Integrate TelemetryDashboard",
+        "Integrate HeatmapVisualizer"
+      ],
+      "migration_effort": "1-2 days",
+      "decision_required": "Useful for Phase 4 observability?"
+    }
+  },
+  
+  "route_hierarchy": {
+    "realms": [
+      { "path": "/aeon", "label": "AEON", "status": "active" },
+      { "path": "/loom", "label": "Aether Loom", "status": "active" },
+      { "path": "/grove", "label": "Dream Grove", "status": "active" },
+      { "path": "/sigil", "label": "Sigil Gate", "status": "active" },
+      { "path": "/weaver", "label": "Weaver", "status": "active" },
+      { "path": "/lumen", "label": "Lumen", "status": "proposed" },
+      { "path": "/seraph", "label": "Seraph", "status": "proposed" },
+      { "path": "/obelisk", "label": "Obelisk", "status": "proposed" },
+      { "path": "/browser", "label": "Aetherglass", "status": "proposed" },
+      { "path": "/evolution", "label": "Evolution", "status": "proposed" }
+    ],
+    
+    "system": [
+      { "path": "/settings", "label": "Settings", "status": "active" },
+      { "path": "/logs", "label": "Logs", "status": "active" }
+    ],
+    
+    "utility": [
+      { "path": "/", "label": "Index → AEON", "status": "active" },
+      { "path": "*", "label": "404 Not Found", "status": "active" }
+    ]
+  },
+  
+  "spine_navigation": {
+    "current_realms": [
+      "AEON",
+      "Aether Loom",
+      "Dream Grove",
+      "Sigil Gate",
+      "Weaver"
+    ],
+    
+    "proposed_additions": [
+      "Lumen (if migrated)",
+      "Seraph (if migrated)",
+      "Obelisk (if migrated)",
+      "Aetherglass (if migrated)",
+      "Evolution (if created)"
+    ],
+    
+    "navigation_pattern": "Click realm → router.navigate(path) → Lazy load component → Render in main"
+  },
+  
+  "routing_comparison": {
+    "canonical_tanstack": {
+      "library": "TanStack Router v1.134.15",
+      "features": [
+        "✅ URL-based routing",
+        "✅ Browser back/forward",
+        "✅ Deep linking",
+        "✅ Lazy loading",
+        "✅ Preload on hover",
+        "✅ Type-safe navigation",
+        "✅ Suspense boundaries",
+        "✅ Route metadata"
+      ],
+      "example": "router.navigate({ to: '/grove' })"
+    },
+    
+    "legacy_manual": {
+      "library": "None (manual if/else)",
+      "features": [
+        "❌ No URL routing",
+        "❌ No browser back/forward",
+        "❌ No deep linking",
+        "❌ No lazy loading",
+        "❌ No preloading",
+        "❌ Not type-safe",
+        "❌ No suspense",
+        "❌ Hardcoded metadata"
+      ],
+      "example": "if (currentRealm === 'grove') return <DreamGrove />"
+    }
+  },
+  
+  "migration_pattern": {
+    "step1_create_route": {
+      "file": "astra-os/apps/pantheon/src/routes.tsx",
+      "code": "{\n  path: '/lumen',\n  component: lazy(() => import('./realms/Lumen'))\n}"
+    },
+    
+    "step2_create_realm": {
+      "file": "astra-os/apps/pantheon/src/realms/Lumen.tsx",
+      "template": "Copy from pantheon_ui, update to:\n- TanStack Query patterns\n- Canonical API client\n- Design tokens\n- Zustand UI store"
+    },
+    
+    "step3_add_to_spine": {
+      "file": "astra-os/apps/pantheon/src/components/Spine.tsx",
+      "code": "Add realm to navigation array"
+    },
+    
+    "step4_create_api": {
+      "file": "astra-os/apps/pantheon/src/services/client.ts",
+      "code": "Add lumin API methods and query keys"
+    },
+    
+    "step5_test": {
+      "actions": [
+        "pnpm dev",
+        "Navigate to /lumen",
+        "Verify backend integration",
+        "Check TypeScript errors",
+        "Test keyboard shortcuts"
+      ]
+    }
+  },
+  
+  "backend_service_status": {
+    "memory_service": {
+      "port": 7007,
+      "status": "RUNNING ✅",
+      "routes": ["/grove"]
+    },
+    
+    "sigil_service": {
+      "port": 7701,
+      "status": "RUNNING ✅",
+      "routes": ["/sigil"]
+    },
+    
+    "supervisor_service": {
+      "port": 7703,
+      "status": "RUNNING ✅",
+      "routes": ["/weaver"]
+    },
+    
+    "chat_service": {
+      "port": "unknown",
+      "status": "UNKNOWN ❓",
+      "routes": ["/lumen (proposed)"],
+      "action_required": "Check if service exists"
+    },
+    
+    "voice_service": {
+      "port": "unknown",
+      "status": "UNKNOWN ❓",
+      "routes": ["/seraph (proposed)"],
+      "action_required": "Check if Whisper/TTS service exists"
+    },
+    
+    "notes_service": {
+      "port": "unknown",
+      "status": "UNKNOWN ❓",
+      "routes": ["/obelisk (proposed)"],
+      "action_required": "Check if notes service exists (or use localStorage)"
+    }
+  },
+  
+  "performance": {
+    "current_metrics": {
+      "build_time": "900ms",
+      "first_route_bundle": "~500KB (needs optimization)",
+      "lazy_load_time": "<100ms per route"
+    },
+    
+    "targets": {
+      "tti": "≤1.2s",
+      "js_budget": "≤170KB gzip",
+      "p95_latency": "≤120ms"
+    },
+    
+    "recommendations": [
+      "Code-split larger realms (SigilGate 510 lines)",
+      "Optimize imports (tree-shaking)",
+      "Lazy load heavy dependencies",
+      "Consider dynamic imports for components"
+    ]
+  },
+  
+  "next_actions": [
+    "CHECK backend services: curl http://localhost:7xxx/health",
+    "DECIDE which legacy realms to migrate based on backend availability",
+    "CREATE migration plan for chosen realms",
+    "UPDATE Spine navigation to add new realms",
+    "TEST routing after migration",
+    "OPTIMIZE bundle sizes",
+    "ADD error boundaries per route",
+    "IMPLEMENT loading skeletons for lazy routes"
+  ]
+}

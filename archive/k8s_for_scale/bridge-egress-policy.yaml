@@ -1,0 +1,74 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: bridge-egress-only-allowed
+  namespace: astra
+  labels:
+    app: bridge
+spec:
+  podSelector:
+    matchLabels:
+      app: bridge
+  policyTypes:
+    - Egress
+    - Ingress
+  # Allow ingress from ingress controller only
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              name: ingress-nginx
+      ports:
+        - protocol: TCP
+          port: 8888
+  # Restrict egress to only necessary services
+  egress:
+    # Allow Qdrant
+    - to:
+        - podSelector:
+            matchLabels:
+              app: qdrant
+      ports:
+        - protocol: TCP
+          port: 6333
+    # Allow Llama (adjust port if using llama.cpp server)
+    - to:
+        - podSelector:
+            matchLabels:
+              app: llama
+      ports:
+        - protocol: TCP
+          port: 8001
+        - protocol: TCP
+          port: 11434
+    # Allow Prometheus (for metrics push if needed)
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              name: monitoring
+      ports:
+        - protocol: TCP
+          port: 9090
+    # Allow internal cluster services (adjust CIDR for your cluster)
+    - to:
+        - ipBlock:
+            cidr: 10.0.0.0/8
+            except:
+              - 10.0.0.0/24  # Exclude any sensitive subnets
+    # Allow DNS resolution
+    - to:
+        - namespaceSelector: {}
+          podSelector:
+            matchLabels:
+              k8s-app: kube-dns
+      ports:
+        - protocol: UDP
+          port: 53
+        - protocol: TCP
+          port: 53
+    # Allow HTTPS egress for external APIs if needed (e.g., model downloads)
+    - to:
+        - namespaceSelector: {}
+      ports:
+        - protocol: TCP
+          port: 443

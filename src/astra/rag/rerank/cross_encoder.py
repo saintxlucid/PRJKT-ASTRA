@@ -10,8 +10,18 @@ Features:
 - Consent-aware filtering
 - MMR diversity with section awareness
 """
-from typing import List, Dict, Any, Optional, Tuple, NamedTuple
+from typing import List, Dict, Any, Optional, Tuple, NamedTuple, Set, Union, TypedDict
 import torch
+import time
+import re
+
+class LayoutTelemetry(TypedDict):
+    layout_scores: List[Dict[str, Any]]
+    section_diversity: int
+    heading_diversity: int
+    answer_spans: int
+    consent_filtered: int
+    layout_enhanced: bool
 import numpy as np
 from dataclasses import dataclass, field
 from transformers import AutoModelForSequenceClassification, AutoTokenizer
@@ -55,9 +65,10 @@ class RerankerConfig:
     max_length: int = 512
     batch_size: int = 8
     use_fp16: bool = True
+    min_answer_score: float = 0.3
     
     # Score weights & fusion
-    fusion_weights: Dict[str, Dict[float, float]] = field(default_factory=lambda: {
+    fusion_weights: Dict[str, Dict[str, float]] = field(default_factory=lambda: {
         "keyword": {"bm25": 0.7, "dense": 0.2, "rerank": 0.1},
         "semantic": {"bm25": 0.2, "dense": 0.5, "rerank": 0.3},
         "code": {"bm25": 0.4, "dense": 0.4, "rerank": 0.2}
@@ -105,31 +116,26 @@ class RerankerConfig:
     max_cache_size: int = 10000     # Max cached items
     prefetch_size: int = 5          # Chunks to prefetch
     
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         """Validate configuration and compute derived values."""
         self._validate_weights()
+        self._validate_params()
         self._init_telemetry()
         
-    def _validate_weights(self):
+    def _validate_weights(self) -> None:
         """Ensure weights are valid."""
         for intent, weights in self.fusion_weights.items():
             total = sum(weights.values())
             if not 0.99 <= total <= 1.01:
                 raise ValueError(f"Weights for {intent} must sum to 1.0")
                 
-    def _init_telemetry(self):
+    def _init_telemetry(self) -> None:
         """Initialize telemetry trackers."""
-        self.stats = defaultdict(float)
+        self.stats: Dict[str, Union[float, int]] = defaultdict(float)
         self.last_eval = datetime.now()
         self.samples_since_tune = 0
-    
-    def __post_init__(self):
-        """Validate configuration and compute derived values."""
-        self._validate_weights()
-        self._validate_params()
-        self._init_telemetry()
         
-    def _validate_params(self):
+    def _validate_params(self) -> None:
         """Validate base configuration parameters."""
         if self.batch_size <= 0:
             raise ValueError("batch_size must be positive")
@@ -146,11 +152,24 @@ class RerankerConfig:
         if not (0 <= self.adjacency_bonus <= 1):
             raise ValueError("adjacency_bonus must be between 0 and 1")
 
+class ChunkTelemetry(TypedDict):
+    adjustments: List[Tuple[str, float]]
+    filtered: bool
+    chunk_id: int
+    final_score: float
+    section: Optional[str]
+    heading: Optional[str]
+
+class IntentStats(TypedDict):
+    hits: int
+    total: int
+
 class CrossEncoder:
     """Lightweight cross-encoder reranker."""
     
     def __init__(self, config: Optional[RerankerConfig] = None):
         """Initialize reranker with config and optimizations."""
+        self.score_cache: Dict[str, float] = {}
         self.config = config or RerankerConfig()
         self.logger = logger.bind(component="cross_encoder")
         
@@ -265,6 +284,9 @@ class CrossEncoder:
         if not pairs:
             return np.array([])
             
+        # Initialize cached scores
+        cached_scores = []
+            
         # Check cache first
         if use_cache:
             cached_scores = []
@@ -370,7 +392,7 @@ class CrossEncoder:
             # Return zero scores on error
             return np.zeros(len(pairs))
             
-    def _cleanup_cache(self):
+    def _cleanup_cache(self) -> None:
         """Clean up old cache entries periodically."""
         current_time = time.time()
         if current_time - self.stats["last_cleanup"] > 3600:  # Cleanup every hour
@@ -378,8 +400,9 @@ class CrossEncoder:
             if cache_size > self.config.max_cache_size:
                 # Remove oldest entries
                 remove_count = int(0.2 * cache_size)  # Remove 20%
-                for _ in range(remove_count):
-                    self.score_cache.popitem(last=False)
+                keys_to_remove = list(self.score_cache.keys())[:remove_count]
+                for key in keys_to_remove:
+                    del self.score_cache[key]
                     
             self.stats["last_cleanup"] = current_time
             
@@ -406,7 +429,7 @@ class CrossEncoder:
         chunk_contexts = []
         
         # Initialize telemetry
-        telemetry = {
+        telemetry: LayoutTelemetry = {
             "layout_scores": [],
             "section_diversity": 0,
             "heading_diversity": 0,
@@ -427,7 +450,14 @@ class CrossEncoder:
             for i, chunk in enumerate(chunks):
                 metadata = chunk.metadata
                 text = chunk.text
-                chunk_telemetry = {"adjustments": []}
+                chunk_telemetry: ChunkTelemetry = {
+                    "adjustments": [],
+                    "filtered": False,
+                    "chunk_id": 0,
+                    "final_score": 0.0,
+                    "section": None,
+                    "heading": None
+                }
                 
                 # 1. Structure Bonuses
                 if chunk.section_id and chunk.section_id not in seen_sections:
@@ -497,7 +527,7 @@ class CrossEncoder:
                     
                 # 4. Answer Span Analysis
                 answer_score, spans = self._detect_answer_span(
-                    query, text, self.config.min_answer_score
+                    query, text, int(64)
                 )
                 if answer_score > 0:
                     answer_bonus = answer_score
@@ -530,12 +560,13 @@ class CrossEncoder:
                         chunk_telemetry["filtered"] = True
                         
                 # Record final chunk score
-                chunk_telemetry.update({
+                chunk_telemetry = {
+                    **chunk_telemetry,
                     "chunk_id": i,
                     "final_score": float(scores[i]),
                     "section": chunk.section_id,
                     "heading": chunk.heading
-                })
+                }
                 telemetry["layout_scores"].append(chunk_telemetry)
                 
             # 7. Intent-Based Score Fusion
@@ -586,7 +617,7 @@ class CrossEncoder:
             
         return 0.0
         
-    def _update_layout_stats(self, telemetry: Dict[str, Any]) -> None:
+    def _update_layout_stats(self, telemetry: LayoutTelemetry) -> None:
         """Update layout scoring statistics."""
         stats = self.stats
         stats["total_layouts_enhanced"] = (
@@ -610,17 +641,17 @@ class CrossEncoder:
             telemetry["consent_filtered"]
         )
         
-    def _vertical_overlap(self, bbox1: BoundingBox, bbox2: BoundingBox) -> float:
+    def _vertical_overlap(self, bbox1: Optional[BoundingBox], bbox2: Optional[BoundingBox]) -> float:
         """Calculate vertical overlap ratio between two bboxes."""
-        if bbox1.page != bbox2.page:
+        if not bbox1 or not bbox2 or bbox1.page != bbox2.page:
             return 0.0
         intersection = max(0, min(bbox1.y1, bbox2.y1) - max(bbox1.y0, bbox2.y0))
         union = max(bbox1.y1, bbox2.y1) - min(bbox1.y0, bbox2.y0)
         return intersection / union if union > 0 else 0.0
         
-    def _horizontal_overlap(self, bbox1: BoundingBox, bbox2: BoundingBox) -> float:
+    def _horizontal_overlap(self, bbox1: Optional[BoundingBox], bbox2: Optional[BoundingBox]) -> float:
         """Calculate horizontal overlap ratio between two bboxes."""
-        if bbox1.page != bbox2.page:
+        if not bbox1 or not bbox2 or bbox1.page != bbox2.page:
             return 0.0
         intersection = max(0, min(bbox1.x1, bbox2.x1) - max(bbox1.x0, bbox2.x0))
         union = max(bbox1.x1, bbox2.x1) - min(bbox1.x0, bbox2.x0)
@@ -681,12 +712,13 @@ class CrossEncoder:
         """
         # Fast pattern checks first
         query_lower = query.lower()
-        for pattern in self.config.keyword_patterns:
-            if pattern.match(query_lower):
+        for pattern_str in self.config.keyword_patterns:
+            pattern = re.compile(pattern_str)
+            if pattern.search(query_lower):
                 return QueryIntent(
                     intent_type="keyword",
                     confidence=0.9,
-                    metadata={"pattern_match": pattern}
+                    metadata={"pattern_match": pattern_str}
                 )
                 
         # Code intent checks
@@ -863,7 +895,7 @@ class CrossEncoder:
                 if total_batches > 10:
                     self.logger.debug(
                         "scoring_progress",
-                        batch=f"{batch_num}/{total_batches}"
+                        batch=f"{i // batch_size + 1}/{total_batches}"
                     )
                     
             base_scores = np.array(all_scores)
@@ -1304,14 +1336,14 @@ class CrossEncoder:
             self.logger.info("starting_auto_tune")
             
             # Compute success rates per intent
-            intent_stats = defaultdict(lambda: {"hits": 0, "total": 0})
+            intent_stats: Dict[str, IntentStats] = defaultdict(lambda: {"hits": 0, "total": 0})
             
             for key, value in self.config.stats.items():
                 intent, metric = key.split(":")
                 if metric == "hits":
-                    intent_stats[intent]["hits"] += value
+                    intent_stats[intent]["hits"] += int(value)
                 elif metric == "total":
-                    intent_stats[intent]["total"] += value
+                    intent_stats[intent]["total"] += int(value)
                     
             # Adjust weights based on performance
             for intent, stats in intent_stats.items():

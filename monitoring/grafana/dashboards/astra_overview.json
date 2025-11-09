@@ -1,0 +1,186 @@
+{
+  "dashboard": {
+    "id": null,
+    "uid": "astra-overview",
+    "title": "ASTRA 2.5 System Overview",
+    "tags": ["astra", "overview", "sacred-333"],
+    "timezone": "browser",
+    "schemaVersion": 16,
+    "version": 0,
+    "refresh": "10s",
+    "panels": [
+      {
+        "id": 1,
+        "gridPos": {"x": 0, "y": 0, "w": 12, "h": 8},
+        "type": "graph",
+        "title": "API Request Rate (req/s)",
+        "targets": [
+          {
+            "expr": "rate(astra_chat_requests_total[5m])",
+            "legendFormat": "Chat Requests",
+            "refId": "A"
+          },
+          {
+            "expr": "rate(astra_memory_searches_total[5m])",
+            "legendFormat": "Memory Searches",
+            "refId": "B"
+          }
+        ],
+        "yaxes": [
+          {"format": "reqps", "label": "Requests/sec"},
+          {"format": "short"}
+        ]
+      },
+      {
+        "id": 2,
+        "gridPos": {"x": 12, "y": 0, "w": 12, "h": 8},
+        "type": "graph",
+        "title": "API Latency (p95)",
+        "targets": [
+          {
+            "expr": "histogram_quantile(0.95, rate(astra_chat_request_duration_seconds_bucket[5m]))",
+            "legendFormat": "Chat p95",
+            "refId": "A"
+          },
+          {
+            "expr": "histogram_quantile(0.95, rate(astra_memory_search_duration_seconds_bucket[5m]))",
+            "legendFormat": "Memory p95",
+            "refId": "B"
+          }
+        ],
+        "yaxes": [
+          {"format": "s", "label": "Latency"},
+          {"format": "short"}
+        ],
+        "alert": {
+          "conditions": [
+            {
+              "evaluator": {"params": [1], "type": "gt"},
+              "query": {"params": ["A", "5m", "now"]},
+              "reducer": {"params": [], "type": "avg"},
+              "type": "query"
+            }
+          ],
+          "message": "API latency above 1s threshold"
+        }
+      },
+      {
+        "id": 3,
+        "gridPos": {"x": 0, "y": 8, "w": 8, "h": 6},
+        "type": "stat",
+        "title": "Active Jobs",
+        "targets": [
+          {
+            "expr": "sum(astra_supervisor_active_jobs)",
+            "refId": "A"
+          }
+        ],
+        "options": {
+          "colorMode": "value",
+          "graphMode": "area"
+        }
+      },
+      {
+        "id": 4,
+        "gridPos": {"x": 8, "y": 8, "w": 8, "h": 6},
+        "type": "stat",
+        "title": "Memory Index Size",
+        "targets": [
+          {
+            "expr": "astra_memory_index_size",
+            "refId": "A"
+          }
+        ],
+        "options": {
+          "colorMode": "value",
+          "graphMode": "area"
+        }
+      },
+      {
+        "id": 5,
+        "gridPos": {"x": 16, "y": 8, "w": 8, "h": 6},
+        "type": "stat",
+        "title": "Error Rate",
+        "targets": [
+          {
+            "expr": "rate(astra_errors_total[5m])",
+            "refId": "A"
+          }
+        ],
+        "options": {
+          "colorMode": "value",
+          "graphMode": "area"
+        },
+        "thresholds": {
+          "mode": "absolute",
+          "steps": [
+            {"value": 0, "color": "green"},
+            {"value": 0.1, "color": "yellow"},
+            {"value": 1, "color": "red"}
+          ]
+        }
+      },
+      {
+        "id": 6,
+        "gridPos": {"x": 0, "y": 14, "w": 24, "h": 8},
+        "type": "table",
+        "title": "Service Health Status",
+        "targets": [
+          {
+            "expr": "up{job=~\"astra.*\"}",
+            "format": "table",
+            "refId": "A"
+          }
+        ],
+        "transformations": [
+          {
+            "id": "organize",
+            "options": {
+              "excludeByName": {},
+              "indexByName": {},
+              "renameByName": {
+                "job": "Service",
+                "Value": "Status"
+              }
+            }
+          }
+        ]
+      },
+      {
+        "id": 7,
+        "gridPos": {"x": 0, "y": 22, "w": 12, "h": 8},
+        "type": "graph",
+        "title": "LLM Token Usage",
+        "targets": [
+          {
+            "expr": "rate(astra_llm_tokens_total[5m])",
+            "legendFormat": "Tokens/sec",
+            "refId": "A"
+          }
+        ],
+        "yaxes": [
+          {"format": "short", "label": "Tokens/sec"},
+          {"format": "short"}
+        ]
+      },
+      {
+        "id": 8,
+        "gridPos": {"x": 12, "y": 22, "w": 12, "h": 8},
+        "type": "graph",
+        "title": "Circuit Breaker Status",
+        "targets": [
+          {
+            "expr": "astra_circuit_breaker_open",
+            "legendFormat": "{{service}}",
+            "refId": "A"
+          }
+        ],
+        "yaxes": [
+          {"format": "short", "label": "Open (1) / Closed (0)"},
+          {"format": "short"}
+        ]
+      }
+    ]
+  },
+  "overwrite": true
+}

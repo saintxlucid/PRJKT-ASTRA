@@ -1,0 +1,38 @@
+[
+  {
+    "config": "config/config.yaml",
+    "output": "analysis/config.yaml.normalized.json"
+  },
+  {
+    "config": "config/rag.yaml",
+    "output": "analysis/rag.yaml.normalized.json"
+  },
+  {
+    "config": "config/rag.json",
+    "output": "analysis/rag.json.normalized.json"
+  },
+  {
+    "config": "config/models_registry.yaml",
+    "output": "analysis/models_registry.yaml.normalized.json"
+  },
+  {
+    "config": "config/astra_identity.yaml",
+    "output": "analysis/astra_identity.yaml.normalized.json"
+  },
+  {
+    "config": "config/astra_identity_v2.yaml",
+    "output": "analysis/astra_identity_v2.yaml.normalized.json"
+  },
+  {
+    "config": "config/autonomy_rules.yaml",
+    "output": "analysis/autonomy_rules.yaml.normalized.json"
+  },
+  {
+    "config": "config/gates.yaml",
+    "output": "analysis/gates.yaml.normalized.json"
+  },
+  {
+    "config": "config/policy.yaml",
+    "output": "analysis/policy.yaml.normalized.json"
+  }
+]

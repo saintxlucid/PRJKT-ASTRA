@@ -1,0 +1,113 @@
+groups:
+- name: astra_alerts
+  rules:
+  
+  # SLO Alerts - API Performance
+  - alert: SLOApiLatencyBreach
+    expr: histogram_quantile(0.95, rate(astra_tool_execution_duration_seconds_bucket[1h])) > 2.5
+    for: 5m
+    labels:
+      severity: critical
+      slo: "api-latency"
+    annotations:
+      summary: "API Latency SLO Breach"
+      description: "95th percentile API latency > 2.5s over last hour"
+
+  # Latency Alerts
+  - alert: HighToolLatencyP95
+    expr: histogram_quantile(0.95, rate(astra_tool_execution_duration_seconds_bucket[5m])) > 5
+    for: 5m
+    labels:
+      severity: warning
+    annotations:
+      summary: High tool execution latency (p95)
+      description: Tool {{ $labels.tool }} has p95 latency > 5s over last 5m
+
+  - alert: HighPlanGenerationLatencyP95  
+    expr: histogram_quantile(0.95, rate(astra_plan_generation_duration_seconds_bucket[5m])) > 10
+    for: 5m
+    labels:
+      severity: warning  
+    annotations:
+      summary: High plan generation latency (p95)
+      description: Plan generation has p95 latency > 10s over last 5m
+
+  # Error Rate Alerts
+  - alert: HighToolErrorRate
+    expr: sum(rate(astra_tool_execution_total{status="error"}[5m])) / sum(rate(astra_tool_execution_total[5m])) > 0.1
+    for: 5m
+    labels:
+      severity: warning
+    annotations:
+      summary: High tool error rate
+      description: Tool error rate is >10% over last 5m
+
+  - alert: ConsentBypassSpike
+    expr: rate(astra_consent_bypass_attempts_total[5m]) > 1
+    for: 5m
+    labels:
+      severity: critical
+    annotations:
+      summary: Consent bypass attempts detected
+      description: Multiple consent bypass attempts in last 5m
+
+  # SLO Alerts - WebSocket Health
+  - alert: SLOWebSocketUptimeBreach
+    expr: sum(rate(astra_router_heartbeat_success_total[24h])) / sum(rate(astra_router_heartbeat_total[24h])) < 0.999
+    for: 5m
+    labels:
+      severity: critical
+      slo: "websocket-uptime"
+    annotations:
+      summary: "WebSocket Uptime SLO Breach"
+      description: "WebSocket uptime below 99.9% target over 24h window"
+
+  # SLO Alerts - Memory Performance
+  - alert: SLOMemoryLatencyBreach
+    expr: histogram_quantile(0.95, rate(astra_memory_operation_duration_seconds_bucket[5m])) > 0.25
+    for: 5m
+    labels:
+      severity: critical
+      slo: "memory-latency"
+    annotations:
+      summary: "Memory Operation Latency SLO Breach"
+      description: "95th percentile memory operation latency > 250ms"
+
+  # SLO Alerts - Budget Usage
+  - alert: SLOBudgetExhaustionBreach
+    expr: sum(rate(astra_budget_exhaustion_events_total[1h])) / sum(rate(astra_tool_execution_total[1h])) > 0.05
+    for: 15m
+    labels:
+      severity: critical
+      slo: "budget-usage"
+    annotations:
+      summary: "Budget Exhaustion SLO Breach"
+      description: "Budget exhaustion rate > 5% over last hour"
+
+  # OSOP Specific Alerts
+  - alert: OSOPActionSpike
+    expr: sum(rate(astra_osop_actions_total{result="success"}[5m])) > 10
+    for: 5m
+    labels:
+      severity: warning
+    annotations:
+      summary: High rate of OSOP actions
+      description: OSOP action rate > 10/min over last 5m
+
+  - alert: ConsentBlocksObserved
+    expr: rate(astra_osop_consent_blocks_total[5m]) > 2
+    for: 5m
+    labels:
+      severity: warning
+    annotations:
+      summary: Multiple OSOP consent blocks
+      description: High rate of OSOP consent blocks observed
+
+  - alert: OSOPDestructiveActionsObserved
+    expr: sum(rate(astra_osop_actions_total{capability=~"delete.*|remove.*|uninstall.*"}[5m])) > 0
+    for: 5m
+    labels:
+      severity: critical
+    annotations:
+      summary: Destructive OSOP actions detected
+      description: OSOP destructive operations observed in last 5m

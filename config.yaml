@@ -1,0 +1,27 @@
+version: v0.1
+testName: astra-load-test
+description: Load test for ASTRA API endpoints
+
+testPlan: locustfile.py
+engineInstances: 1
+
+failureCriteria:
+  - metric: response_time_ms
+    condition: ">="
+    threshold: 3000  # 3 seconds
+    action: continue
+    
+  - metric: error_percentage
+    condition: ">="
+    threshold: 5  # 5%
+    action: abort
+
+autoStop:
+  finalUsers: 200
+  increments: 20
+  incrementInterval: 15
+  holdDuration: 60
+
+dashboards:
+  - performance
+  - server-metrics

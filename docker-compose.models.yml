@@ -1,0 +1,89 @@
+# SPDX-License-Identifier: MIT
+# Docker Compose for ASTRA Multi-Model Stack
+# See docker-compose.yml for main deployment
+
+version: '3.8'
+
+services:
+  vllm-gateway:
+    image: vllm/vllm-openai:latest
+    container_name: astra-vllm-gateway
+    profiles: ["gpu", "full"]
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./models:/models:ro
+      - ./config:/config:ro
+      - vllm-cache:/root/.cache/huggingface
+    environment:
+      - CUDA_VISIBLE_DEVICES=0,1
+      - HF_HOME=/root/.cache/huggingface
+    command: >
+      --model deepseek-ai/DeepSeek-V3.1
+      --host 0.0.0.0
+      --port 8000
+      --api-key ${VLLM_API_KEY:-dummy}
+      --max-model-len 131072
+      --tensor-parallel-size 2
+      --tool-call-parser openai
+      --enable-prefix-caching
+      --max-num-seqs 32
+      --gpu-memory-utilization 0.9
+      --trust-remote-code
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 2
+              capabilities: [gpu]
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 120s
+
+  llamacpp-server:
+    image: ghcr.io/ggerganov/llama.cpp:server
+    container_name: astra-llamacpp
+    profiles: ["cpu", "edge", "full"]
+    restart: unless-stopped
+    ports:
+      - "8001:8080"
+    volumes:
+      - ./models:/models:ro
+    environment:
+      - MODEL=/models/phi-4-mini-instruct.Q5_K_M.gguf
+    command: >
+      --server
+      --model ${MODEL}
+      --host 0.0.0.0
+      --port 8080
+      --ctx-size 4096
+      --threads 8
+      --n-gpu-layers 35
+      --embedding
+      --mlock
+
+  whisper-server:
+    image: onerahmet/openai-whisper-asr-webservice:latest
+    container_name: astra-whisper
+    profiles: ["audio", "full"]
+    restart: unless-stopped
+    ports:
+      - "8004:9000"
+    volumes:
+      - ./models:/models:ro
+    environment:
+      - ASR_MODEL=large-v3
+      - ASR_ENGINE=faster_whisper
+
+volumes:
+  vllm-cache:
+  whisper-cache:
+
+networks:
+  default:
+    name: astra-network

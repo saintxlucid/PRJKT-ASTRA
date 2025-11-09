@@ -1,0 +1,136 @@
+{
+  "verification_queries": [
+    {
+      "name": "system_map",
+      "description": "Verify ASTRA understands the system architecture",
+      "query": "ASK: Summarize the 7-service architecture, key entrypoints, and cross-service contracts (APIs, events, memory calls). Include file paths and code symbols.",
+      "expected_coverage": [
+        "identity_engine",
+        "memory_engine", 
+        "autonomy_engine",
+        "task_agent_manager",
+        "ascension_api",
+        "neural_browser",
+        "bridge_module"
+      ]
+    },
+    {
+      "name": "high_leverage_seams",
+      "description": "Identify improvement opportunities",
+      "query": "ASK: From the repo index, list 20 high-leverage seams for enhancements (perf, safety, UX, reliability). For each: why it matters, primary files, and a smallest-viable patch.",
+      "expected_sections": [
+        "Performance opportunities",
+        "Safety improvements",
+        "User experience enhancements",
+        "Reliability upgrades"
+      ]
+    },
+    {
+      "name": "feature_proposals",
+      "description": "Generate prioritized feature recommendations",
+      "query": "ASK: Propose 5 features you recommend shipping next. For each include: user value, acceptance tests, telemetry, risks, and a unified diff patch plan. Do not run tools—proposal only.",
+      "expected_elements": [
+        "User value statement",
+        "Acceptance tests",
+        "Telemetry/metrics",
+        "Risk analysis",
+        "Patch plan with diffs"
+      ]
+    }
+  ],
+  "smoke_tests": [
+    {
+      "name": "health_check",
+      "endpoint": "GET /v1/updates/healthz",
+      "expected_status": 200,
+      "expected_fields": ["status", "enabled", "announce_level", "current_mode"]
+    },
+    {
+      "name": "post_commit_event",
+      "endpoint": "POST /v1/updates/event",
+      "payload": {
+        "kind": "code_commit",
+        "title": "Test commit event",
+        "actor": "test_user",
+        "impact": "low",
+        "details": {"commit": "abc123", "files_changed": 3}
+      },
+      "expected_status": 200,
+      "expected_fields": ["status", "rid", "wrote_episodes", "wrote_facts", "announced"]
+    },
+    {
+      "name": "build_failure_event",
+      "endpoint": "POST /v1/updates/event",
+      "payload": {
+        "kind": "build_failed",
+        "title": "CI failure on main",
+        "impact": "high",
+        "details": {
+          "tests_total": 241,
+          "tests_failed": 7,
+          "coverage": 81.9,
+          "duration_s": 412
+        }
+      },
+      "expected_status": 200,
+      "expected_announcement": true
+    },
+    {
+      "name": "patch_applied_event",
+      "endpoint": "POST /v1/updates/event",
+      "payload": {
+        "kind": "patch_applied",
+        "title": "Add Bridge startup backoff + health flag",
+        "impact": "medium",
+        "details": {
+          "files": ["memory_bridge.py", "routes/bridge.py"],
+          "tests_added": 3
+        }
+      },
+      "expected_status": 200
+    }
+  ],
+  "integration_tests": [
+    {
+      "name": "architecture_facts_query",
+      "description": "Query stored architecture facts",
+      "steps": [
+        "Seed architecture facts via seed_architecture_facts.ps1",
+        "Query Bridge for 'services' predicate",
+        "Verify 7 services are listed",
+        "Query Bridge for 'memory stack' facts",
+        "Verify ChromaDB, BGE-M3, SQLite are mentioned"
+      ]
+    },
+    {
+      "name": "update_event_memory_write",
+      "description": "Verify update events create memories",
+      "steps": [
+        "POST a code_commit event",
+        "Wait 1 second",
+        "Query Bridge episodic memory for recent events",
+        "Verify commit title appears",
+        "Query Bridge facts for 'last_code_commit'",
+        "Verify fact contains commit title"
+      ]
+    },
+    {
+      "name": "mode_aware_announcement",
+      "description": "Test announcement policy respects modes",
+      "steps": [
+        "Set ASTRA_MODE=NONE",
+        "POST HIGH impact event",
+        "Verify announced=false",
+        "Set ASTRA_MODE=COGNITION",
+        "POST HIGH impact event",
+        "Verify announced=true"
+      ]
+    }
+  ],
+  "sample_curl_commands": {
+    "health_check": "curl http://127.0.0.1:8765/v1/updates/healthz",
+    "post_commit": "curl -X POST http://127.0.0.1:8765/v1/updates/event -H 'Content-Type: application/json' -d '{\"kind\":\"code_commit\",\"title\":\"feat: add updates system\",\"actor\":\"saint_lucid\",\"impact\":\"medium\",\"details\":{\"files_changed\":5}}'",
+    "build_failed": "curl -X POST http://127.0.0.1:8765/v1/updates/event -H 'Content-Type: application/json' -d '{\"kind\":\"build_failed\",\"title\":\"CI failure\",\"impact\":\"high\",\"details\":{\"tests_failed\":7}}'",
+    "query_bridge": "curl -X POST http://127.0.0.1:8765/v1/bridge/ingest -H 'Content-Type: application/json' -d '{\"text\":\"ASK: What are the recent updates?\",\"quote_raw\":true}'"
+  }
+}

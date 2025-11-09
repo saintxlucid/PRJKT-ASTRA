@@ -1,0 +1,62 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: bridge
+  namespace: astra
+  labels:
+    app: bridge
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: bridge
+  template:
+    metadata:
+      labels:
+        app: bridge
+    spec:
+      containers:
+        - name: bridge
+          image: REGISTRY/your-org/astra-bridge:latest
+          imagePullPolicy: IfNotPresent
+          resources:
+            requests:
+              cpu: "200m"
+              memory: "256Mi"
+            limits:
+              cpu: "1"
+              memory: "1Gi"
+          envFrom:
+            - secretRef:
+                name: bridge-secrets
+          env:
+            - name: BRIDGE_AUDIT_LOG
+              value: /data/bridge_audit.log
+            - name: BRIDGE_SAFE_ROOT
+              value: /data/safe
+          ports:
+            - containerPort: 8888
+          volumeMounts:
+            - name: astra-data
+              mountPath: /data
+            - name: bridge-safe
+              mountPath: /data/safe
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8888
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            failureThreshold: 3
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8888
+            initialDelaySeconds: 15
+            periodSeconds: 20
+      volumes:
+        - name: astra-data
+          persistentVolumeClaim:
+            claimName: astra-data-pvc
+        - name: bridge-safe
+          emptyDir: {}

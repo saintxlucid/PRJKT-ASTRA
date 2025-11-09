@@ -1,0 +1,105 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --obsidian: #0A0A0B;
+    --obsidian-panel: #101113;
+    --obsidian-elevated: #121416;
+    
+    --limestone: #C9B37E;
+    --limestone-light: #E8D9B8;
+    --limestone-dark: #9B8761;
+    
+    --lucid-teal: #77DDE8;
+    --lucid-violet: #A787FF;
+    --lucid-mint: #5EF6D0;
+    
+    --text-primary: #EDEFF3;
+    --text-secondary: #B8BDC7;
+    --text-muted: #7D8491;
+    
+    --status-success: #36C790;
+    --status-warning: #EFB65B;
+    --status-danger: #E94B35;
+    --status-info: #5AAAEF;
+  }
+
+  * {
+    @apply border-white/10;
+  }
+
+  body {
+    @apply bg-obsidian text-text-primary font-sans antialiased;
+    font-feature-settings: "kern" 1, "liga" 1;
+  }
+
+  html, body, #root {
+    @apply h-full w-full overflow-hidden;
+  }
+}
+
+@layer components {
+  .card-obsidian {
+    @apply bg-obsidian-panel border border-white/10 rounded-xl;
+  }
+
+  .card-elevated {
+    @apply bg-obsidian-elevated border border-white/10 rounded-xl shadow-lg;
+  }
+
+  .btn-primary {
+    @apply px-4 py-2 bg-limestone hover:bg-limestone-light text-obsidian font-medium rounded-lg transition-all duration-150 hover:scale-[1.01] active:scale-[0.99];
+  }
+
+  .btn-secondary {
+    @apply px-4 py-2 bg-white/5 hover:bg-white/10 text-text-primary border border-white/10 rounded-lg transition-all duration-150;
+  }
+
+  .btn-danger {
+    @apply px-4 py-2 bg-status-danger hover:bg-status-danger/90 text-white font-medium rounded-lg transition-all duration-150;
+  }
+
+  .input-obsidian {
+    @apply bg-obsidian-elevated border border-white/10 text-text-primary placeholder:text-text-muted px-3 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-lucid-teal/50 transition-all duration-150;
+  }
+
+  .sigil {
+    @apply text-limestone opacity-80 select-none;
+  }
+
+  .glyph-333 {
+    @apply text-lucid-mint animate-pulse-333;
+  }
+}
+
+@layer utilities {
+  .scroll-smooth-obsidian {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(201, 179, 126, 0.3) transparent;
+  }
+
+  .scroll-smooth-obsidian::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  .scroll-smooth-obsidian::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .scroll-smooth-obsidian::-webkit-scrollbar-thumb {
+    background: rgba(201, 179, 126, 0.3);
+    border-radius: 4px;
+  }
+
+  .scroll-smooth-obsidian::-webkit-scrollbar-thumb:hover {
+    background: rgba(201, 179, 126, 0.5);
+  }
+
+  .backdrop-pantheon {
+    backdrop-filter: blur(12px) saturate(1.2);
+    -webkit-backdrop-filter: blur(12px) saturate(1.2);
+  }
+}

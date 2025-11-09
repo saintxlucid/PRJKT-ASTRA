@@ -1,0 +1,12 @@
+student_model: gpt2-large
+output_dir: models/phaseC
+context_length: 1024
+precision: fp16
+temperature: 1.5
+grad_accum: 8
+packing: true
+optimizer: {lr: 1.5e-5, wd: 0.05}
+sched: {type: linear, warmup_steps: 0, total_steps: 5000}
+loss_weights: {kd: 0.5, ce: 0.35, seq: 0.1, hint: 0.05}
+hard_set: data/hard.jsonl
+lora: {enabled: true, r: 16, alpha: 32, dropout: 0.05}

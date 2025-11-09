@@ -1,0 +1,274 @@
+# ASTRA-OS Security Sentinel Configuration
+# Controls threat detection, response, and monitoring parameters
+
+sentinel:
+  # Global sentinel settings
+  enabled: true
+  log_level: "INFO"
+  
+  # Detection parameters
+  detection:
+    enabled: true
+    
+    # Threat pattern configuration
+    patterns:
+      # Pattern 1: Unsigned high-CPU process
+      p001_unsigned_high_cpu:
+        enabled: true
+        cpu_threshold: 80  # CPU % threshold
+        confidence_threshold: 0.8
+      
+      # Pattern 2: Rapid file encryption
+      p002_rapid_encryption:
+        enabled: true
+        file_modification_threshold: 50  # Files per minute
+        confidence_threshold: 0.95
+      
+      # Pattern 3: Registry autorun modification
+      p003_registry_autorun:
+        enabled: true
+        confidence_threshold: 0.85
+      
+      # Pattern 4: Privilege escalation
+      p004_privilege_escalation:
+        enabled: true
+        confidence_threshold: 0.90
+      
+      # Pattern 5: Unusual network egress
+      p005_unusual_egress:
+        enabled: true
+        confidence_threshold: 0.65
+      
+      # Pattern 6: Suspicious DLL injection
+      p006_dll_injection:
+        enabled: true
+        confidence_threshold: 0.80
+      
+      # Pattern 7: Mass file deletion
+      p007_mass_deletion:
+        enabled: true
+        file_deletion_threshold: 100  # Files in timeframe
+        confidence_threshold: 0.92
+      
+      # Pattern 8: Credential access
+      p008_credential_access:
+        enabled: true
+        confidence_threshold: 0.95
+      
+      # Pattern 9: Command & Control
+      p009_c2_communication:
+        enabled: true
+        confidence_threshold: 0.75
+      
+      # Pattern 10: Lateral movement
+      p010_lateral_movement:
+        enabled: true
+        confidence_threshold: 0.80
+      
+      # Pattern 11: Service persistence
+      p011_service_persistence:
+        enabled: true
+        confidence_threshold: 0.85
+      
+      # Pattern 12: Scheduled task modification
+      p012_scheduled_task:
+        enabled: true
+        confidence_threshold: 0.80
+      
+      # Pattern 13: Suspicious parent-child process
+      p013_parent_child:
+        enabled: true
+        confidence_threshold: 0.75
+      
+      # Pattern 14: Process hollowing
+      p014_process_hollowing:
+        enabled: true
+        confidence_threshold: 0.88
+      
+      # Pattern 15: Kernel driver load
+      p015_kernel_driver:
+        enabled: true
+        confidence_threshold: 0.95
+      
+      # Pattern 16: Policy/config tampering
+      p016_policy_tampering:
+        enabled: true
+        confidence_threshold: 0.80
+      
+      # Pattern 17: Anomalous behavior
+      p017_anomalous_behavior:
+        enabled: true
+        z_score_threshold: 3.0
+        confidence_threshold: 0.70
+      
+      # Pattern 18: Intelligence gathering
+      p018_intelligence_gathering:
+        enabled: true
+        confidence_threshold: 0.70
+    
+    # Anomaly detection
+    anomaly_detection:
+      enabled: true
+      baseline_learning_window: 3600  # 1 hour
+      z_score_threshold: 3.0  # 3 sigma
+      lstm_enabled: true
+      lstm_window_size: 30
+      lstm_threshold: 0.5
+  
+  # Bundling and correlation
+  bundling:
+    enabled: true
+    time_window: 300  # 5 minutes
+    correlation_threshold: 0.7  # 70% similar = merge
+  
+  # Response parameters
+  response:
+    enabled: true
+    
+    # Response action configuration
+    actions:
+      alert:
+        enabled: true
+        priority: 1
+      
+      investigate:
+        enabled: true
+        priority: 2
+      
+      isolate:
+        enabled: true
+        priority: 8
+      
+      terminate:
+        enabled: true
+        priority: 9
+      
+      quarantine:
+        enabled: true
+        priority: 7
+      
+      whitelist:
+        enabled: true
+        priority: 3
+      
+      log_only:
+        enabled: true
+        priority: 0
+    
+    # Threat level to response mapping
+    threat_response_map:
+      CRITICAL:
+        primary_action: "isolate"
+        secondary_actions: ["alert", "investigate", "quarantine"]
+      HIGH:
+        primary_action: "investigate"
+        secondary_actions: ["alert", "log_only"]
+      MEDIUM:
+        primary_action: "alert"
+        secondary_actions: ["log_only"]
+      LOW:
+        primary_action: "log_only"
+        secondary_actions: []
+  
+  # Self-integrity checking
+  integrity:
+    enabled: true
+    check_interval: 300  # 5 minutes
+    on_suspicious_event: true
+    baseline_path: "policies/integrity_baseline.json"
+  
+  # Whitelisting
+  whitelist:
+    enabled: true
+    include_system_processes: true
+    include_microsoft_signed: true
+    additional_items:
+      - "C:\\Windows\\System32\\explorer.exe"
+      - "C:\\Program Files\\ASTRA-OS\\*"
+  
+  # Blacklisting
+  blacklist:
+    enabled: true
+    items:
+      - "mimikatz.exe"
+      - "psexec.exe"
+      - "procdump.exe"
+  
+  # Monitoring and metrics
+  monitoring:
+    # Collect metrics on detected threats
+    enabled: true
+    
+    metrics:
+      - "threat_detection_rate"
+      - "pattern_triggers"
+      - "anomaly_rate"
+      - "response_actions_executed"
+      - "false_positive_rate"
+    
+    # Export metrics interval
+    export_interval: 300  # 5 minutes
+  
+  # Logging
+  logging:
+    enabled: true
+    
+    # Log detection events
+    log_detections: true
+    
+    # Log response actions
+    log_responses: true
+    
+    # Log integrity violations
+    log_integrity: true
+    
+    # Log anomalies
+    log_anomalies: true
+    
+    # Maximum log file size (MB)
+    max_log_size: 100
+    
+    # Keep this many log files
+    max_log_files: 10
+  
+  # Performance and resource limits
+  performance:
+    # Maximum detections per minute before throttling
+    max_detections_per_minute: 1000
+    
+    # Maximum incidents bundled together
+    max_bundle_size: 100
+    
+    # Memory limit for threat history (items)
+    max_threat_history: 10000
+    
+    # Memory limit for anomaly history (items)
+    max_anomaly_history: 5000
+  
+  # Advanced settings
+  advanced:
+    # Enable machine learning mode (requires training data)
+    ml_enabled: false
+    
+    # Enable threat intelligence integration
+    threat_intel_enabled: false
+    threat_intel_url: "https://api.threatintel.example.com"
+    
+    # Enable cloud incident reporting
+    cloud_reporting_enabled: false
+    cloud_reporting_url: "https://incidents.astra-os.io"
+    
+    # Confidence thresholds for auto-response
+    auto_response_min_confidence: 0.85
+    
+    # Enable safe mode detection (limits response actions)
+    safe_mode_detection: true
+    safe_mode_disable_isolate: true
+    safe_mode_disable_terminate: true
+    
+    # Enable user consent for critical actions
+    require_consent_for_terminate: true
+    require_consent_for_isolate: false
+    
+    # Consent timeout (seconds)
+    consent_timeout: 300

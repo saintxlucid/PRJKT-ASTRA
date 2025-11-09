@@ -1,0 +1,7 @@
+{"v":"aicl/1.0","id":"test123","from":"sender","to":"receiver","act":"inform","payload":{"test":"data"}}
+{"v":"aicl/1.0","id":"test123","from":"sender","to":"receiver","act":"inform","payload":{"test":"data"}}
+{"v":"aicl/1.0","id":"test123","from":"sender","to":"receiver","act":"inform","payload":{"test":"data"}}
+{"v":"aicl/1.0","id":"f67c9bbb-2061-4e71-8416-fc493b317589","ts":"2025-10-12T19:21:21Z","from":"teacher","to":"student","caps":[],"act":"inform","topic":"","ctx":{},"limits":{"tokens":1024},"payload":{"caps":["text","logits:topk"],"max_ctx":4096},"sig":null}
+{"v":"aicl/1.0","id":"7dc429e9-3281-48cf-87d3-20b40f39ba98","ts":"2025-10-12T19:21:21Z","from":"student","to":"teacher","caps":[],"act":"ack","topic":"","ctx":{},"limits":{"tokens":64},"payload":{"ok":true},"sig":null}
+{"v":"aicl/1.0","id":"4b4c9a28-decd-4c1a-bd81-0173a64d02a5","ts":"2025-10-12T19:21:21Z","from":"teacher","to":"student","caps":[],"act":"ask","topic":"","ctx":{},"limits":{"tokens":128},"payload":{"text":{"lang":"en","fmt":"md","content":"Explain knowledge distillation"}},"sig":null}
+{"v":"aicl/1.0","id":"099fa576-998f-4772-a61f-37a787b54573","ts":"2025-10-12T19:21:21Z","from":"student","to":"teacher","caps":[],"act":"answer","topic":"","ctx":{},"limits":{"tokens":256},"payload":{"text":{"lang":"en","fmt":"md","content":"Knowledge distillation is a technique where a smaller model learns from a larger teacher model."},"logits":{"temperature":2.0,"topk":[{"tok":"distillation","p":0.35},{"tok":"compression","p":0.25},{"tok":"transfer","p":0.15}]}},"sig":null}

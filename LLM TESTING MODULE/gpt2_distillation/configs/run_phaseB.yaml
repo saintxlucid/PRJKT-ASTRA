@@ -1,0 +1,6 @@
+context_length: 1024
+temperature: 2.0
+loss_weights: {kd: 0.6, ce: 0.3, seq: 0.05, hint: 0.05}
+optimizer: {lr: 2e-5, wd: 0.1}
+sched: {type: cosine, warmup_steps: 1000, total_steps: 20000}
+grad_accum: 16

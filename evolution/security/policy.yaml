@@ -1,0 +1,99 @@
+operations:
+  model.merge_lora:
+    level: HIGH
+    requires_hmac: true
+    requires_audit: true
+    allowlist:
+      - astra_core
+      - model_surgeon
+    max_batch_size: 3
+    cooldown_seconds: 300  # 5 minute cooldown
+    
+  model.tune_rope:
+    level: HIGH
+    requires_hmac: true
+    requires_audit: true
+    allowlist:
+      - astra_core
+      - model_surgeon
+    cooldown_seconds: 600  # 10 minute cooldown
+    
+  model.modify_attention:
+    level: CRITICAL
+    requires_hmac: true
+    requires_audit: true
+    allowlist:
+      - astra_core
+    cooldown_seconds: 1800  # 30 minute cooldown
+    
+  schema.modify:
+    level: HIGH
+    requires_hmac: true
+    requires_audit: true
+    allowlist:
+      - astra_core
+      - schema_admin
+      
+  schema.validate:
+    level: MEDIUM
+    requires_audit: true
+    allowlist:
+      - astra_core
+      - schema_admin
+      - model_validator
+      
+  system.reset_state:
+    level: CRITICAL
+    requires_hmac: true
+    requires_audit: true
+    allowlist:
+      - astra_core
+      
+  system.update_config:
+    level: HIGH
+    requires_hmac: true
+    requires_audit: true
+    allowlist:
+      - astra_core
+      - system_admin
+      
+  tools.register:
+    level: HIGH
+    requires_hmac: true
+    requires_audit: true
+    allowlist:
+      - astra_core
+      - tool_admin
+    max_batch_size: 5
+    
+  tools.invoke:
+    level: MEDIUM
+    requires_audit: true
+    allowlist:
+      - astra_core
+      - tool_user
+      - model_executor
+      
+  memory.write:
+    level: HIGH
+    requires_hmac: true
+    requires_audit: true
+    allowlist:
+      - astra_core
+      - memory_admin
+      
+  memory.read:
+    level: MEDIUM
+    requires_audit: true
+    allowlist:
+      - astra_core
+      - memory_admin
+      - memory_reader
+      
+  diag.collect_metrics:
+    level: LOW
+    requires_audit: true
+    allowlist:
+      - astra_core
+      - model_validator
+      - system_monitor

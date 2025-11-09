@@ -1,0 +1,38 @@
+groups:
+- name: astra-core
+  rules:
+  - alert: HighErrorRate
+    expr: (sum(rate(http_requests_total{code=~"5.."}[5m])) / sum(rate(http_requests_total[5m]))) > 0.05
+    for: 10m
+    labels:
+      severity: page
+    annotations:
+      summary: "HTTP 5xx error rate exceeded 5% for 10 minutes"
+      description: "Error rate is {{ $value | humanizePercentage }} over the last 10m"
+
+  - alert: CacheInefficiency
+    expr: (sum(rate(astra_cache_hits_total[10m])) / clamp_min(sum(rate(astra_cache_requests_total[10m])),1)) < 0.60
+    for: 15m
+    labels:
+      severity: warn
+    annotations:
+      summary: "Cache hit rate below 60% for 15 minutes"
+      description: "Cache hit rate is {{ $value | humanizePercentage }}"
+
+  - alert: RAGLatencyP95
+    expr: histogram_quantile(0.95, sum(rate(astra_rag_latency_seconds_bucket[5m])) by (le)) > 2.5
+    for: 10m
+    labels:
+      severity: warn
+    annotations:
+      summary: "RAG P95 latency exceeded 2.5s"
+      description: "95th percentile latency is {{ $value | humanizeDuration }}"
+
+  - alert: TokenBudgetStress
+    expr: avg(astra_token_budget_used / astra_token_budget_limit) > 0.9
+    for: 5m
+    labels:
+      severity: warn
+    annotations:
+      summary: "Token budget utilization >90%"
+      description: "Token budget utilization at {{ $value | humanizePercentage }}"

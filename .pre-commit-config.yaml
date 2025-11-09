@@ -1,0 +1,20 @@
+repos:
+  - repo: local
+    hooks:
+      - id: docs-guardrail
+        name: ASTRA_CORE docs guardrail
+        entry: pwsh -NoProfile -ExecutionPolicy Bypass -File scripts/docs_guardrail.ps1
+        language: system
+        pass_filenames: false
+        stages: [commit, push]
+  - repo: https://github.com/codespell-project/codespell
+    rev: v2.2.6
+    hooks:
+      - id: codespell
+        args: ['--ignore-words-list=nd,te', '--skip=*.json,*.pyc,node_modules,*.lock']
+        files: '\.(md|txt)$'
+  - repo: https://github.com/DavidAnson/markdownlint-cli2
+    rev: v0.12.1
+    hooks:
+      - id: markdownlint-cli2
+        args: ['--config', '.markdownlint.jsonc']

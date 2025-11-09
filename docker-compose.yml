@@ -1,0 +1,42 @@
+version: '3.8'
+
+services:
+  ingestion-service:
+    build: .
+    volumes:
+      - ./config:/app/config
+      - ingestion-data:/data
+    environment:
+      - POSTGRES_HOST=postgres
+      - POSTGRES_DB=astra
+      - POSTGRES_USER=astra
+      - POSTGRES_PASSWORD=astra_dev
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+    depends_on:
+      - postgres
+      - redis
+
+  postgres:
+    image: postgres:15
+    environment:
+      - POSTGRES_DB=astra
+      - POSTGRES_USER=astra
+      - POSTGRES_PASSWORD=astra_dev
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+
+  redis:
+    image: redis:7
+    command: redis-server --appendonly yes
+    volumes:
+      - redis-data:/data
+    ports:
+      - "6379:6379"
+
+volumes:
+  ingestion-data:
+  postgres-data:
+  redis-data:

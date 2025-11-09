@@ -1,0 +1,94 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Virtual Environment
+.venv/
+venv/
+ENV/
+env/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# Environment variables - CRITICAL
+.env
+.env.*
+!.env.example
+
+# Data directories - Large files
+data/
+*.db
+*.db-shm
+*.db-wal
+logs/
+cache/
+.hf_cache/
+runtime/
+
+# Model files - CRITICAL (can be 10GB+)
+*.gguf
+*.bin
+*.safetensors
+models/
+*.pth
+
+# Hugging Face cache
+.cache/
+transformers_cache/
+
+# ASTRA specific
+astra-local/
+backend/
+collected_resources/
+ASTRA MEMORY EXPORTS*/
+
+# Backup files
+backup/
+*.backup
+*.bak
+
+# OS specific
+desktop.ini
+Thumbs.db
+.DS_Store
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+.hypothesis/
+
+# Documentation builds
+site/
+docs/_build/
+
+Astra_Memory/

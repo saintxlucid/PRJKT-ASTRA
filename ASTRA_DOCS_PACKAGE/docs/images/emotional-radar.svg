@@ -1,0 +1,202 @@
+<!-- SVG Emotional Radar Visualization for ASTRA -->
+<svg width="800" height="800" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1a1a2e;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#16213e;stop-opacity:1" />
+    </linearGradient>
+    <radialGradient id="glowGreen" cx="50%" cy="50%">
+      <stop offset="0%" style="stop-color:#2ecc71;stop-opacity:0.8" />
+      <stop offset="100%" style="stop-color:#27ae60;stop-opacity:0" />
+    </radialGradient>
+    <radialGradient id="glowBlue" cx="50%" cy="50%">
+      <stop offset="0%" style="stop-color:#3498db;stop-opacity:0.8" />
+      <stop offset="100%" style="stop-color:#2980b9;stop-opacity:0" />
+    </radialGradient>
+    <radialGradient id="glowPurple" cx="50%" cy="50%">
+      <stop offset="0%" style="stop-color:#9b59b6;stop-opacity:0.8" />
+      <stop offset="100%" style="stop-color:#8e44ad;stop-opacity:0" />
+    </radialGradient>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="4" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+  
+  <!-- Background -->
+  <rect width="800" height="800" fill="url(#bgGrad)"/>
+  
+  <!-- Title -->
+  <text x="400" y="50" font-family="Arial, sans-serif" font-size="32" font-weight="bold" fill="white" text-anchor="middle">
+    ASTRA Emotional Radar
+  </text>
+  <text x="400" y="80" font-family="Arial, sans-serif" font-size="14" fill="#95a5a6" text-anchor="middle">
+    Real-Time Emotional State Monitoring
+  </text>
+  
+  <!-- Radar Background Circles -->
+  <circle cx="400" cy="450" r="280" fill="none" stroke="#2c3e50" stroke-width="1" opacity="0.3"/>
+  <circle cx="400" cy="450" r="210" fill="none" stroke="#2c3e50" stroke-width="1" opacity="0.3"/>
+  <circle cx="400" cy="450" r="140" fill="none" stroke="#2c3e50" stroke-width="1" opacity="0.3"/>
+  <circle cx="400" cy="450" r="70" fill="none" stroke="#2c3e50" stroke-width="1" opacity="0.3"/>
+  
+  <!-- Center Point -->
+  <circle cx="400" cy="450" r="8" fill="#667eea" filter="url(#glow)"/>
+  
+  <!-- Radar Grid Lines -->
+  <line x1="400" y1="170" x2="400" y2="730" stroke="#2c3e50" stroke-width="1" opacity="0.3"/>
+  <line x1="120" y1="450" x2="680" y2="450" stroke="#2c3e50" stroke-width="1" opacity="0.3"/>
+  <line x1="202" y1="252" x2="598" y2="648" stroke="#2c3e50" stroke-width="1" opacity="0.3"/>
+  <line x1="202" y1="648" x2="598" y2="252" stroke="#2c3e50" stroke-width="1" opacity="0.3"/>
+  
+  <!-- Emotional State Labels -->
+  <text x="400" y="150" font-family="Arial, sans-serif" font-size="16" fill="#ecf0f1" text-anchor="middle" font-weight="bold">
+    Focused
+  </text>
+  <text x="700" y="455" font-family="Arial, sans-serif" font-size="16" fill="#ecf0f1" text-anchor="start" font-weight="bold">
+    Engaged
+  </text>
+  <text x="400" y="750" font-family="Arial, sans-serif" font-size="16" fill="#ecf0f1" text-anchor="middle" font-weight="bold">
+    Supportive
+  </text>
+  <text x="100" y="455" font-family="Arial, sans-serif" font-size="16" fill="#ecf0f1" text-anchor="end" font-weight="bold">
+    Reflective
+  </text>
+  
+  <!-- Current Emotional State Points -->
+  <!-- Confidence Point -->
+  <circle cx="490" cy="350" r="60" fill="url(#glowGreen)" opacity="0.4"/>
+  <circle cx="490" cy="350" r="20" fill="#2ecc71" filter="url(#glow)"/>
+  <text x="490" y="330" font-family="Arial, sans-serif" font-size="12" fill="white" text-anchor="middle">
+    Confidence
+  </text>
+  <text x="490" y="390" font-family="Arial, sans-serif" font-size="14" fill="#2ecc71" text-anchor="middle" font-weight="bold">
+    92%
+  </text>
+  
+  <!-- Empathy Point -->
+  <circle cx="310" cy="520" r="50" fill="url(#glowBlue)" opacity="0.4"/>
+  <circle cx="310" cy="520" r="18" fill="#3498db" filter="url(#glow)"/>
+  <text x="310" y="500" font-family="Arial, sans-serif" font-size="12" fill="white" text-anchor="middle">
+    Empathy
+  </text>
+  <text x="310" y="560" font-family="Arial, sans-serif" font-size="14" fill="#3498db" text-anchor="middle" font-weight="bold">
+    88%
+  </text>
+  
+  <!-- Clarity Point -->
+  <circle cx="450" cy="280" r="55" fill="url(#glowPurple)" opacity="0.4"/>
+  <circle cx="450" cy="280" r="19" fill="#9b59b6" filter="url(#glow)"/>
+  <text x="450" y="260" font-family="Arial, sans-serif" font-size="12" fill="white" text-anchor="middle">
+    Clarity
+  </text>
+  <text x="450" y="320" font-family="Arial, sans-serif" font-size="14" fill="#9b59b6" text-anchor="middle" font-weight="bold">
+    95%
+  </text>
+  
+  <!-- Connection Lines -->
+  <line x1="490" y1="350" x2="450" y2="280" stroke="#667eea" stroke-width="2" opacity="0.6"/>
+  <line x1="490" y1="350" x2="310" y2="520" stroke="#667eea" stroke-width="2" opacity="0.6"/>
+  <line x1="450" y1="280" x2="310" y2="520" stroke="#667eea" stroke-width="2" opacity="0.6"/>
+  
+  <!-- Stats Panel -->
+  <rect x="50" y="120" width="200" height="180" rx="10" fill="#2c3e50" opacity="0.9"/>
+  <text x="150" y="150" font-family="Arial, sans-serif" font-size="16" fill="white" text-anchor="middle" font-weight="bold">
+    System State
+  </text>
+  
+  <text x="70" y="180" font-family="Arial, sans-serif" font-size="12" fill="#95a5a6">
+    Overall Balance:
+  </text>
+  <text x="230" y="180" font-family="Arial, sans-serif" font-size="12" fill="#2ecc71" text-anchor="end" font-weight="bold">
+    Optimal
+  </text>
+  
+  <text x="70" y="205" font-family="Arial, sans-serif" font-size="12" fill="#95a5a6">
+    Emotional Sync:
+  </text>
+  <text x="230" y="205" font-family="Arial, sans-serif" font-size="12" fill="#2ecc71" text-anchor="end" font-weight="bold">
+    Active
+  </text>
+  
+  <text x="70" y="230" font-family="Arial, sans-serif" font-size="12" fill="#95a5a6">
+    Response Mode:
+  </text>
+  <text x="230" y="230" font-family="Arial, sans-serif" font-size="12" fill="#3498db" text-anchor="end" font-weight="bold">
+    Adaptive
+  </text>
+  
+  <text x="70" y="255" font-family="Arial, sans-serif" font-size="12" fill="#95a5a6">
+    Alignment:
+  </text>
+  <text x="230" y="255" font-family="Arial, sans-serif" font-size="12" fill="#9b59b6" text-anchor="end" font-weight="bold">
+    98.5%
+  </text>
+  
+  <text x="70" y="280" font-family="Arial, sans-serif" font-size="12" fill="#95a5a6">
+    Last Update:
+  </text>
+  <text x="230" y="280" font-family="Arial, sans-serif" font-size="12" fill="white" text-anchor="end">
+    2s ago
+  </text>
+  
+  <!-- Activity Panel -->
+  <rect x="550" y="120" width="200" height="180" rx="10" fill="#2c3e50" opacity="0.9"/>
+  <text x="650" y="150" font-family="Arial, sans-serif" font-size="16" fill="white" text-anchor="middle" font-weight="bold">
+    Recent Activity
+  </text>
+  
+  <circle cx="575" cy="175" r="4" fill="#2ecc71"/>
+  <text x="590" y="180" font-family="Arial, sans-serif" font-size="11" fill="#ecf0f1">
+    Memory retrieved
+  </text>
+  
+  <circle cx="575" cy="200" r="4" fill="#3498db"/>
+  <text x="590" y="205" font-family="Arial, sans-serif" font-size="11" fill="#ecf0f1">
+    Context assembled
+  </text>
+  
+  <circle cx="575" cy="225" r="4" fill="#9b59b6"/>
+  <text x="590" y="230" font-family="Arial, sans-serif" font-size="11" fill="#ecf0f1">
+    Response generated
+  </text>
+  
+  <circle cx="575" cy="250" r="4" fill="#e74c3c"/>
+  <text x="590" y="255" font-family="Arial, sans-serif" font-size="11" fill="#ecf0f1">
+    Empathy adjusted
+  </text>
+  
+  <circle cx="575" cy="275" r="4" fill="#f39c12"/>
+  <text x="590" y="280" font-family="Arial, sans-serif" font-size="11" fill="#ecf0f1">
+    Tone calibrated
+  </text>
+  
+  <!-- Legend -->
+  <rect x="270" y="690" width="260" height="80" rx="10" fill="#2c3e50" opacity="0.9"/>
+  <text x="400" y="715" font-family="Arial, sans-serif" font-size="14" fill="white" text-anchor="middle" font-weight="bold">
+    Emotional Dimensions
+  </text>
+  
+  <circle cx="290" cy="735" r="6" fill="#2ecc71" filter="url(#glow)"/>
+  <text x="305" cy="740" font-family="Arial, sans-serif" font-size="11" fill="#ecf0f1">
+    Confidence
+  </text>
+  
+  <circle cx="395" cy="735" r="6" fill="#3498db" filter="url(#glow)"/>
+  <text x="410" cy="740" font-family="Arial, sans-serif" font-size="11" fill="#ecf0f1">
+    Empathy
+  </text>
+  
+  <circle cx="290" cy="755" r="6" fill="#9b59b6" filter="url(#glow)"/>
+  <text x="305" cy="760" font-family="Arial, sans-serif" font-size="11" fill="#ecf0f1">
+    Clarity
+  </text>
+  
+  <circle cx="395" cy="755" r="6" fill="#667eea" filter="url(#glow)"/>
+  <text x="410" cy="760" font-family="Arial, sans-serif" font-size="11" fill="#ecf0f1">
+    Alignment
+  </text>
+</svg>

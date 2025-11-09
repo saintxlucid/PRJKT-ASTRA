@@ -1,0 +1,61 @@
+# Advanced Distillation Configuration
+
+# Progressive Distillation Settings
+progressive_distillation:
+  intermediate_model: "mistralai/Mistral-7B-v0.1"
+  teacher_model: "EleutherAI/gpt-neox-20b"
+  max_new_tokens: 256
+  batch_size: 4
+
+# Multi-Task Distillation Settings
+multi_task_distillation:
+  task_distribution:
+    qa: 0.3
+    cot: 0.25
+    summarization: 0.2
+    translation: 0.15
+    classification: 0.1
+  max_length: 1024
+
+# CoT Distillation Settings
+cot_distillation:
+  cot_trigger: "Let's think step by step."
+  max_new_tokens: 512
+  temperature: 0.7
+  top_p: 0.9
+
+# Hidden State Matching Settings
+hidden_state_distillation:
+  teacher_model: "EleutherAI/gpt-neox-20b"
+  student_model: "gpt2-large"
+  loss_type: "mse"  # mse, cosine, contrastive
+  layer_mapping: "last"  # last, all, specific
+
+# LoRA Integration Settings
+lora_distillation:
+  r: 8
+  lora_alpha: 32
+  lora_dropout: 0.1
+  target_modules:
+    - "c_attn"
+    - "c_proj"
+  learning_rate: 1e-4
+  batch_size: 4
+  gradient_accumulation_steps: 4
+
+# General Training Settings
+training:
+  max_length: 1024
+  warmup_steps: 100
+  save_steps: 500
+  logging_steps: 10
+  fp16: true
+  gradient_checkpointing: true
+
+# Evaluation Settings
+evaluation:
+  metrics:
+    - "perplexity"
+    - "bleu"
+    - "rouge"
+  sample_size: 100

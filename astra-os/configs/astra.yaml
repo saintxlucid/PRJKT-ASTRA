@@ -1,0 +1,183 @@
+# ASTRA-OS Configuration Root
+# Updated: October 20, 2025
+# Sacred Code: 333
+
+application:
+  name: "ASTRA-OS"
+  version: "1.0.0"
+  identity: "Guardian • Architect • Seraph"
+  operator: "Saint Lucid"
+
+server:
+  pipes:
+    bus: "\\.\pipe\astra_bus"
+    control: "\\.\pipe\astra_control"
+    sentinel: "\\.\pipe\astra_sentinel"
+    consent: "\\.\pipe\astra_consent"
+  
+  http:
+    host: "127.0.0.1"
+    port: 8777
+    listen_backlog: 32
+    connection_timeout_s: 30
+
+paths:
+  # User data paths (%LOCALAPPDATA% resolves at runtime)
+  data: "%LOCALAPPDATA%/AstraOS"
+  cache: "%LOCALAPPDATA%/AstraOS/cache"
+  
+  # System data paths (%PROGRAMDATA% requires admin to write)
+  logs: "%PROGRAMDATA%/AstraOS/logs"
+  policies: "%PROGRAMDATA%/AstraOS/policies"
+  
+  # Relative to install directory
+  models: "data/models"
+  vectors: "data/vectors"
+
+features:
+  gui: true                    # Operator Console GUI
+  voice: false                 # ASR/TTS wake word + commands
+  sentinel: true               # Threat detection & response
+  metrics: true                # Prometheus + structured logging
+  autonomy: true               # Planning & execution
+  memory: true                 # Episodic + vector storage
+  learning: true               # Reward feedback loops
+
+service:
+  name: "AstraBootd"
+  display_name: "ASTRA Boot Daemon"
+  description: "Local-first AI companion OS for Windows"
+  startup_type: "auto"         # auto, manual, disabled
+  depend_on_services: []
+
+models:
+  embeddings:
+    name: "bge-small-en-v1.5"
+    dimension: 384
+    cache_path: "models/embedding.bin"
+    chunk_size: 512
+
+  language_model:
+    enabled: false
+    provider: "ollama"          # ollama, anthropic, openai (require API key)
+    model: "mistral:7b"
+    temperature: 0.3
+    max_tokens: 512
+
+  speech:
+    asr:
+      enabled: false
+      model: "whisper-tiny"     # offline only
+      language: "en"
+    
+    tts:
+      enabled: false
+      engine: "sapi"            # Windows SAPI by default
+
+database:
+  episodic:
+    path: "episodic.db"
+    pool_size: 5
+    cache_mb: 32
+  
+  vectors:
+    engine: "faiss"             # faiss or qdrant
+    metric: "l2"
+    cache_mb: 128
+
+security:
+  dpapi:
+    store_path: "%LOCALAPPDATA%/AstraOS/secrets"
+    entropy: true
+  
+  code_signing:
+    verify_binaries: true
+    verify_policies: true
+
+logging:
+  level: "info"                 # debug, info, warn, error, critical
+  format: "jsonl"               # jsonl or text
+  output:
+    - "file"                    # file, syslog, eventlog
+  
+  file:
+    path: "%PROGRAMDATA%/AstraOS/logs"
+    max_mb_per_file: 50
+    retention_days: 30
+    compress_old: true
+
+monitoring:
+  prometheus:
+    enabled: true
+    port: 9090
+    scrape_interval_s: 15
+  
+  trace:
+    enabled: true
+    sample_rate: 1.0            # 0.0-1.0
+
+performance:
+  # Idle thresholds
+  cpu_idle_threshold: 0.01      # 1%
+  memory_target_mb: 300
+  
+  # Event batching
+  event_batch_timeout_ms: 100
+  event_batch_max_size: 1000
+
+policy:
+  default_file: "policies/default.yaml"
+  windows_rules_file: "policies/windows_rules.yaml"
+  sentinel_rules_file: "policies/sentinel_rules.yaml"
+  autonomy_rules_file: "policies/autonomy_rules.yaml"
+  
+  # Hot reload
+  watch_for_changes: true
+  reload_timeout_s: 5
+
+limits:
+  # Maximum concurrent plans
+  max_concurrent_plans: 3
+  
+  # Task execution
+  task_timeout_s: 300
+  task_retry_max: 3
+  
+  # Event bus
+  max_pending_events: 10000
+  max_subscribers_per_topic: 100
+
+telemetry:
+  # Local only; no external transmission by default
+  enabled: true
+  local_only: true
+  include_system_info: true
+
+safe_mode:
+  # Activated with --safe flag or on boot failure
+  disable_autonomy: true
+  sensors_readonly: true
+  require_explicit_consent: true
+  log_all_actions: true
+
+update:
+  channel: "stable"             # alpha, beta, stable
+  check_interval_hours: 24
+  auto_install: false
+  offline_updates: true
+
+audit:
+  enabled: true
+  events_to_track:
+    - "autonomy.plan"
+    - "autonomy.execute"
+    - "consent.request"
+    - "consent.resolve"
+    - "tool.action"
+    - "sentinel.detection"
+    - "security.elevation"
+  retention_days: 90
+
+platform:
+  windows_minimum_version: "10.0.19041"  # Windows 10 21H2
+  admin_required: false                  # but some features need elevation

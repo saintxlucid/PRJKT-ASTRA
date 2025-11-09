@@ -1,0 +1,705 @@
+[
+  {
+    "file": "k8s/blackbox-exporter.yaml",
+    "kind": "Namespace",
+    "name": "monitoring",
+    "ns": null,
+    "spec_keys": []
+  },
+  {
+    "file": "k8s/blackbox-exporter.yaml",
+    "kind": "Deployment",
+    "name": "blackbox-exporter",
+    "ns": "monitoring",
+    "spec_keys": [
+      "replicas",
+      "selector",
+      "template"
+    ]
+  },
+  {
+    "file": "k8s/blackbox-exporter.yaml",
+    "kind": "Service",
+    "name": "blackbox-exporter",
+    "ns": "monitoring",
+    "spec_keys": [
+      "selector",
+      "type",
+      "ports"
+    ]
+  },
+  {
+    "file": "k8s/blackbox-exporter.yaml",
+    "kind": "ConfigMap",
+    "name": "blackbox-config",
+    "ns": "monitoring",
+    "spec_keys": []
+  },
+  {
+    "file": "k8s/blackbox-exporter.yaml",
+    "kind": "ServiceMonitor",
+    "name": "blackbox-exporter",
+    "ns": "monitoring",
+    "spec_keys": [
+      "selector",
+      "endpoints"
+    ]
+  },
+  {
+    "file": "k8s/bridge-deployment-green.yaml",
+    "kind": "Deployment",
+    "name": "bridge-green",
+    "ns": "astra",
+    "spec_keys": [
+      "replicas",
+      "selector",
+      "template"
+    ]
+  },
+  {
+    "file": "k8s/bridge-deployment.yaml",
+    "kind": "Deployment",
+    "name": "bridge",
+    "ns": "astra",
+    "spec_keys": [
+      "replicas",
+      "selector",
+      "template"
+    ]
+  },
+  {
+    "file": "k8s/bridge-egress-policy.yaml",
+    "kind": "NetworkPolicy",
+    "name": "bridge-egress-only-allowed",
+    "ns": "astra",
+    "spec_keys": [
+      "podSelector",
+      "policyTypes",
+      "ingress",
+      "egress"
+    ]
+  },
+  {
+    "file": "k8s/docs-deployment.yaml",
+    "kind": "Deployment",
+    "name": "docs",
+    "ns": "astra",
+    "spec_keys": [
+      "replicas",
+      "selector",
+      "template"
+    ]
+  },
+  {
+    "file": "k8s/docs-egress-policy.yaml",
+    "kind": "NetworkPolicy",
+    "name": "docs-egress-only-allowed",
+    "ns": "astra",
+    "spec_keys": [
+      "podSelector",
+      "policyTypes",
+      "ingress",
+      "egress"
+    ]
+  },
+  {
+    "file": "k8s/docs-hpa.yaml",
+    "kind": "HorizontalPodAutoscaler",
+    "name": "docs",
+    "ns": "astra",
+    "spec_keys": [
+      "scaleTargetRef",
+      "minReplicas",
+      "maxReplicas",
+      "metrics"
+    ]
+  },
+  {
+    "file": "k8s/docs-ingress.yaml",
+    "kind": "Ingress",
+    "name": "docs-ingress",
+    "ns": "astra",
+    "spec_keys": [
+      "ingressClassName",
+      "tls",
+      "rules"
+    ]
+  },
+  {
+    "file": "k8s/docs-pvc.yaml",
+    "kind": "PersistentVolumeClaim",
+    "name": "docs-index",
+    "ns": "astra",
+    "spec_keys": [
+      "accessModes",
+      "resources"
+    ]
+  },
+  {
+    "file": "k8s/docs-service.yaml",
+    "kind": "Service",
+    "name": "docs",
+    "ns": "astra",
+    "spec_keys": [
+      "type",
+      "ports",
+      "selector"
+    ]
+  },
+  {
+    "file": "k8s/hpa.yaml",
+    "kind": "HorizontalPodAutoscaler",
+    "name": "bridge-hpa",
+    "ns": "astra",
+    "spec_keys": [
+      "scaleTargetRef",
+      "minReplicas",
+      "maxReplicas",
+      "metrics"
+    ]
+  },
+  {
+    "file": "k8s/ingestion-service.yaml",
+    "kind": "ConfigMap",
+    "name": "astra-config",
+    "ns": null,
+    "spec_keys": []
+  },
+  {
+    "file": "k8s/ingestion-service.yaml",
+    "kind": "Deployment",
+    "name": "ingestion-service",
+    "ns": null,
+    "spec_keys": [
+      "replicas",
+      "selector",
+      "template"
+    ]
+  },
+  {
+    "file": "k8s/ingestion-service.yaml",
+    "kind": "Service",
+    "name": "ingestion-service",
+    "ns": null,
+    "spec_keys": [
+      "selector",
+      "ports",
+      "type"
+    ]
+  },
+  {
+    "file": "k8s/ingestion-service.yaml",
+    "kind": "PersistentVolumeClaim",
+    "name": "ingestion-data-pvc",
+    "ns": null,
+    "spec_keys": [
+      "accessModes",
+      "resources",
+      "storageClassName"
+    ]
+  },
+  {
+    "file": "k8s/ingestion-service.yaml",
+    "kind": "HorizontalPodAutoscaler",
+    "name": "ingestion-service-hpa",
+    "ns": null,
+    "spec_keys": [
+      "scaleTargetRef",
+      "minReplicas",
+      "maxReplicas",
+      "metrics"
+    ]
+  },
+  {
+    "file": "k8s/ingress.yaml",
+    "kind": "Ingress",
+    "name": "bridge-ingress",
+    "ns": "astra",
+    "spec_keys": [
+      "tls",
+      "rules"
+    ]
+  },
+  {
+    "file": "k8s/namespace.yaml",
+    "kind": "Namespace",
+    "name": "astra",
+    "ns": null,
+    "spec_keys": []
+  },
+  {
+    "file": "k8s/networkpolicy-deny-all.yaml",
+    "kind": "NetworkPolicy",
+    "name": "default-deny-all-egress",
+    "ns": "astra",
+    "spec_keys": [
+      "podSelector",
+      "policyTypes",
+      "egress"
+    ]
+  },
+  {
+    "file": "k8s/networkpolicy-deny-all.yaml",
+    "kind": "NetworkPolicy",
+    "name": "allow-dns",
+    "ns": "astra",
+    "spec_keys": [
+      "podSelector",
+      "policyTypes",
+      "egress"
+    ]
+  },
+  {
+    "file": "k8s/networkpolicy-deny-all.yaml",
+    "kind": "NetworkPolicy",
+    "name": "allow-ingress-controller",
+    "ns": "astra",
+    "spec_keys": [
+      "podSelector",
+      "policyTypes",
+      "ingress"
+    ]
+  },
+  {
+    "file": "k8s/probe-astra.yaml",
+    "kind": "Probe",
+    "name": "astra-https-probe",
+    "ns": "monitoring",
+    "spec_keys": [
+      "module",
+      "prober",
+      "interval",
+      "scrapeTimeout",
+      "targets"
+    ]
+  },
+  {
+    "file": "k8s/probe-astra.yaml",
+    "kind": "Probe",
+    "name": "astra-internal-probe",
+    "ns": "monitoring",
+    "spec_keys": [
+      "module",
+      "prober",
+      "interval",
+      "scrapeTimeout",
+      "targets"
+    ]
+  },
+  {
+    "file": "k8s/prometheusrule-astrasafety.yaml",
+    "kind": "PrometheusRule",
+    "name": "astra-critical-rules",
+    "ns": "monitoring",
+    "spec_keys": [
+      "groups"
+    ]
+  },
+  {
+    "file": "k8s/prometheusrule-recordings.yaml",
+    "kind": "PrometheusRule",
+    "name": "astra-recording-rules",
+    "ns": "monitoring",
+    "spec_keys": [
+      "groups"
+    ]
+  },
+  {
+    "file": "k8s/pvc.yaml",
+    "kind": "PersistentVolumeClaim",
+    "name": "astra-data-pvc",
+    "ns": "astra",
+    "spec_keys": [
+      "accessModes",
+      "resources",
+      "storageClassName"
+    ]
+  },
+  {
+    "file": "k8s/secret-bridge.yaml",
+    "kind": "Secret",
+    "name": "bridge-secrets",
+    "ns": "astra",
+    "spec_keys": []
+  },
+  {
+    "file": "k8s/service.yaml",
+    "kind": "Service",
+    "name": "bridge",
+    "ns": "astra",
+    "spec_keys": [
+      "selector",
+      "ports",
+      "type"
+    ]
+  },
+  {
+    "file": "k8s/servicemonitor-bridge-docs.yaml",
+    "kind": "ServiceMonitor",
+    "name": "astra-bridge-sm",
+    "ns": "monitoring",
+    "spec_keys": [
+      "namespaceSelector",
+      "selector",
+      "endpoints"
+    ]
+  },
+  {
+    "file": "k8s/servicemonitor-bridge-docs.yaml",
+    "kind": "ServiceMonitor",
+    "name": "astra-docs-sm",
+    "ns": "monitoring",
+    "spec_keys": [
+      "namespaceSelector",
+      "selector",
+      "endpoints"
+    ]
+  },
+  {
+    "file": "k8s/servicemonitor-bridge-docs.yaml",
+    "kind": "ServiceMonitor",
+    "name": "astra-qdrant-sm",
+    "ns": "monitoring",
+    "spec_keys": [
+      "namespaceSelector",
+      "selector",
+      "endpoints"
+    ]
+  },
+  {
+    "file": "k8s/canary/canary-deployment.yaml",
+    "kind": "Canary",
+    "name": "astra-core",
+    "ns": "astra-production",
+    "spec_keys": [
+      "targetRef",
+      "service",
+      "analysis"
+    ]
+  },
+  {
+    "file": "k8s/canary/canary-deployment.yaml",
+    "kind": "Deployment",
+    "name": "astra-core",
+    "ns": "astra-production",
+    "spec_keys": [
+      "replicas",
+      "selector",
+      "template"
+    ]
+  },
+  {
+    "file": "k8s/canary/canary-deployment.yaml",
+    "kind": "Service",
+    "name": "astra-core",
+    "ns": "astra-production",
+    "spec_keys": [
+      "type",
+      "ports",
+      "selector"
+    ]
+  },
+  {
+    "file": "k8s/canary/canary-deployment.yaml",
+    "kind": "HorizontalPodAutoscaler",
+    "name": "astra-core",
+    "ns": "astra-production",
+    "spec_keys": [
+      "scaleTargetRef",
+      "minReplicas",
+      "maxReplicas",
+      "metrics",
+      "behavior"
+    ]
+  },
+  {
+    "file": "k8s/canary/manual-canary.yaml",
+    "kind": "Deployment",
+    "name": "astra-core-stable",
+    "ns": "astra-production",
+    "spec_keys": [
+      "replicas",
+      "selector",
+      "template"
+    ]
+  },
+  {
+    "file": "k8s/canary/manual-canary.yaml",
+    "kind": "Deployment",
+    "name": "astra-core-canary",
+    "ns": "astra-production",
+    "spec_keys": [
+      "replicas",
+      "selector",
+      "template"
+    ]
+  },
+  {
+    "file": "k8s/canary/manual-canary.yaml",
+    "kind": "Service",
+    "name": "astra-core",
+    "ns": "astra-production",
+    "spec_keys": [
+      "type",
+      "ports",
+      "selector"
+    ]
+  },
+  {
+    "file": "k8s/canary/manual-canary.yaml",
+    "kind": "Service",
+    "name": "astra-core-stable",
+    "ns": "astra-production",
+    "spec_keys": [
+      "type",
+      "ports",
+      "selector"
+    ]
+  },
+  {
+    "file": "k8s/canary/manual-canary.yaml",
+    "kind": "Service",
+    "name": "astra-core-canary",
+    "ns": "astra-production",
+    "spec_keys": [
+      "type",
+      "ports",
+      "selector"
+    ]
+  },
+  {
+    "file": "k8s/canary/manual-canary.yaml",
+    "kind": "VirtualService",
+    "name": "astra-core",
+    "ns": "astra-production",
+    "spec_keys": [
+      "hosts",
+      "http"
+    ]
+  },
+  {
+    "file": "k8s/canary/manual-canary.yaml",
+    "kind": "DestinationRule",
+    "name": "astra-core",
+    "ns": "astra-production",
+    "spec_keys": [
+      "host",
+      "subsets"
+    ]
+  },
+  {
+    "file": "k8s/canary/metric-templates.yaml",
+    "kind": "MetricTemplate",
+    "name": "p95-latency",
+    "ns": "astra-production",
+    "spec_keys": [
+      "provider",
+      "query"
+    ]
+  },
+  {
+    "file": "k8s/canary/metric-templates.yaml",
+    "kind": "MetricTemplate",
+    "name": "p99-latency",
+    "ns": "astra-production",
+    "spec_keys": [
+      "provider",
+      "query"
+    ]
+  },
+  {
+    "file": "k8s/canary/metric-templates.yaml",
+    "kind": "MetricTemplate",
+    "name": "error-rate-percentage",
+    "ns": "astra-production",
+    "spec_keys": [
+      "provider",
+      "query"
+    ]
+  },
+  {
+    "file": "k8s/canary/metric-templates.yaml",
+    "kind": "MetricTemplate",
+    "name": "success-rate-percentage",
+    "ns": "astra-production",
+    "spec_keys": [
+      "provider",
+      "query"
+    ]
+  },
+  {
+    "file": "k8s/canary/metric-templates.yaml",
+    "kind": "MetricTemplate",
+    "name": "vector-query-success-rate",
+    "ns": "astra-production",
+    "spec_keys": [
+      "provider",
+      "query"
+    ]
+  },
+  {
+    "file": "k8s/canary/metric-templates.yaml",
+    "kind": "MetricTemplate",
+    "name": "vector-query-latency",
+    "ns": "astra-production",
+    "spec_keys": [
+      "provider",
+      "query"
+    ]
+  },
+  {
+    "file": "k8s/canary/metric-templates.yaml",
+    "kind": "MetricTemplate",
+    "name": "llm-token-throughput",
+    "ns": "astra-production",
+    "spec_keys": [
+      "provider",
+      "query"
+    ]
+  },
+  {
+    "file": "k8s/canary/metric-templates.yaml",
+    "kind": "MetricTemplate",
+    "name": "llm-error-rate",
+    "ns": "astra-production",
+    "spec_keys": [
+      "provider",
+      "query"
+    ]
+  },
+  {
+    "file": "k8s/canary/metric-templates.yaml",
+    "kind": "MetricTemplate",
+    "name": "memory-usage-percentage",
+    "ns": "astra-production",
+    "spec_keys": [
+      "provider",
+      "query"
+    ]
+  },
+  {
+    "file": "k8s/canary/metric-templates.yaml",
+    "kind": "MetricTemplate",
+    "name": "cpu-usage-percentage",
+    "ns": "astra-production",
+    "spec_keys": [
+      "provider",
+      "query"
+    ]
+  },
+  {
+    "file": "k8s/monitoring/servicemonitor.yaml",
+    "kind": "ServiceMonitor",
+    "name": "astra-core-metrics",
+    "ns": "astra-production",
+    "spec_keys": [
+      "selector",
+      "endpoints"
+    ]
+  },
+  {
+    "file": "k8s/policies/admin-protect.yaml",
+    "kind": "AuthorizationPolicy",
+    "name": "astra-admin-protect",
+    "ns": "astra-production",
+    "spec_keys": [
+      "selector",
+      "action",
+      "rules"
+    ]
+  },
+  {
+    "file": "k8s/policies/admin-protect.yaml",
+    "kind": "PodDisruptionBudget",
+    "name": "astra-core-pdb",
+    "ns": "astra-production",
+    "spec_keys": [
+      "minAvailable",
+      "selector"
+    ]
+  },
+  {
+    "file": "k8s/policies/admin-protect.yaml",
+    "kind": "NetworkPolicy",
+    "name": "astra-allow-prometheus-ingress",
+    "ns": "astra-production",
+    "spec_keys": [
+      "podSelector",
+      "policyTypes",
+      "ingress"
+    ]
+  },
+  {
+    "file": "k8s/policies/admin-protect.yaml",
+    "kind": "NetworkPolicy",
+    "name": "astra-core-egress-policy",
+    "ns": "astra-production",
+    "spec_keys": [
+      "podSelector",
+      "policyTypes",
+      "egress"
+    ]
+  },
+  {
+    "file": "k8s/policies/admin-protect.yaml",
+    "kind": "ServiceAccount",
+    "name": "astra-core-sa",
+    "ns": "astra-production",
+    "spec_keys": []
+  },
+  {
+    "file": "k8s/policies/admin-protect.yaml",
+    "kind": "Role",
+    "name": "astra-core-role",
+    "ns": "astra-production",
+    "spec_keys": []
+  },
+  {
+    "file": "k8s/policies/admin-protect.yaml",
+    "kind": "RoleBinding",
+    "name": "astra-core-rolebinding",
+    "ns": "astra-production",
+    "spec_keys": []
+  },
+  {
+    "file": "k8s/policies/admin-protect.yaml",
+    "kind": "PodSecurityPolicy",
+    "name": "astra-core-psp",
+    "ns": null,
+    "spec_keys": [
+      "privileged",
+      "allowPrivilegeEscalation",
+      "requiredDropCapabilities",
+      "volumes",
+      "hostNetwork",
+      "hostIPC",
+      "hostPID",
+      "runAsUser",
+      "seLinux",
+      "supplementalGroups",
+      "fsGroup",
+      "readOnlyRootFilesystem"
+    ]
+  },
+  {
+    "file": "k8s/policies/external-secrets.yaml",
+    "kind": "ExternalSecret",
+    "name": "astra-core-secrets",
+    "ns": "astra-production",
+    "spec_keys": [
+      "refreshInterval",
+      "secretStoreRef",
+      "target",
+      "data"
+    ]
+  },
+  {
+    "file": "k8s/policies/external-secrets.yaml",
+    "kind": "ClusterSecretStore",
+    "name": "aws-secrets-manager",
+    "ns": null,
+    "spec_keys": [
+      "provider"
+    ]
+  }
+]

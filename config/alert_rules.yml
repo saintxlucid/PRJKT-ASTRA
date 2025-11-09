@@ -1,0 +1,80 @@
+groups:
+  - name: astra_alerts
+    rules:
+      # System Health
+      - alert: HighCPUUsage
+        expr: rate(process_cpu_seconds_total[5m]) > 0.8
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: High CPU usage detected
+          description: CPU usage is above 80% for 5 minutes
+
+      - alert: HighMemoryUsage
+        expr: (process_resident_memory_bytes / container_memory_max_usage_bytes) > 0.9
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: High memory usage detected
+          description: Memory usage is above 90% for 5 minutes
+
+      # API Performance
+      - alert: SlowAPIResponse
+        expr: http_request_duration_seconds{quantile="0.9"} > 1.2
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: Slow API responses detected
+          description: 90th percentile of API responses is above 1.2s
+
+      - alert: HighErrorRate
+        expr: rate(http_requests_total{status=~"5.."}[5m]) / rate(http_requests_total[5m]) > 0.05
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: High error rate detected
+          description: Error rate is above 5% for 5 minutes
+
+      # Model Performance
+      - alert: ModelLatencyHigh
+        expr: astra_model_inference_duration_seconds{quantile="0.95"} > 2
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: Model inference latency is high
+          description: 95th percentile of model inference time is above 2 seconds
+
+      # Memory System
+      - alert: MemorySystemUnhealthy
+        expr: astra_memory_system_health < 1
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: Memory system is unhealthy
+          description: ASTRA memory system health check failed
+
+      # Backup System
+      - alert: BackupFailure
+        expr: astra_backup_success == 0
+        for: 24h
+        labels:
+          severity: critical
+        annotations:
+          summary: Backup system failure
+          description: No successful backup in the last 24 hours
+
+      # Security
+      - alert: HighRateLimit
+        expr: rate(astra_rate_limit_exceeded_total[5m]) > 10
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: High rate of rate-limit violations
+          description: More than 10 rate-limit violations per second

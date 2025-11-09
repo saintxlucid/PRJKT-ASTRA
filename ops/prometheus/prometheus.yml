@@ -1,0 +1,23 @@
+global:
+  scrape_interval: 15s # Default is every 1 minute
+  evaluation_interval: 15s # Evaluate rules every 15s
+
+# Load rules once and periodically evaluate them
+rule_files:
+  - "alerts.yml"
+
+scrape_configs:
+  - job_name: 'astra'
+    static_configs:
+      - targets: ['localhost:8000'] # ASTRA metrics exporter
+    metrics_path: '/metrics'
+
+  - job_name: 'astra-tools'
+    static_configs:
+      - targets: ['localhost:8001'] # Tools metrics exporter
+    metrics_path: '/metrics'
+
+  - job_name: 'astra-desktop'
+    static_configs:
+      - targets: ['localhost:8002'] # Desktop UI metrics exporter
+    metrics_path: '/metrics'

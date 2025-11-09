@@ -1,0 +1,183 @@
+# ASTRA OS — Permission Scopes & Gate Policy
+# Version: 0.1.0 (Phase A — AI-Augmented Layer)
+# Last Updated: 2025-11-04
+
+# Every privileged action is token-gated, scoped, and auditable.
+# Scopes: fs (filesystem), net (network), proc (process management)
+
+scopes:
+  # Filesystem scope — controls all file operations
+  fs:
+    # Operations requiring explicit consent (operator approval)
+    danger:
+      - "delete"                    # File/directory deletion
+      - "move_outside_home"         # Move files outside user home directory
+      - "modify_system"             # Edit system files (C:\Windows, /etc)
+      - "execute_unsigned"          # Execute unsigned binaries
+      - "change_permissions"        # chmod/ACL modifications
+    
+    # Time-to-live: Token expires after this duration
+    ttl: "15m"
+    
+    # Operations allowed without additional consent (within scope)
+    allowed:
+      - "read"                      # Read files (audited but not blocked)
+      - "write_in_home"             # Write within user home/project directories
+      - "create_in_home"            # Create files in user directories
+      - "list"                      # Directory listings
+    
+    # Paths requiring elevated approval regardless of operation
+    protected_paths:
+      - "C:\\Windows\\System32"
+      - "C:\\Program Files"
+      - "/etc"
+      - "/usr/bin"
+      - "/System"
+
+  # Network scope — controls all network operations
+  net:
+    danger:
+      - "external_post"             # HTTP POST to external domains
+      - "ports_nonstandard"         # Connect to ports != 80,443,22
+      - "bind_privileged"           # Bind to ports < 1024
+      - "raw_socket"                # Raw socket access
+      - "dns_override"              # Modify DNS settings
+    
+    ttl: "10m"
+    
+    allowed:
+      - "external_get"              # HTTP GET requests (read-only research)
+      - "localhost"                 # All localhost traffic
+      - "lan"                       # LAN traffic (192.168.x.x, 10.x.x.x)
+    
+    # Domains requiring explicit approval
+    blocked_domains:
+      - "*.cn"                      # Example: geopolitical caution
+      - "*.ru"
+      - "*.torrent"
+    
+    # Domains pre-approved (research, development)
+    trusted_domains:
+      - "github.com"
+      - "stackoverflow.com"
+      - "docs.python.org"
+      - "learn.microsoft.com"
+      - "arxiv.org"
+
+  # Process scope — controls process lifecycle
+  proc:
+    danger:
+      - "spawn_elevated"            # Launch process with admin/root privileges
+      - "debug_attach"              # Attach debugger to running process
+      - "inject_dll"                # DLL/library injection
+      - "kill_system"               # Kill system-critical processes
+      - "modify_memory"             # Write to other process memory
+    
+    ttl: "5m"
+    
+    allowed:
+      - "spawn_user"                # Launch process with user privileges
+      - "query_info"                # Read process information
+      - "wait"                      # Wait for process completion
+    
+    # Processes requiring elevated approval
+    protected_processes:
+      - "lsass.exe"                 # Windows credentials
+      - "csrss.exe"                 # Windows subsystem
+      - "System"                    # Kernel process
+      - "systemd"                   # Linux init
+      - "launchd"                   # macOS init
+
+# Global gate policy
+gate:
+  # Audit every privileged operation (even if allowed)
+  audit_all: true
+  
+  # Log destination
+  audit_log: "astra_os/audit/gate_events.db"
+  
+  # Prometheus metrics endpoint
+  metrics_port: 9090
+  
+  # Anomaly detection: block operations deviating >3 sigma from operator history
+  anomaly_detection: true
+  anomaly_threshold: 3.0
+  
+  # Operator consent timeout (if no response, default action)
+  consent_timeout_sec: 30
+  consent_default_action: "deny"
+  
+  # Undo journal: maintain reversible history for this duration
+  undo_retention_hours: 72
+  
+  # Token verification
+  token_verify_mode: "hybrid"      # "pqc_only" | "ecdsa_only" | "hybrid"
+  token_rotation_days: 90
+  token_overlap_days: 7
+
+# Emergency override (operator can bypass Gate temporarily)
+emergency:
+  enabled: true
+  max_duration_min: 30
+  require_2fa: true                 # Require YubiKey or TOTP
+  audit_severity: "critical"
+
+# Lucid alignment policy integration (Phase 2 emotional context)
+lucid_integration:
+  # When operator is STRESSED, reduce danger thresholds
+  stressed_mode:
+    fs_ttl: "5m"                    # Shorter approvals
+    net_ttl: "3m"
+    proc_ttl: "2m"
+    auto_deny_ambiguous: true       # Deny if consent unclear
+  
+  # When operator is FOCUSED, extend trust slightly
+  focused_mode:
+    fs_ttl: "30m"
+    net_ttl: "20m"
+    proc_ttl: "10m"
+    batch_approvals: true           # Allow batch consent for similar operations
+  
+  # When operator is FATIGUED, minimize interruptions
+  fatigued_mode:
+    auto_approve_safe: true         # Auto-approve low-risk operations
+    defer_non_urgent: true          # Queue non-urgent consent requests
+
+# Compatibility flags (for gradual rollout)
+compatibility:
+  # Start with read-only monitoring (Phase A-1)
+  enforcement_mode: "monitor"       # "monitor" | "enforce" | "strict"
+  
+  # Per-application bypass (legacy support)
+  bypass_processes:
+    - "Ableton Live.exe"            # DAW control exceptions
+    - "FL64.exe"
+    - "DaVinciResolve.exe"
+  
+  # Gradual rollout: percentage of operations to gate
+  rollout_percentage: 100           # 0-100 (start at 10%, ramp to 100%)
+
+# Phase gates (verification criteria)
+phase_gates:
+  phase_a_week_1:
+    - "ETW pipeline captures 100% of fs/net/proc events"
+    - "SQLite audit log written with <10ms p95 latency"
+    - "Prometheus metrics exported successfully"
+    - "0 privileged ops outside token scopes (monitor mode)"
+  
+  phase_a_week_2:
+    - "WFP egress policy blocks non-trusted domains"
+    - "Minifilter read-only mirrors all FS events to Gate"
+    - "Undo journal schema validated with 10 operations"
+  
+  phase_a_complete:
+    - "0 privileged ops outside scopes (enforce mode)"
+    - "File/Net actions show diff and are logged"
+    - "All operations reversible via undo journal"
+
+# Notes
+# - Scopes are hierarchical: fs.delete.system > fs.delete > fs
+# - TTL applies to token, not individual operations (refresh required after expiry)
+# - Emergency override triggers critical audit event + 2FA challenge
+# - Lucid integration allows emotional context to dynamically adjust gate policy
+# - Compatibility mode allows gradual enforcement without breaking workflows

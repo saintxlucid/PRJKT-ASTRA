@@ -1,0 +1,42 @@
+groups:
+  - name: astra_alerts
+    rules:
+      - alert: HighOperationFailureRate
+        expr: |
+          rate(astra_model_operations_total{status="failure"}[5m]) /
+          rate(astra_model_operations_total[5m]) > 0.1
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: High operation failure rate (> 10%)
+          description: "Operation {{ $labels.operation_type }} has high failure rate"
+
+      - alert: SlowOperations
+        expr: |
+          histogram_quantile(0.95, rate(astra_model_operation_duration_seconds_bucket[5m])) > 300
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: Slow operations detected (p95 > 5min)
+          description: "Operation {{ $labels.operation_type }} is taking too long"
+
+      - alert: LowMemoryCoherence
+        expr: astra_memory_coherence_score < 0.5
+        for: 15m
+        labels:
+          severity: warning
+        annotations:
+          summary: Low memory coherence score
+          description: "Memory coherence score is below 0.5"
+
+      - alert: HighSecurityEvents
+        expr: |
+          rate(astra_security_events_total{level=~"WARNING|ERROR"}[5m]) > 1
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: High rate of security events
+          description: "Many {{ $labels.level }} security events of type {{ $labels.event_type }}"

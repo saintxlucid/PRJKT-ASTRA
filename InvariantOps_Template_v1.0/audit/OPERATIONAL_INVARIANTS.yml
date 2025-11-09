@@ -1,0 +1,111 @@
+version: "1.0"
+owner: "sre@your-organization.com"
+service_name: "your-service-name"
+review_window_days: 30
+last_review_date: "2025-11-01"
+
+# OPERATIONAL INVARIANTS
+# These are the laws of production. CI enforces them; canaries validate them.
+# Breach = rollback. Compliance = promotion.
+
+invariants:
+  
+  # SECURITY: Zero tolerance for known vulnerabilities
+  security:
+    pip_audit_criticals: "==0"
+    pip_audit_highs: "==0"
+    bandit_high: "==0"
+    bandit_medium: "<=5"
+    trivy_image_criticals: "==0"
+    trivy_image_highs: "<=2"
+    secrets_in_repo: "==0"
+    dependency_update_lag_days: "<=30"
+    cve_mean_time_to_patch_days: "<=7"
+  
+  # QUALITY: Code coverage and test health
+  quality:
+    coverage_total: ">=0.70"
+    coverage_critical_paths: ">=0.90"
+    tests_failed: "==0"
+    tests_flaky_rate: "<=0.05"
+    tests_duration_minutes: "<=15"
+    linter_errors: "==0"
+    type_coverage: ">=0.80"
+  
+  # PERFORMANCE: Latency and throughput SLOs
+  performance:
+    p50_ms: "<=500"
+    p95_ms: "<=2500"
+    p99_ms: "<=5000"
+    success_rate: ">=0.99"
+    error_rate: "<=0.01"
+    throughput_rps_min: ">=10"
+    saturation_cpu: "<=0.70"
+    saturation_memory: "<=0.80"
+  
+  # RELIABILITY: Circuit breakers, retries, and failure modes
+  reliability:
+    circuit_breaker_trips_total: "==0"
+    five_xx_rate: "<=0.005"
+    four_xx_rate: "<=0.10"
+    rate_limit_429_fairness_violations: "==0"
+    retry_budget_exhaustion_rate: "<=0.01"
+    timeout_rate: "<=0.02"
+    downstream_dependency_failures: "<=0.05"
+  
+  # BACKUPS: Data durability and recovery
+  backups:
+    last_success_hours_ago: "<=24"
+    restore_dry_run_days_ago: "<=7"
+    backup_size_growth_weekly_percent: "<=20"
+    rto_hours: "<=1"
+    rpo_hours: "<=4"
+    encryption_enabled: "==1"
+  
+  # OPERATIONS: Runbooks, alerts, and observability
+  operations:
+    alerts_tested_days_ago: "<=7"
+    runbook_links_present: "==1"
+    pdb_min_available: ">=2"
+    admin_guard_enabled: "==1"
+    rate_limiting_enabled: "==1"
+    structured_logging: "==1"
+    distributed_tracing: "==1"
+    metrics_cardinality_ratio: "<=100"
+  
+  # DEPLOYMENT: Canary and rollback health
+  deployment:
+    canary_duration_minutes: ">=5"
+    canary_promotion_threshold_checks: ">=5"
+    rollback_tested_days_ago: "<=30"
+    deployment_frequency_per_week: ">=1"
+    change_failure_rate: "<=0.15"
+    mttr_minutes: "<=30"
+
+# CRITICAL PATHS
+# These code paths MUST have 90%+ coverage (life-critical flows)
+critical_paths:
+  - "src/api/endpoints/answer.py"
+  - "src/rag/planner.py"
+  - "src/rag/retriever.py"
+  - "src/services/auth.py"
+  - "src/services/rate_limiter.py"
+  - "src/memory/vector_store.py"
+
+# EXEMPTIONS
+# Temporary exceptions with expiry dates and rationale
+exemptions:
+  - invariant: "trivy_image_highs"
+    threshold_override: "<=5"
+    reason: "Known false positives in base image; upstream fix in progress"
+    expires: "2025-12-01"
+    owner: "security-team@your-org.com"
+
+# ANNOTATIONS
+notes:
+  - "Customize thresholds per service maturity and risk appetite"
+  - "Critical paths coverage computed from globs configured in CI"
+  - "Breach detection: CI fails PR; canary triggers rollback"
+  - "Review quarterly; tighten thresholds as system stabilizes"
+  - "Link to SLO dashboard: https://grafana.your-org.com/d/slo"
+  - "Incident retros MUST update this file when invariants are breached"

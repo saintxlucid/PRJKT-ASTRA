@@ -1,0 +1,703 @@
+{
+  "metadata": {
+    "generated": "2025-01",
+    "version": "1.0.0",
+    "totalComponents": 40,
+    "canonical": "astra-os/apps/pantheon",
+    "duplicates": 12,
+    "orphaned": 10,
+    "deprecated": 5
+  },
+  
+  "components": {
+    "shell": {
+      "App": {
+        "canonical": "astra-os/apps/pantheon/src/App.tsx",
+        "duplicates": [
+          "pantheon_ui/src/App.tsx",
+          "astra-os/src/App.tsx"
+        ],
+        "status": "canonical_active",
+        "lines": 120,
+        "dependencies": ["TanStack Router", "Zustand", "Framer Motion"],
+        "description": "Main application shell with grid layout (Halo/Spine/Pulse/Oracle)",
+        "migrationPath": "DELETE duplicates after validation"
+      },
+      
+      "Halo": {
+        "canonical": "astra-os/apps/pantheon/src/components/Halo.tsx",
+        "duplicates": ["pantheon_ui/src/components/Halo.tsx"],
+        "status": "canonical_active",
+        "lines": 85,
+        "dependencies": ["Zustand", "Lucide React"],
+        "description": "Top navigation bar with breadcrumbs and status",
+        "migrationPath": "Deprecate pantheon_ui version"
+      },
+      
+      "Spine": {
+        "canonical": "astra-os/apps/pantheon/src/components/Spine.tsx",
+        "duplicates": ["pantheon_ui/src/components/Spine.tsx"],
+        "status": "canonical_active",
+        "lines": 110,
+        "dependencies": ["Zustand", "Framer Motion", "Lucide React"],
+        "description": "Left sidebar with realm navigation (260px/72px)",
+        "migrationPath": "Deprecate pantheon_ui version"
+      },
+      
+      "Pulse": {
+        "canonical": "astra-os/apps/pantheon/src/components/Pulse.tsx",
+        "duplicates": ["pantheon_ui/src/components/Pulse.tsx"],
+        "status": "canonical_active",
+        "lines": 95,
+        "dependencies": ["Zustand", "Framer Motion"],
+        "description": "Right sidebar with activity feed (360px/0px)",
+        "migrationPath": "Deprecate pantheon_ui version"
+      },
+      
+      "Oracle": {
+        "canonical": "astra-os/apps/pantheon/src/components/Oracle.tsx",
+        "duplicates": ["pantheon_ui/src/components/Oracle.tsx"],
+        "status": "canonical_active",
+        "lines": 130,
+        "dependencies": ["Radix Dialog", "Framer Motion", "Zustand"],
+        "description": "Command palette overlay (Cmd+K)",
+        "migrationPath": "Deprecate pantheon_ui version"
+      }
+    },
+    
+    "ui_primitives": {
+      "Button": {
+        "canonical": "astra-os/apps/pantheon/src/components/ui/Button.tsx",
+        "duplicates": [],
+        "status": "canonical_active",
+        "lines": 75,
+        "dependencies": ["Radix Slot", "class-variance-authority"],
+        "props": {
+          "variant": ["primary", "secondary", "ghost", "danger", "success"],
+          "size": ["sm", "md", "lg"],
+          "loading": "boolean",
+          "disabled": "boolean"
+        },
+        "accessibility": "WCAG 2.1 AA",
+        "description": "Primary button component with 5 variants"
+      },
+      
+      "Input": {
+        "canonical": "astra-os/apps/pantheon/src/components/ui/Input.tsx",
+        "duplicates": [],
+        "status": "canonical_active",
+        "lines": 55,
+        "dependencies": [],
+        "props": {
+          "label": "string",
+          "error": "string",
+          "helperText": "string",
+          "required": "boolean"
+        },
+        "accessibility": "aria-invalid, aria-required",
+        "description": "Form input with label and error states"
+      },
+      
+      "Dialog": {
+        "canonical": "astra-os/apps/pantheon/src/components/ui/Dialog.tsx",
+        "duplicates": [],
+        "status": "canonical_active",
+        "lines": 90,
+        "dependencies": ["Radix Dialog", "Framer Motion"],
+        "accessibility": "Focus trap, Esc to close, aria-labelledby",
+        "description": "Modal dialog with Framer Motion animations"
+      },
+      
+      "Tooltip": {
+        "canonical": "astra-os/apps/pantheon/src/components/ui/Tooltip.tsx",
+        "duplicates": [],
+        "status": "canonical_active",
+        "lines": 40,
+        "dependencies": ["Radix Tooltip"],
+        "props": {
+          "content": "ReactNode",
+          "side": ["top", "right", "bottom", "left"],
+          "delay": "number (default 300ms)"
+        },
+        "description": "Tooltip with 300ms delay"
+      },
+      
+      "select": {
+        "canonical": null,
+        "location": "src/components/ui/select.tsx",
+        "duplicates": [],
+        "status": "orphaned_needs_audit",
+        "lines": "unknown",
+        "dependencies": ["unknown"],
+        "description": "Dropdown select - may conflict with canonical",
+        "migrationPath": "READ FILE, compare API with Radix Select, decide deprecate vs integrate"
+      },
+      
+      "card": {
+        "canonical": null,
+        "location": "src/components/ui/card.tsx",
+        "duplicates": [],
+        "status": "orphaned_needs_audit",
+        "lines": "unknown",
+        "dependencies": ["unknown"],
+        "description": "Card container - may be useful addition",
+        "migrationPath": "READ FILE, consider adding to canonical if API compatible"
+      },
+      
+      "badge": {
+        "canonical": null,
+        "location": "src/components/ui/badge.tsx",
+        "duplicates": [],
+        "status": "orphaned_needs_audit",
+        "lines": "unknown",
+        "dependencies": ["unknown"],
+        "description": "Badge/pill component - may be useful addition",
+        "migrationPath": "READ FILE, consider adding to canonical if API compatible"
+      }
+    },
+    
+    "consent": {
+      "ConsentCard": {
+        "canonical": "astra-os/apps/pantheon/src/components/ConsentCard.tsx",
+        "duplicates": [],
+        "status": "canonical_active",
+        "lines": 155,
+        "dependencies": ["Radix Dialog", "Framer Motion", "TanStack Query"],
+        "features": [
+          "Diff preview",
+          "Scope badges",
+          "Loading states",
+          "Error handling",
+          "Undo capability"
+        ],
+        "description": "Consent workflow card with diff preview"
+      }
+    },
+    
+    "realms_canonical": {
+      "AEON": {
+        "canonical": "astra-os/apps/pantheon/src/realms/AEON.tsx",
+        "duplicates": ["pantheon_ui/src/realms/aeon/AeonDeck.tsx"],
+        "status": "canonical_active",
+        "route": "/aeon",
+        "backend": "static",
+        "lines": 180,
+        "description": "Agent orchestration deck (static UI)",
+        "migration_status": "complete"
+      },
+      
+      "AetherLoom": {
+        "canonical": "astra-os/apps/pantheon/src/realms/AetherLoom.tsx",
+        "duplicates": ["pantheon_ui/src/realms/aether-loom/AetherLoom.tsx"],
+        "status": "canonical_active",
+        "route": "/loom",
+        "backend": "localStorage",
+        "lines": 150,
+        "description": "Workflow builder (localStorage)",
+        "migration_status": "complete"
+      },
+      
+      "DreamGrove": {
+        "canonical": "astra-os/apps/pantheon/src/realms/DreamGrove.tsx",
+        "duplicates": ["pantheon_ui/src/realms/dream-grove/DreamGrove.tsx"],
+        "status": "canonical_active",
+        "route": "/grove",
+        "backend": "http://localhost:7007",
+        "lines": 420,
+        "api_endpoints": [
+          "GET /memory/search",
+          "POST /memory/add",
+          "GET /memory/health"
+        ],
+        "description": "Memory service integration with TanStack Query",
+        "migration_status": "complete"
+      },
+      
+      "SigilGate": {
+        "canonical": "astra-os/apps/pantheon/src/realms/SigilGate.tsx",
+        "duplicates": [],
+        "status": "canonical_active",
+        "route": "/sigil",
+        "backend": "http://localhost:7701",
+        "lines": 510,
+        "api_endpoints": [
+          "POST /seal",
+          "POST /verify",
+          "DELETE /journal/:id",
+          "POST /rollback/:id",
+          "GET /health"
+        ],
+        "description": "Consent system with ConsentCard showcase",
+        "migration_status": "complete"
+      },
+      
+      "Weaver": {
+        "canonical": "astra-os/apps/pantheon/src/realms/Weaver.tsx",
+        "duplicates": [],
+        "status": "canonical_active",
+        "route": "/weaver",
+        "backend": "http://localhost:7703",
+        "lines": 305,
+        "api_endpoints": [
+          "POST /jobs",
+          "GET /jobs",
+          "GET /jobs/:id",
+          "POST /heartbeat",
+          "GET /health"
+        ],
+        "description": "Supervisor service integration (job management)",
+        "migration_status": "complete"
+      }
+    },
+    
+    "realms_legacy_missing": {
+      "Lumen": {
+        "canonical": null,
+        "location": "pantheon_ui/src/realms/lumen/LumenChat.tsx",
+        "status": "legacy_missing_in_current",
+        "route": null,
+        "backend": "unknown (astraAPI.sendChatMessage)",
+        "lines": 373,
+        "features": [
+          "Multi-agent chat interface",
+          "Agent selection (4 agents)",
+          "Streaming responses",
+          "Token counting",
+          "Export/copy/delete messages",
+          "Message history"
+        ],
+        "description": "Multi-agent chat interface",
+        "priority": "HIGH",
+        "decision_required": "Check if backend exists, if YES migrate to canonical with TanStack patterns",
+        "backend_endpoints_needed": [
+          "POST /chat/send",
+          "GET /agents/list",
+          "GET /chat/history"
+        ]
+      },
+      
+      "Seraph": {
+        "canonical": null,
+        "location": "pantheon_ui/src/realms/seraph/SeraphVoice.tsx",
+        "status": "legacy_missing_in_current",
+        "route": null,
+        "backend": "unknown (astraAPI.transcribeAudio, astraAPI.synthesizeSpeech)",
+        "lines": 487,
+        "features": [
+          "Voice input/output",
+          "Audio visualization (waveform)",
+          "Speech recognition",
+          "Text-to-speech",
+          "Push-to-talk mode",
+          "Session history",
+          "Audio level meters"
+        ],
+        "description": "Voice interaction system",
+        "priority": "MEDIUM",
+        "decision_required": "Check if Whisper service exists, evaluate complexity",
+        "backend_endpoints_needed": [
+          "POST /voice/transcribe",
+          "POST /voice/synthesize",
+          "WS /voice/stream"
+        ]
+      },
+      
+      "Obelisk": {
+        "canonical": null,
+        "location": "pantheon_ui/src/realms/obelisk/Obelisk.tsx",
+        "status": "legacy_missing_in_current",
+        "route": null,
+        "backend": "unknown (astraAPI.getNotes, astraAPI.updateNote)",
+        "lines": 403,
+        "features": [
+          "Note management",
+          "Rich text editing",
+          "Tagging system",
+          "Wiki-style linking",
+          "Search functionality",
+          "Auto-save"
+        ],
+        "description": "Note management system (Obsidian-like)",
+        "priority": "MEDIUM",
+        "decision_required": "Check if notes service exists, or use localStorage",
+        "backend_endpoints_needed": [
+          "GET /notes",
+          "GET /notes/:id",
+          "POST /notes",
+          "PUT /notes/:id",
+          "DELETE /notes/:id",
+          "GET /notes/search"
+        ]
+      },
+      
+      "Aetherglass": {
+        "canonical": null,
+        "location": "pantheon_ui/src/realms/aetherglass/Aetherglass.tsx",
+        "status": "legacy_missing_in_current",
+        "route": null,
+        "backend": "none (pure UI)",
+        "lines": 258,
+        "features": [
+          "Browser interface",
+          "Tab management",
+          "Bookmarks",
+          "Navigation controls",
+          "URL bar"
+        ],
+        "description": "Browser interface (pure UI, no backend)",
+        "priority": "LOW",
+        "decision_required": "Easy migration (pure UI), low priority",
+        "backend_endpoints_needed": []
+      }
+    },
+    
+    "legacy_routing": {
+      "RealmView": {
+        "canonical": null,
+        "location": "pantheon_ui/src/components/RealmView.tsx",
+        "status": "legacy_deprecated",
+        "lines": 160,
+        "description": "Manual routing switch statement (replaced by TanStack Router)",
+        "migrationPath": "DELETE - functionality replaced by TanStack Router"
+      }
+    },
+    
+    "plugin_ui": {
+      "PluginUIController": {
+        "canonical": null,
+        "location": "src/ui/components/PluginUIController.tsx",
+        "status": "orphaned_plugin_system",
+        "lines": "unknown",
+        "dependencies": ["unknown"],
+        "description": "Plugin lifecycle UI management",
+        "integration": "NOT connected to Pantheon",
+        "decision_required": "Are plugins core to v1.0? If YES, integrate into Pulse sidebar"
+      },
+      
+      "PluginNotifications": {
+        "canonical": null,
+        "location": "src/ui/components/PluginNotifications.tsx",
+        "status": "orphaned_plugin_system",
+        "lines": "unknown",
+        "dependencies": ["unknown"],
+        "description": "Toast/notification system",
+        "conflict": "May conflict with ConsentCard pattern",
+        "decision_required": "Unify with ConsentCard or keep separate?"
+      },
+      
+      "PermissionRequestDialog": {
+        "canonical": null,
+        "location": "src/ui/components/PermissionRequestDialog.tsx",
+        "status": "orphaned_plugin_system",
+        "lines": "unknown",
+        "dependencies": ["unknown"],
+        "description": "Permission consent UI",
+        "conflict": "DUPLICATES ConsentCard functionality",
+        "decision_required": "Unify with ConsentCard"
+      }
+    },
+    
+    "evolution_components": {
+      "CognitiveLayer": {
+        "canonical": null,
+        "location": "src/astra/evolution/components/CognitiveLayer.tsx",
+        "status": "orphaned_evolution",
+        "lines": "unknown",
+        "description": "Brain visualization",
+        "integration": "NOT accessible from Pantheon",
+        "decision_required": "Create /evolution realm or integrate into existing realms"
+      },
+      
+      "EvolutionVisuals": {
+        "canonical": null,
+        "location": "src/astra/evolution/components/EvolutionVisuals.jsx",
+        "status": "orphaned_evolution",
+        "lines": "unknown",
+        "description": "Evolution progress display",
+        "integration": "NOT accessible from Pantheon",
+        "decision_required": "Create /evolution realm or integrate into existing realms"
+      },
+      
+      "HeatmapVisualizer": {
+        "canonical": null,
+        "location": "src/astra/evolution/components/HeatmapVisualizer.jsx",
+        "status": "orphaned_evolution",
+        "lines": "unknown",
+        "description": "Data heatmap",
+        "integration": "NOT accessible from Pantheon",
+        "decision_required": "Create /evolution realm or integrate into existing realms"
+      },
+      
+      "MetamorphosisChamber": {
+        "canonical": null,
+        "location": "src/astra/evolution/components/MetamorphosisChamber.jsx",
+        "status": "orphaned_evolution",
+        "lines": "unknown",
+        "description": "Evolution chamber UI",
+        "integration": "NOT accessible from Pantheon",
+        "decision_required": "Create /evolution realm or integrate into existing realms"
+      },
+      
+      "TelemetryDashboard": {
+        "canonical": null,
+        "location": "src/astra/evolution/components/TelemetryDashboard.jsx",
+        "status": "orphaned_evolution",
+        "lines": "unknown",
+        "description": "Metrics dashboard",
+        "integration": "NOT accessible from Pantheon",
+        "decision_required": "May be useful for Phase 4 observability"
+      },
+      
+      "VoiceConfirmation": {
+        "canonical": null,
+        "location": "src/astra/evolution/components/VoiceConfirmation.jsx",
+        "status": "orphaned_evolution",
+        "lines": "unknown",
+        "description": "Voice interaction UI",
+        "integration": "NOT accessible from Pantheon",
+        "decision_required": "Related to Seraph? Merge if migrating voice realm"
+      }
+    },
+    
+    "web_ui": {
+      "EmotionalRadar": {
+        "canonical": null,
+        "location": "web/ui/components/EmotionalRadar.tsx",
+        "status": "orphaned_isolated",
+        "lines": "unknown",
+        "description": "Emotional state visualization",
+        "integration": "NOT accessible from Pantheon",
+        "decision_required": "Integrate into Pulse sidebar or AEON realm?"
+      }
+    },
+    
+    "deprecated": {
+      "App_old": {
+        "location": "astra-os/src/App.tsx",
+        "status": "deprecated_superseded",
+        "migrationPath": "DELETE immediately"
+      },
+      
+      "main_old": {
+        "location": "astra-os/src/main.tsx",
+        "status": "deprecated_superseded",
+        "migrationPath": "DELETE immediately"
+      }
+    }
+  },
+  
+  "state_management": {
+    "canonical_store": {
+      "location": "astra-os/apps/pantheon/src/store/ui.ts",
+      "lines": 170,
+      "library": "zustand@5.0.8",
+      "persistence": true,
+      "localStorage_key": "astra-ui-store",
+      "state_keys": [
+        "collapseSpine",
+        "showPulse",
+        "spineWidth",
+        "pulseWidth",
+        "theme",
+        "oracleOpen",
+        "currentPath",
+        "splitView",
+        "splitRatio",
+        "animationsEnabled",
+        "soundEnabled",
+        "compactMode"
+      ],
+      "actions": [
+        "toggleSpine",
+        "togglePulse",
+        "setTheme",
+        "toggleTheme",
+        "openOracle",
+        "closeOracle",
+        "toggleOracle",
+        "setCurrentPath",
+        "toggleSplitView",
+        "setSplitRatio",
+        "toggleAnimations",
+        "toggleSound",
+        "toggleCompactMode",
+        "reset"
+      ],
+      "keyboard_shortcuts": {
+        "Cmd+K": "toggleOracle",
+        "Alt+P": "togglePulse",
+        "Alt+S": "toggleSpine",
+        "Alt+T": "toggleTheme",
+        "Esc": "closeOracle"
+      }
+    },
+    
+    "legacy_store": {
+      "location": "pantheon_ui/src/store/pantheon-store.ts",
+      "lines": 33,
+      "library": "zustand@4.4.7",
+      "persistence": false,
+      "state_keys": [
+        "currentRealm",
+        "oracleOpen",
+        "pulseVisible",
+        "spineCollapsed"
+      ],
+      "actions": [
+        "setCurrentRealm",
+        "setOracleOpen",
+        "setPulseVisible",
+        "setSpineCollapsed"
+      ],
+      "status": "deprecated_simple_version",
+      "migrationPath": "Replace with canonical useUI() hook"
+    }
+  },
+  
+  "routing": {
+    "canonical_router": {
+      "location": "astra-os/apps/pantheon/src/routes.tsx",
+      "library": "tanstack_router@1.134.15",
+      "routes": [
+        { "path": "/", "component": "AEON" },
+        { "path": "/aeon", "component": "AEON" },
+        { "path": "/loom", "component": "AetherLoom" },
+        { "path": "/sigil", "component": "SigilGate" },
+        { "path": "/grove", "component": "DreamGrove" },
+        { "path": "/weaver", "component": "Weaver" },
+        { "path": "/settings", "component": "Settings" },
+        { "path": "/logs", "component": "Logs" },
+        { "path": "*", "component": "NotFound" }
+      ],
+      "features": [
+        "Lazy loading",
+        "Preload on hover (100ms)",
+        "Type-safe navigation",
+        "Suspense boundaries",
+        "Route metadata"
+      ]
+    },
+    
+    "legacy_routing": {
+      "location": "pantheon_ui/src/components/RealmView.tsx",
+      "type": "manual_switch_statement",
+      "status": "deprecated",
+      "migrationPath": "DELETE - replaced by TanStack Router"
+    }
+  },
+  
+  "design_tokens": {
+    "canonical": {
+      "location": "astra-os/apps/pantheon/src/tokens/theme.ts",
+      "lines": 300,
+      "token_count": 300,
+      "categories": [
+        "colors (Obsidian palette)",
+        "typography (Inter, Söhne, Mono)",
+        "spacing (0-96px)",
+        "radius (sm-2xl)",
+        "shadows",
+        "motion (spring physics)",
+        "z-index"
+      ],
+      "integration": "Tailwind CSS config extends tokens"
+    },
+    
+    "potential_duplicate": {
+      "location": "astra-os/apps/pantheon/src/core/theme.ts",
+      "status": "needs_verification",
+      "action": "READ FILE - may be duplicate or different purpose"
+    }
+  },
+  
+  "api_clients": {
+    "canonical": {
+      "location": "astra-os/apps/pantheon/src/services/client.ts",
+      "lines": 300,
+      "library": "tanstack_query@5.90.7",
+      "services": {
+        "memoryAPI": [
+          "search(query, layer?, limit?)",
+          "add(content, metadata?, layer?)",
+          "health()"
+        ],
+        "sigilAPI": [
+          "seal(operation, payload)",
+          "verify(token)",
+          "journalDelete(id)",
+          "rollback(id)",
+          "health()"
+        ],
+        "supervisorAPI": [
+          "createJob(payload)",
+          "listJobs()",
+          "getJob(id)",
+          "heartbeat(jobId, status)",
+          "health()"
+        ]
+      },
+      "query_config": {
+        "staleTime": "30s",
+        "gcTime": "5min",
+        "retry": 2,
+        "refetchOnWindowFocus": false
+      }
+    },
+    
+    "legacy": {
+      "location": "pantheon_ui/src/lib/api/client",
+      "status": "not_found",
+      "expected_methods": [
+        "sendChatMessage() (Lumen)",
+        "transcribeAudio() (Seraph)",
+        "synthesizeSpeech() (Seraph)",
+        "getNotes() (Obelisk)",
+        "updateNote() (Obelisk)"
+      ],
+      "issue": "API client referenced but not found in legacy codebase"
+    }
+  },
+  
+  "duplication_summary": {
+    "critical_duplicates": {
+      "App.tsx": 3,
+      "Halo.tsx": 2,
+      "Spine.tsx": 2,
+      "Pulse.tsx": 2,
+      "Oracle.tsx": 2
+    },
+    
+    "potential_conflicts": {
+      "select.tsx": "Root vs canonical (needs audit)",
+      "card.tsx": "Root only (may be useful addition)",
+      "badge.tsx": "Root only (may be useful addition)",
+      "theme.ts": "2 locations (needs verification)",
+      "PermissionRequestDialog vs ConsentCard": "Functionality overlap"
+    },
+    
+    "missing_from_current": {
+      "Lumen (Chat)": 373,
+      "Seraph (Voice)": 487,
+      "Obelisk (Notes)": 403,
+      "Aetherglass (Browser)": 258
+    },
+    
+    "orphaned_components": {
+      "Plugin UI": 3,
+      "Evolution": 6,
+      "Web UI": 1
+    }
+  },
+  
+  "next_actions": [
+    "READ src/components/ui/{select,card,badge}.tsx - Compare APIs",
+    "READ astra-os/apps/pantheon/src/core/theme.ts - Verify if duplicate",
+    "CHECK backend services: curl http://localhost:7xxx/health for chat/voice/notes",
+    "DECIDE on legacy realms: Migrate vs Deprecate based on backend availability",
+    "DECIDE on plugin UI: Integrate vs Keep Separate vs Deprecate",
+    "DECIDE on evolution components: Create realm vs Integrate vs Keep as library",
+    "CREATE dependency graph: Which components import which",
+    "GENERATE content hashes: Identify true duplicates vs similar files",
+    "CREATE UI_MIGRATION_PLAN.md: Step-by-step consolidation strategy"
+  ]
+}

@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ASTRA Role Dashboard</title>
+  <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+      color: #e0e0e0;
+      padding: 20px;
+      min-height: 100vh;
+    }
+    header {
+      text-align: center;
+      margin-bottom: 32px;
+      padding: 24px;
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 12px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    header h1 {
+      font-size: 2.5em;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 8px;
+    }
+    header p { color: #b0b0b0; font-size: 1.1em; }
+    main {
+      max-width: 1400px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+      gap: 24px;
+    }
+    .card {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 12px;
+      padding: 24px;
+      backdrop-filter: blur(10px);
+    }
+    .card h3 {
+      color: #667eea;
+      margin-bottom: 16px;
+      font-size: 1.4em;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 12px;
+    }
+    th, td {
+      padding: 10px;
+      text-align: left;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    th {
+      color: #667eea;
+      font-weight: 600;
+    }
+    code {
+      background: rgba(255, 255, 255, 0.1);
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-family: 'Courier New', monospace;
+      color: #c3cee3;
+    }
+    input, textarea, select {
+      width: 100%;
+      padding: 10px;
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 6px;
+      color: #e0e0e0;
+      font-size: 14px;
+      margin-top: 8px;
+    }
+    button {
+      padding: 10px 20px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      border: none;
+      border-radius: 6px;
+      color: white;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s;
+      margin-top: 8px;
+    }
+    button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+    }
+    pre {
+      background: rgba(0, 0, 0, 0.3);
+      padding: 12px;
+      border-radius: 6px;
+      overflow-x: auto;
+      font-size: 13px;
+      color: #c3cee3;
+    }
+    .status {
+      display: inline-block;
+      padding: 4px 12px;
+      border-radius: 12px;
+      font-size: 0.9em;
+      font-weight: 600;
+    }
+    .status.active {
+      background: rgba(102, 126, 234, 0.3);
+      color: #667eea;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>🌌 ASTRA Role Dashboard</h1>
+    <p>Multi-Persona Intelligence System v2.5</p>
+  </header>
+
+  <main>
+    <section class="card">
+      <h3>Active Role</h3>
+      <div id="current-role" hx-get="/api/roles" hx-trigger="load, every 3s" hx-swap="innerHTML"></div>
+      <script>
+        document.body.addEventListener('htmx:afterOnLoad', (e) => {
+          const el = e.detail.elt;
+          if (el && el.id === 'current-role') {
+            try {
+              const data = JSON.parse(el.innerText);
+              el.innerHTML = `
+                <p>Current: <span class="status active">${data.current}</span></p>
+                <select id="role" style="margin-top:12px">
+                  ${Object.keys(data.available).map(r => `<option value="${r}" ${r === data.current ? 'selected' : ''}>${r}</option>`).join('')}
+                </select>
+                <button onclick="switchRole()">Switch Role</button>
+              `;
+            } catch {}
+          }
+        });
+
+        async function switchRole() {
+          const role = document.getElementById('role').value;
+          const r = await fetch('/api/role/switch', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ role })
+          });
+          if (!r.ok) { alert('Switch failed'); return; }
+          location.reload();
+        }
+      </script>
+    </section>
+
+    <section class="card">
+      <h3>Universal Functions</h3>
+      <div id="funcs" hx-get="/api/functions" hx-trigger="load, every 6s" hx-swap="innerHTML"></div>
+      <script>
+        document.body.addEventListener('htmx:afterOnLoad', (e) => {
+          const el = e.detail.elt;
+          if (el && el.id === 'funcs') {
+            try {
+              const data = JSON.parse(el.innerText);
+              const rows = data.items.map(it => `
+                <tr>
+                  <td><code>${it.code}</code></td>
+                  <td>${it.role_hint}</td>
+                  <td>${it.description}</td>
+                </tr>
+              `).join('');
+              el.innerHTML = `
+                <table>
+                  <thead><tr><th>Code</th><th>Role</th><th>Description</th></tr></thead>
+                  <tbody>${rows}</tbody>
+                </table>
+              `;
+            } catch {}
+          }
+        });
+      </script>
+
+      <div style="margin-top:12px">
+        <input id="code" placeholder="Function code (e.g., ASTRA_INTEL_CORE)" />
+        <textarea id="args" placeholder='JSON args, e.g. {"topic":"Parallelize RAG"}' rows="4"></textarea>
+        <button onclick="invoke()">Invoke</button>
+      </div>
+      <pre id="result"></pre>
+      <script>
+        async function invoke() {
+          const code = document.getElementById('code').value.trim();
+          const raw = document.getElementById('args').value.trim();
+          let args = {};
+          try { if (raw) args = JSON.parse(raw); } catch (e) { alert('Invalid JSON'); return; }
+          const r = await fetch(`/api/functions/${code}/invoke`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ args })
+          });
+          const t = await r.text();
+          document.getElementById('result').innerText = t;
+        }
+      </script>
+    </section>
+
+    <section class="card" style="grid-column: 1 / -1">
+      <h3>Trace Log</h3>
+      <div id="traces" hx-get="/api/traces" hx-trigger="load, every 3s" hx-swap="innerHTML"></div>
+      <script>
+        document.body.addEventListener('htmx:afterOnLoad', (e) => {
+          const el = e.detail.elt;
+          if (el && el.id === 'traces') {
+            try {
+              const data = JSON.parse(el.innerText);
+              const rows = data.events.map(ev => `
+                <tr>
+                  <td>${ev.ts}</td>
+                  <td><code>${ev.kind}</code></td>
+                  <td><code>${JSON.stringify(ev.payload)}</code></td>
+                </tr>
+              `).join('');
+              el.innerHTML = `
+                <table>
+                  <thead><tr><th>Time</th><th>Kind</th><th>Payload</th></tr></thead>
+                  <tbody>${rows || '<tr><td colspan="3">No events yet</td></tr>'}</tbody>
+                </table>
+              `;
+            } catch {}
+          }
+        });
+      </script>
+    </section>
+  </main>
+</body>
+</html>

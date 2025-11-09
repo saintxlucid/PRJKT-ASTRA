@@ -11,7 +11,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from astra.api.middleware.request_id import RequestIdMiddleware
-from astra.api.routes import chat, conversations, system, tools, consent
+from astra.api.routes import chat, conversations, system, tools, consent, answer
 from astra.infrastructure.storage.database import DatabaseManager
 from astra.infrastructure.storage.vector_store import VectorStore
 
@@ -23,7 +23,11 @@ from astra.core.tool_bus import initialize_registry
 from astra.security.policy_engine import initialize_policy_engine
 
 # Upgrade Pack v2.0 - Metrics and Security
-from astra.metrics import MetricsMiddleware, metrics_endpoint
+from astra.metrics import (
+    MetricsMiddleware, 
+    metrics_endpoint,
+    RequestMetrics
+)
 from astra.models.config import get_settings
 from astra.queue_guard import ConcurrencyLimiterMiddleware
 from astra.security import ApiKeyMiddleware, RateLimitMiddleware
@@ -82,6 +86,7 @@ async def lifespan(app: FastAPI):
     chat.set_chat_service(chat_service)
     conversations.set_conversation_service(conversation_service)
     system.set_system_dependencies(chat_service, memory_service)
+    answer.set_answer_services(chat_service, memory_service)
 
     logger.info("application_started")
 
@@ -151,9 +156,14 @@ def create_app() -> FastAPI:
     app.include_router(chat.router)
     app.include_router(conversations.router)
     app.include_router(system.router)
+    app.include_router(answer.router)  # New non-streaming answer endpoint
     app.include_router(bridge_router)  # Bridge module for LLM function calling
     app.include_router(tools.router)  # Tool Bus endpoints
     app.include_router(consent.router)  # Consent management
+    
+    # Add health check endpoints
+    from astra.api.health import router as health_router
+    app.include_router(health_router)
 
     # Upgrade Pack v2.0 - Expose Prometheus metrics endpoint
     app.add_route("/metrics", metrics_endpoint)

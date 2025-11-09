@@ -1,0 +1,164 @@
+# Prometheus Alert Rules for Memory Consolidation
+# Install in: /etc/prometheus/rules/astra_memory.yml
+
+groups:
+  - name: astra_memory_consolidation
+    interval: 30s
+    rules:
+      # Quality Gate
+      - alert: DreamQualityBelowBaseline
+        expr: dream_quality_score < 0.70
+        for: 5m
+        labels:
+          severity: warning
+          component: memory_consolidation
+        annotations:
+          summary: "Dream quality score below baseline ({{ $value }})"
+          description: |
+            Memory consolidation quality has dropped below 0.70 baseline.
+            Current score: {{ $value | humanize }}
+            Threshold: 0.70
+            Check:
+              - LLM summary quality degradation
+              - Event coverage drop
+              - Lexical redundancy increase
+            
+      # Performance Gate
+      - alert: ConsolidationDurationHigh
+        expr: dream_duration_seconds > 180
+        for: 10m
+        labels:
+          severity: warning
+          component: memory_consolidation
+        annotations:
+          summary: "Consolidation taking too long ({{ $value }}s)"
+          description: |
+            Memory consolidation exceeding 180s baseline.
+            Current duration: {{ $value | humanizeEn}}s
+            Threshold: 180s
+            Check:
+              - LLM API latency
+              - DBSCAN performance (too many events?)
+              - ChromaDB write bottleneck
+      
+      # Hallucination Gate
+      - alert: ProvenanceFailureRateHigh
+        expr: rate(dream_provenance_failures_total[5m]) > 0.05
+        for: 10m
+        labels:
+          severity: critical
+          component: memory_consolidation
+        annotations:
+          summary: "High provenance validation failure rate"
+          description: |
+            {{ $value | humanizePercentage }} of summaries failing provenance check.
+            Threshold: 5% over 5min
+            This indicates:
+              - LLM hallucination increase
+              - Prompt injection attempts
+              - Lexical grounding failure
+            Action: Review LLM output samples, check for adversarial events
+      
+      # Overlap Lock Gate
+      - alert: ConsolidationLockContention
+        expr: rate(dream_lock_failures_total[5m]) > 2
+        for: 5m
+        labels:
+          severity: info
+          component: memory_consolidation
+        annotations:
+          summary: "High consolidation lock contention"
+          description: |
+            {{ $value }} lock failures per second over 5min.
+            Indicates concurrent execution attempts.
+            Check:
+              - Scheduler misconfiguration (double triggers)
+              - Manual runs overlapping with automatic
+              - Lock timeout too short
+      
+      # Coverage Gate
+      - alert: EventCoverageLow
+        expr: dream_event_coverage < 0.60
+        for: 15m
+        labels:
+          severity: warning
+          component: memory_consolidation
+        annotations:
+          summary: "Event coverage below target ({{ $value }})"
+          description: |
+            Only {{ $value | humanizePercentage }} of events being summarized.
+            Threshold: 60%
+            Check:
+              - DBSCAN min_samples too high
+              - Auto-tuned eps too strict
+              - Too many noise points (adversarial events?)
+      
+      # Cluster Count Anomaly
+      - alert: ClusterCountAnomaly
+        expr: |
+          abs(dream_clusters_created - 
+              avg_over_time(dream_clusters_created[1h])) > 
+          2 * stddev_over_time(dream_clusters_created[1h])
+        for: 20m
+        labels:
+          severity: info
+          component: memory_consolidation
+        annotations:
+          summary: "Cluster count anomaly detected"
+          description: |
+            Cluster count {{ $value }} deviates >2σ from 1h average.
+            This could indicate:
+              - Event distribution shift (more/fewer diverse topics)
+              - Auto-tuning eps changed significantly
+              - Data quality issue
+      
+      # Watermark Stuck
+      - alert: WatermarkNotAdvancing
+        expr: |
+          (time() - dream_last_watermark_update_timestamp) > 7200
+        for: 30m
+        labels:
+          severity: warning
+          component: memory_consolidation
+        annotations:
+          summary: "Consolidation watermark not advancing"
+          description: |
+            Watermark hasn't updated in {{ $value | humanizeDuration }}.
+            Check:
+              - Consolidation scheduler stopped
+              - Lock file stale (manual removal needed?)
+              - No new events to process
+      
+      # HMAC Failure (Security)
+      - alert: HMACValidationFailures
+        expr: rate(dream_hmac_failures_total[10m]) > 0
+        for: 5m
+        labels:
+          severity: critical
+          component: memory_consolidation
+        annotations:
+          summary: "HMAC signature validation failures detected"
+          description: |
+            {{ $value }} HMAC failures over 10min.
+            This indicates:
+              - Data tampering attempt
+              - ChromaDB corruption
+              - Secret key mismatch
+            Action: IMMEDIATE INVESTIGATION REQUIRED
+
+# Dashboard Query Examples (PromQL)
+# 
+# Quality trend:
+#   dream_quality_score
+# 
+# Duration P95:
+#   histogram_quantile(0.95, rate(dream_duration_seconds_bucket[5m]))
+# 
+# Provenance failure rate:
+#   rate(dream_provenance_failures_total[5m]) * 100
+# 
+# Coverage trend:
+#   dream_event_coverage
+# 
+# Cluster size distribution:
+#   histogram_quantile(0.50, rate(dream_cluster_size_bucket[5m]))

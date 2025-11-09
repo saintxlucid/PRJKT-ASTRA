@@ -1,0 +1,54 @@
+# Core dependencies
+fastapi>=0.68.0
+uvicorn[standard]>=0.15.0
+pydantic>=2.0.0
+python-multipart>=0.0.5
+
+# System monitoring and automation
+psutil>=5.8.0
+pyautogui>=0.9.53
+pywinauto>=0.6.8; platform_system == "Windows"
+keyboard>=0.13.5
+mouse>=0.7.1
+
+# Document processing
+pytesseract>=0.3.8
+pdf2image>=1.16.0
+pdfminer.six>=20220524
+python-magic>=0.4.24
+
+# Media processing
+opencv-python-headless>=4.5.3
+pillow>=8.3.2
+moviepy>=1.0.3
+sounddevice>=0.4.4
+
+# Machine learning and embeddings
+numpy>=1.21.2
+scikit-learn>=0.24.2
+torch>=1.9.0
+transformers>=4.11.3
+sentence-transformers>=2.1.0
+faiss-cpu>=1.7.2
+
+# Security
+cryptography>=3.4.8
+python-jose[cryptography]>=3.3.0
+passlib[bcrypt]>=1.7.4
+python-multipart>=0.0.5
+
+# Database
+sqlalchemy>=1.4.23
+aiosqlite>=0.17.0
+databases[sqlite]>=0.5.3
+
+# GUI
+PySide6>=6.2.0
+
+# Development
+pytest>=6.2.5
+pytest-asyncio>=0.15.1
+pytest-cov>=2.12.1
+black>=21.7b0
+mypy>=0.910
+ruff>=0.1.0

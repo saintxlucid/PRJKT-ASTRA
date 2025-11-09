@@ -1,0 +1,28 @@
+name: gpt2-distillation
+channels:
+  - pytorch
+  - huggingface
+  - conda-forge
+  - defaults
+dependencies:
+  - python=3.10
+  - pip
+  - pytorch::pytorch>=2.0.0
+  - pytorch::torchvision
+  - pytorch::torchaudio
+  - cudatoolkit=11.7
+  - huggingface::transformers>=4.30.0
+  - huggingface::datasets>=2.14.0
+  - conda-forge::accelerate>=0.21.0
+  - conda-forge::tqdm>=4.65.0
+  - conda-forge::pandas
+  - conda-forge::numpy
+  - conda-forge::scipy
+  - conda-forge::matplotlib
+  - conda-forge::seaborn
+  - conda-forge::pyyaml
+  - pip:
+    - bitsandbytes>=0.41.0
+    - peft>=0.4.0
+    - wandb>=0.15.0
+    - tensorboard>=2.14.0

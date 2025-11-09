@@ -1,0 +1,85 @@
+# ASTRA Docker Compose - Single Deployment Path (Simplified)
+# Replaces the ingestion-focused compose with ASTRA Core focus
+# For local sovereign deployment (no Kubernetes complexity)
+
+version: "3.8"
+
+services:
+  # Main ASTRA Core service
+  astra:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: astra_core
+    command: python astra_core.py
+    
+    env_file:
+      - .env  # or .env.runtime (decrypted secrets)
+    
+    environment:
+      - ASTRA_ENV=production
+      - PYTHONUNBUFFERED=1
+      - DATABASE_URL=postgresql://astra:astra_dev@postgres:5432/astra
+      - REDIS_URL=redis://redis:6379
+    
+    volumes:
+      - ./astra.yaml:/app/astra.yaml:ro
+      - ./security:/app/security:ro
+      - ./data:/app/data
+      - ./models:/app/models:ro
+    
+    ports:
+      - "8080:8080"  # Main API
+    
+    depends_on:
+      - postgres
+      - redis
+    
+    restart: unless-stopped
+    
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/live"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # PostgreSQL for episodic/procedural memory
+  postgres:
+    image: postgres:15
+    container_name: astra_postgres
+    environment:
+      - POSTGRES_DB=astra
+      - POSTGRES_USER=astra
+      - POSTGRES_PASSWORD=astra_dev
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    restart: unless-stopped
+
+  # Redis for caching
+  redis:
+    image: redis:7
+    container_name: astra_redis
+    command: redis-server --appendonly yes
+    volumes:
+      - redis-data:/data
+    ports:
+      - "6379:6379"
+    restart: unless-stopped
+
+volumes:
+  postgres-data:
+  redis-data:
+
+# Usage:
+#   docker-compose up -d              # Start services
+#   docker-compose logs -f astra      # Watch logs
+#   docker-compose down               # Stop services
+#   docker-compose down -v            # Stop + delete volumes (DESTRUCTIVE)
+#
+# Before first run:
+#   1. python security/verify_models.py --write
+#   2. Set ASTRA_MEMORY_SIGNING_KEY environment variable
+#   3. Encrypt .env: gpg --symmetric --cipher-algo AES256 .env

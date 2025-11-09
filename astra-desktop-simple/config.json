@@ -1,0 +1,10 @@
+{
+  "apiUrl": "http://localhost:8080",
+  "wsUrl": "ws://localhost:8080/ws",
+  "apiVersion": "v1",
+  "endpoints": {
+    "chat": "/v1/chat/completions",
+    "health": "/v1/system/health",
+    "conversations": "/v1/conversations"
+  }
+}

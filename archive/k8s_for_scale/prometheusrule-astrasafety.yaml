@@ -1,0 +1,263 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: astra-critical-rules
+  namespace: monitoring
+  labels:
+    app: astra
+    component: alerting
+spec:
+  groups:
+  - name: astra-critical
+    interval: 30s
+    rules:
+    # BRIDGE ALERTS
+    - alert: BridgeHighErrorRate
+      expr: |
+        sum(rate(bridge_calls_total{status="error"}[5m]))
+        / clamp_min(sum(rate(bridge_calls_total[5m])), 1)
+        > 0.01
+      for: 5m
+      labels:
+        severity: page
+        service: bridge
+        component: astra
+      annotations:
+        summary: "Bridge error rate >1% (5m)"
+        description: "High error rate on Bridge over 5m. Current: {{ $value | humanizePercentage }}. Investigate service logs and recent deploys."
+        runbook_url: "file:///x:/PROJECT_ASTRA_1.0%20(ASTRA_CORE)/CUTOVER_QUICK_REF.md#bridge-high-error-rate"
+        dashboard: "https://grafana.example.com/d/astra-ops"
+
+    - alert: BridgeHighLatencyP95
+      expr: |
+        histogram_quantile(
+          0.95,
+          sum by (le) (rate(bridge_call_duration_seconds_bucket[5m]))
+        ) > 1
+      for: 5m
+      labels:
+        severity: page
+        service: bridge
+        component: astra
+      annotations:
+        summary: "Bridge P95 latency > 1s"
+        description: "95th percentile latency for Bridge calls exceeded 1s. Current: {{ $value }}s. Check downstream LLM and Qdrant latency."
+        runbook_url: "file:///x:/PROJECT_ASTRA_1.0%20(ASTRA_CORE)/CUTOVER_QUICK_REF.md#bridge-high-latency"
+
+    - alert: BridgeCriticalLatencyP95
+      expr: |
+        histogram_quantile(
+          0.95,
+          sum by (le) (rate(bridge_call_duration_seconds_bucket[5m]))
+        ) > 3
+      for: 2m
+      labels:
+        severity: critical
+        service: bridge
+        component: astra
+      annotations:
+        summary: "Bridge P95 latency > 3s (CRITICAL)"
+        description: "95th percentile latency for Bridge calls exceeded 3s. Current: {{ $value }}s. IMMEDIATE INVESTIGATION REQUIRED."
+        runbook_url: "file:///x:/PROJECT_ASTRA_1.0%20(ASTRA_CORE)/CUTOVER_QUICK_REF.md#critical-latency"
+
+    - alert: BridgeUnexpectedRestart
+      expr: increase(kube_pod_container_status_restarts_total{container="bridge"}[10m]) > 0
+      for: 0m
+      labels:
+        severity: page
+        service: bridge
+        component: astra
+      annotations:
+        summary: "Bridge pod restart detected"
+        description: "One or more bridge pods restarted in the last 10 minutes. Check recent logs for OOM, crashes, or config errors."
+
+    - alert: BridgeDown
+      expr: up{job="bridge"} == 0
+      for: 1m
+      labels:
+        severity: critical
+        service: bridge
+        component: astra
+      annotations:
+        summary: "Bridge service DOWN"
+        description: "Bridge service is unreachable. Check pod status, ingress, and service endpoints."
+
+    # DOCS SERVICE ALERTS
+    - alert: DocsIngestDrop
+      expr: rate(docs_ingest_total[5m]) < 0.1
+      for: 15m
+      labels:
+        severity: warn
+        service: docs
+        component: astra
+      annotations:
+        summary: "Docs ingest rate low"
+        description: "Document ingestion rate is abnormally low ({{ $value }}/sec). Check Qdrant connection and ingest workers."
+
+    - alert: DocsIngestFailureRate
+      expr: |
+        sum(rate(docs_ingest_total{status="error"}[5m]))
+        / clamp_min(sum(rate(docs_ingest_total[5m])), 1)
+        > 0.05
+      for: 5m
+      labels:
+        severity: page
+        service: docs
+        component: astra
+      annotations:
+        summary: "Docs ingest failure rate >5%"
+        description: "High failure rate on document ingestion. Current: {{ $value | humanizePercentage }}. Check Qdrant capacity and embedder health."
+        runbook_url: "file:///x:/PROJECT_ASTRA_1.0%20(ASTRA_CORE)/CUTOVER_QUICK_REF.md#docs-ingest-failures"
+
+    - alert: DocsSearchLatencyHigh
+      expr: |
+        histogram_quantile(0.95, sum(rate(docs_search_duration_seconds_bucket[5m])) by (le))
+        > 2
+      for: 5m
+      labels:
+        severity: warn
+        service: docs
+        component: astra
+      annotations:
+        summary: "Docs search P95 latency > 2s"
+        description: "Document search is slow ({{ $value }}s). Check Qdrant query performance and index size."
+
+    # QDRANT ALERTS
+    - alert: QdrantDown
+      expr: up{job="qdrant"} == 0
+      for: 2m
+      labels:
+        severity: critical
+        service: qdrant
+        component: astra
+      annotations:
+        summary: "Qdrant unreachable"
+        description: "Qdrant instance appears down/unreachable. Check qdrant pod logs, PV, and network connectivity. Docs service will failover to keyword search."
+        runbook_url: "file:///x:/PROJECT_ASTRA_1.0%20(ASTRA_CORE)/CUTOVER_QUICK_REF.md#qdrant-down"
+
+    - alert: QdrantMemoryHigh
+      expr: |
+        (qdrant_memory_used_bytes / qdrant_memory_total_bytes) > 0.85
+      for: 5m
+      labels:
+        severity: warn
+        service: qdrant
+        component: astra
+      annotations:
+        summary: "Qdrant memory usage >85%"
+        description: "Qdrant memory usage is high ({{ $value | humanizePercentage }}). Consider scaling up or optimizing collection."
+
+    # STORAGE ALERTS
+    - alert: PVUsageHigh
+      expr: |
+        (1 - (node_filesystem_avail_bytes{mountpoint="/data"} / node_filesystem_size_bytes{mountpoint="/data"})) > 0.85
+      for: 5m
+      labels:
+        severity: page
+        component: astra
+      annotations:
+        summary: "PV /data usage >85%"
+        description: "Persistent volume /data is above 85% usage ({{ $value | humanizePercentage }}). Pause ingests and clear space immediately."
+        runbook_url: "file:///x:/PROJECT_ASTRA_1.0%20(ASTRA_CORE)/CUTOVER_QUICK_REF.md#disk-full"
+
+    - alert: PVUsageCritical
+      expr: |
+        (1 - (node_filesystem_avail_bytes{mountpoint="/data"} / node_filesystem_size_bytes{mountpoint="/data"})) > 0.95
+      for: 1m
+      labels:
+        severity: critical
+        component: astra
+      annotations:
+        summary: "PV /data usage >95% (CRITICAL)"
+        description: "Persistent volume /data is above 95% usage. STOP ALL INGESTION NOW. System may become read-only."
+
+    # RATE LIMITING ALERTS
+    - alert: BridgeRateLimitHitFrequent
+      expr: rate(bridge_rate_limit_hits_total[5m]) > 10
+      for: 5m
+      labels:
+        severity: warn
+        service: bridge
+        component: astra
+      annotations:
+        summary: "Bridge rate limits hit frequently"
+        description: "Rate limits are being hit frequently ({{ $value }}/sec). Check if quotas need adjustment or if there's abuse."
+
+    # KUBERNETES RESOURCE ALERTS
+    - alert: BridgePodCPUThrottling
+      expr: |
+        rate(container_cpu_cfs_throttled_seconds_total{pod=~"bridge-.*"}[5m]) > 0.3
+      for: 10m
+      labels:
+        severity: warn
+        service: bridge
+        component: astra
+      annotations:
+        summary: "Bridge pods experiencing CPU throttling"
+        description: "Bridge pods are being CPU throttled ({{ $value | humanizePercentage }} of time). Consider increasing CPU limits."
+
+    - alert: DocsPodMemoryHigh
+      expr: |
+        (container_memory_usage_bytes{pod=~"docs-.*"} / container_spec_memory_limit_bytes{pod=~"docs-.*"}) > 0.9
+      for: 5m
+      labels:
+        severity: warn
+        service: docs
+        component: astra
+      annotations:
+        summary: "Docs pod memory usage >90%"
+        description: "Docs pod memory usage is high ({{ $value | humanizePercentage }}). Risk of OOM kill. Check for memory leaks or increase limits."
+
+    - alert: HPAMaxedOut
+      expr: |
+        kube_horizontalpodautoscaler_status_current_replicas{horizontalpodautoscaler=~"bridge|docs"}
+        >= kube_horizontalpodautoscaler_spec_max_replicas{horizontalpodautoscaler=~"bridge|docs"}
+      for: 10m
+      labels:
+        severity: warn
+        component: astra
+      annotations:
+        summary: "HPA at max replicas"
+        description: "HPA {{ $labels.horizontalpodautoscaler }} is at max replicas. Consider increasing maxReplicas if load persists."
+
+    # SYNTHETIC CHECKS
+    - alert: BridgeEndpointDown
+      expr: probe_success{job="probe/astra-https-probe", instance=~".*bridge.*"} == 0
+      for: 2m
+      labels:
+        severity: critical
+        service: bridge
+        component: astra
+      annotations:
+        summary: "Bridge /health endpoint unreachable"
+        description: "External probe cannot reach bridge health endpoint. Check ingress, TLS, and service."
+        runbook_url: "file:///x:/PROJECT_ASTRA_1.0%20(ASTRA_CORE)/CUTOVER_QUICK_REF.md#endpoint-down"
+
+    - alert: DocsEndpointDown
+      expr: probe_success{job="probe/astra-https-probe", instance=~".*docs.*"} == 0
+      for: 2m
+      labels:
+        severity: critical
+        service: docs
+        component: astra
+      annotations:
+        summary: "Docs /health endpoint unreachable"
+        description: "External probe cannot reach docs health endpoint. Check ingress, TLS, and service."
+        runbook_url: "file:///x:/PROJECT_ASTRA_1.0%20(ASTRA_CORE)/CUTOVER_QUICK_REF.md#endpoint-down"
+
+    # ERROR BUDGET / SLO BURN
+    - alert: BridgeErrorBudgetBurnHigh
+      expr: |
+        sum_over_time((1 - clamp_max(
+          sum(rate(bridge_calls_total{status="error"}[5m]))
+          / clamp_min(sum(rate(bridge_calls_total[5m])), 1), 1)
+        )[1h:5m]) < 0.95
+      for: 5m
+      labels:
+        severity: warn
+        service: bridge
+        component: astra
+      annotations:
+        summary: "Bridge burning error budget rapidly"
+        description: "Bridge is consuming error budget faster than sustainable. 1-hour availability: {{ $value | humanizePercentage }}. Review recent changes."
+        runbook_url: "file:///x:/PROJECT_ASTRA_1.0%20(ASTRA_CORE)/CUTOVER_QUICK_REF.md#error-budget-burn"

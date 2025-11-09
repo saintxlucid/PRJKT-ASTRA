@@ -1,0 +1,6 @@
+fastapi
+uvicorn[standard]
+requests
+prometheus_client
+pydantic
+python-dotenv

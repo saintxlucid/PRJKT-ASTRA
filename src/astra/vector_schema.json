@@ -1,0 +1,29 @@
+{
+  "vector_id": "string (sha256)",
+  "text_preview": "first ~200 characters of the chunk",
+  "source": "user_upload|web_fetch|stream|device",
+  "type": "text|audio_transcript|midi|image_caption",
+  "chunk_index": "int",
+  "created_at": "ISO8601 UTC",
+  "embedding_model": "string",
+  "embedding_dim": "int",
+  "nutrition": {
+    "credibility": "float [0..1]",
+    "novelty": "float [0..1]",
+    "emotional_density": "float [0..1]",
+    "relevance_to_astora_intents": "float [0..1]",
+    "freshness": "float [0..1]",
+    "energy_score": "float [0..1]"
+  },
+  "provenance": {
+    "author": "string or null",
+    "source_url": "string or null",
+    "ingest_agent": "string",
+    "signature": "string (HMAC or similar)",
+    "session_id": "string or null"
+  },
+  "tags": ["array", "of", "strings"],
+  "consent": {
+    "user_approved": "boolean"
+  }
+}

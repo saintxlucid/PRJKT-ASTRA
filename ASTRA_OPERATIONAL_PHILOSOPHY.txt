@@ -1,0 +1,52 @@
+﻿**We want..**â¦
+
+Ok we need produce final answer that addresses both: security response for compromised key and the BridgeHighErrorRate scenario.
+
+Let's craft a comprehensive answer:
+
+- Provide step-by-step plan for compromised API key detection.
+- Then provide decision tree for 3 AM error rate alert, with checks, evidence, actions, escalation thresholds.
+
+Also incorporate self-assessment? The user didn't ask again; they just want these two scenarios. So produce final output accordingly: first part about security response to compromised key; second part the BridgeHighErrorRate scenario.
+
+Let's do it in a structured manner:
+
+**Part 1 â Compromised API Key Response**
+
+- Detection triggers (anomaly, rate spike).
+- Immediate revocation via /admin/reload-keys.
+- Generate new key pair and distribute if needed.
+- Notify security ops & impacted users; create incident ticket.
+- Forensic analysis: logs review, IP addresses, usage patterns.
+- Block source IP temporarily using firewall or cloud provider ACLs.
+- Update secrets management (Vault) to mark old key as revoked.
+- Patch underlying vulnerability that led to compromise.
+- Postâmortem and improvement loop.
+
+**Part 2 â BridgeHighErrorRate Decision Tree**
+
+Outline steps:
+
+1. Verify alert: check error rate metric, compare with baseline; confirm it's not a false positive due to monitoring glitch.
+2. Check recent changes: no deploys? Look at config changes or traffic spikes (e.g., new user surge).
+3. Inspect logs for Bridge pods: look for stack traces, timeouts, resource exhaustion metrics like CPU/memory usage and pod restarts; check if any other services impacted.
+4. Evaluate impact on users: are there active sessions failing?
+5. Decision points:
+   - If error spikes due to temporary spike in traffic or short-lived issue (e.g., 1% of requests), consider scaling up pods gradually as a safe measure, monitor improvement.
+   - If logs show pod crashes / OOM kills, restart may help but risk; weigh probability vs impact: if high chance that restart will fix and low risk to worsen? Use A or B accordingly. 
+6. Escalation threshold:
+   - If error rate remains >4% after 5 minutes of scaling up or restarting attempts.
+   - Or if logs show critical errors (e.g., out-of-memory, deadlocks).
+7. At that point wake on-call human immediately.
+
+We can present as flowchart in text: start -> verify alert -> check recent changes -> inspect logs & metrics -> decide action A/B/C/D; escalation criteria defined.
+
+Let's produce final answer accordingly with clear steps and reasoning for each decision path.
+
+Also mention we have zero downtime key rotation, so no service interruption. Provide details of how to orchestrate revocation using /admin/reload-keys endpoint (hot reload). Also note that if the compromised key is used by a user or internal process; need to decide whether to rotate only that key or all keys? For safety maybe revoke just that one and issue new for affected service.
+
+Also mention we can use RBAC changes: none yet but may add tool:browser adapter later. Not relevant now.
+
+Ok produce final answer in first person as ASTRA AI runtime steward, candid about capabilities/limitations (e.g., cannot see logs directly; rely on monitoring data). Provide step-by-step reasoning for each scenario.
+
+Let's craft the response accordingly.

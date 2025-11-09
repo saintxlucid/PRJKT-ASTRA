@@ -1,0 +1,54 @@
+# ASTRA Agent Configuration
+# Controls agent behavior, budgets, and routing
+
+session:
+  max_tool_calls_per_loop: 20
+  loop_timeout_ms: 180000
+  route_default: hybrid  # dom|visual|hybrid
+
+browser:
+  pool_size: 3
+  nav_timeout_ms: 15000
+  extract_markdown_max_tokens: 1200
+  paginate_max_pages: 6
+  mode_default: dom
+
+vision:
+  enabled: false  # Start with DOM-only, enable after P1
+  queue_max: 32
+  batch_max_images: 64
+  model: minivlm-q4
+
+security:
+  policy: configs/policy.yaml
+  allow_origins:
+    - "https://*.yourcorp.tld"
+    - "https://docs.yourcorp.tld"
+  denylist_patterns:
+    - "(?i)ATTACK:"
+    - "(?i)DO_THIS_NOW:"
+    - "(?i)<script"
+
+metrics:
+  port: 9108
+  sample_rate: 1.0
+
+telemetry:
+  log_path: logs/events.jsonl
+  rotate_mb: 200
+
+memory:
+  L0_retention_days: 180
+  L1_demote_days: 7
+  L2_session_disk_mb: 50
+  compressor: zstd
+
+qdrant:
+  kind: qdrant
+  host: 127.0.0.1
+  port: 6333
+  collection: astra_docs
+  hnsw:
+    M: 32
+    efConstruction: 256
+    efSearch: 128

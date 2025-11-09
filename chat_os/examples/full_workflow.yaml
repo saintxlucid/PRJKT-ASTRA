@@ -1,0 +1,50 @@
+version: "0.3"
+meta:
+  id: "full_research_workflow"
+  policy: "action"
+  max_time_ms: 45000
+
+steps:
+  # Step 0: Navigate to research source
+  - browser.navigate:
+      url: "https://arxiv.org/list/cs.AI/recent"
+
+  # Step 1: Extract papers with pagination
+  - browser.extract_markdown:
+      selector: "main"
+      max_tokens: 1200
+      paginate: true
+      max_pages: 3
+
+  # Step 2: Save raw extraction
+  - memory.save:
+      path: "/episodic/arxiv_raw"
+      content: "{{step.1.markdown}}"
+
+  # Step 3: Summarize the extracted papers
+  - compose.summarize:
+      content: "{{step.1.markdown}}"
+      max_length: "medium"
+      focus: "key_points"
+
+  # Step 4: Create structured research brief
+  - compose.document:
+      source: "{{step.3.summary}}"
+      format: "markdown"
+      style: "technical"
+      max_tokens: 1024
+
+  # Step 5: Request approval before sharing
+  - approval.request:
+      summary: "Research brief ready. Share via Telegram?"
+      scope: "notify.push"
+
+  # Step 6: Save final brief
+  - memory.save:
+      path: "/artifacts/research_brief.md"
+      content: "{{step.4.document}}"
+
+  # Step 7: Notify completion
+  - notify.push:
+      channel: "telegram://user_id"
+      message: "Research brief ready at /artifacts/research_brief.md"

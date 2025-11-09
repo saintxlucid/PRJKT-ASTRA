@@ -1,0 +1,269 @@
+name: Invariant Proof Gates
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+  schedule:
+    - cron: '0 6 * * 1'  # Weekly Monday 6 AM
+
+jobs:
+  proof:
+    name: Enforce Operational Invariants
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: read
+      security-events: write
+      actions: read
+      id-token: write
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+      
+      - name: Install audit tools
+        run: |
+          pip install -U pip setuptools wheel
+          pip install pip-audit bandit safety cyclonedx-bom pytest pytest-cov pyyaml
+          
+          # Install Trivy
+          curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh -s -- -b /usr/local/bin v0.48.0
+      
+      - name: Generate SBOM (CycloneDX)
+        run: |
+          mkdir -p audit
+          cyclonedx-py -o audit/SBOM_cyclonedx.json || echo "SBOM generation skipped"
+      
+      - name: Security scan - pip-audit
+        run: |
+          pip-audit --desc --format json > audit/PIP_AUDIT.json || true
+          pip-audit --desc > audit/PIP_AUDIT.txt || true
+      
+      - name: Security scan - Bandit
+        run: |
+          bandit -r src/ -f json -o audit/BANDIT.json || true
+          bandit -r src/ -f txt -o audit/BANDIT.txt || true
+      
+      - name: Security scan - Safety
+        run: |
+          safety check --full-report --json > audit/SAFETY.json || true
+          safety check --full-report > audit/SAFETY.txt || true
+      
+      - name: Run tests with coverage
+        run: |
+          if [ -d "tests" ]; then
+            pytest --cov=src --cov-report=term --cov-report=xml:audit/coverage.xml --cov-report=html:audit/coverage_html > audit/PYTEST.txt || true
+          else
+            echo "No tests/ directory present" > audit/PYTEST.txt
+            echo '<?xml version="1.0" ?><coverage line-rate="0.0"></coverage>' > audit/coverage.xml
+          fi
+      
+      - name: Build container image (if Dockerfile exists)
+        run: |
+          if [ -f "Dockerfile" ]; then
+            docker build -t invariantops:ci .
+            trivy image --quiet --format json -o audit/TRIVY_IMAGE.json invariantops:ci || true
+            trivy image --quiet --format table -o audit/TRIVY_IMAGE.txt invariantops:ci || true
+          else
+            echo '{"Results":[]}' > audit/TRIVY_IMAGE.json
+            echo "No Dockerfile found" > audit/TRIVY_IMAGE.txt
+          fi
+      
+      - name: Enforce invariants (Python validator)
+        env:
+          CRITICAL_PATHS: "src/api,src/rag,src/services,src/memory"
+        run: |
+          python - << 'EOF'
+          import os, re, json, sys, yaml
+          import xml.etree.ElementTree as ET
+          from pathlib import Path
+          
+          # Load invariants
+          inv_path = Path("audit/OPERATIONAL_INVARIANTS.yml")
+          if not inv_path.exists():
+              print("ERROR: audit/OPERATIONAL_INVARIANTS.yml not found")
+              sys.exit(2)
+          
+          inv = yaml.safe_load(inv_path.read_text())
+          bad = []
+          
+          def check_op(actual, op_str, expected):
+              """Check if actual value satisfies operator + expected"""
+              op, exp = op_str[:2].strip(), op_str[2:].strip()
+              try:
+                  exp_val = float(exp) if '.' in exp else int(exp)
+                  if op == "==": return actual == exp_val
+                  if op == "<=": return actual <= exp_val
+                  if op == ">=": return actual >= exp_val
+                  if op == "<": return actual < exp_val
+                  if op == ">": return actual > exp_val
+              except:
+                  return str(actual) == exp
+              return False
+          
+          # 1. pip-audit
+          pip_json_path = Path("audit/PIP_AUDIT.json")
+          if pip_json_path.exists():
+              try:
+                  pip_data = json.loads(pip_json_path.read_text())
+                  crits = sum(1 for v in pip_data.get("vulnerabilities", []) if v.get("fix_versions") and "CRITICAL" in str(v))
+                  highs = sum(1 for v in pip_data.get("vulnerabilities", []) if v.get("fix_versions") and "HIGH" in str(v))
+                  
+                  inv_crits = inv["invariants"]["security"].get("pip_audit_criticals", "==0")
+                  inv_highs = inv["invariants"]["security"].get("pip_audit_highs", "==0")
+                  
+                  if not check_op(crits, inv_crits, 0):
+                      bad.append(f"pip-audit: {crits} CRITICAL vulnerabilities (expected {inv_crits})")
+                  if not check_op(highs, inv_highs, 0):
+                      bad.append(f"pip-audit: {highs} HIGH vulnerabilities (expected {inv_highs})")
+              except Exception as e:
+                  bad.append(f"pip-audit parse error: {e}")
+          
+          # 2. Bandit
+          bandit_json_path = Path("audit/BANDIT.json")
+          if bandit_json_path.exists():
+              try:
+                  bandit_data = json.loads(bandit_json_path.read_text())
+                  highs = sum(1 for r in bandit_data.get("results", []) if r.get("issue_severity") == "HIGH")
+                  inv_high = inv["invariants"]["security"].get("bandit_high", "==0")
+                  
+                  if not check_op(highs, inv_high, 0):
+                      bad.append(f"bandit: {highs} HIGH findings (expected {inv_high})")
+              except Exception as e:
+                  bad.append(f"bandit parse error: {e}")
+          
+          # 3. Trivy
+          trivy_path = Path("audit/TRIVY_IMAGE.json")
+          if trivy_path.exists():
+              try:
+                  trivy_data = json.loads(trivy_path.read_text())
+                  crits = 0
+                  highs = 0
+                  for res in trivy_data.get("Results", []) or []:
+                      for v in res.get("Vulnerabilities", []) or []:
+                          if v.get("Severity") == "CRITICAL": crits += 1
+                          if v.get("Severity") == "HIGH": highs += 1
+                  
+                  inv_crits = inv["invariants"]["security"].get("trivy_image_criticals", "==0")
+                  inv_highs = inv["invariants"]["security"].get("trivy_image_highs", "<=2")
+                  
+                  if not check_op(crits, inv_crits, 0):
+                      bad.append(f"trivy: {crits} CRITICAL image vulnerabilities (expected {inv_crits})")
+                  if not check_op(highs, inv_highs, 2):
+                      bad.append(f"trivy: {highs} HIGH image vulnerabilities (expected {inv_highs})")
+              except Exception as e:
+                  bad.append(f"trivy parse error: {e}")
+          
+          # 4. Coverage
+          cov_path = Path("audit/coverage.xml")
+          if cov_path.exists():
+              try:
+                  tree = ET.parse(cov_path)
+                  root = tree.getroot()
+                  tot = float(root.attrib.get("line-rate", "0") or "0")
+                  
+                  inv_total = inv["invariants"]["quality"].get("coverage_total", ">=0.70")
+                  threshold = float(inv_total[2:])
+                  
+                  if tot < threshold:
+                      bad.append(f"coverage: total {tot:.2%} < {threshold:.0%} (expected {inv_total})")
+                  
+                  # Critical paths coverage
+                  cps = os.environ.get("CRITICAL_PATHS", "").split(",")
+                  crit_total = 0
+                  crit_lines = 0
+                  
+                  for pkg in root.iter("package"):
+                      name = pkg.attrib.get("name", "")
+                      if any(name.replace("\\\\", "/").startswith(p.strip()) for p in cps if p.strip()):
+                          for cls in pkg.iter("class"):
+                              lines_valid = int(cls.attrib.get("lines-valid", "0") or 0)
+                              lines_covered = int(cls.attrib.get("lines-covered", "0") or 0)
+                              crit_lines += lines_valid
+                              crit_total += lines_covered
+                  
+                  inv_crit = inv["invariants"]["quality"].get("coverage_critical_paths", ">=0.90")
+                  crit_threshold = float(inv_crit[2:])
+                  
+                  if crit_lines > 0:
+                      crit_cov = crit_total / crit_lines
+                      if crit_cov < crit_threshold:
+                          bad.append(f"coverage: critical paths {crit_cov:.2%} < {crit_threshold:.0%} (expected {inv_crit})")
+              except Exception as e:
+                  bad.append(f"coverage parse error: {e}")
+          
+          # 5. Test failures
+          pytest_path = Path("audit/PYTEST.txt")
+          if pytest_path.exists():
+              pytest_txt = pytest_path.read_text()
+              if "FAILED" in pytest_txt or "ERROR" in pytest_txt:
+                  failed_match = re.search(r"(\d+) failed", pytest_txt)
+                  if failed_match:
+                      failed = int(failed_match.group(1))
+                      if failed > 0:
+                          bad.append(f"tests: {failed} test(s) failed (expected ==0)")
+          
+          # Outcome
+          if bad:
+              print("=" * 60)
+              print("INVARIANT FAILURES DETECTED")
+              print("=" * 60)
+              for i, failure in enumerate(bad, 1):
+                  print(f"{i}. {failure}")
+              print("=" * 60)
+              print("Fix these issues before deployment.")
+              print("See audit/ directory for full reports.")
+              sys.exit(1)
+          
+          print("=" * 60)
+          print("✅ ALL INVARIANTS HOLD")
+          print("=" * 60)
+          print("Service is compliant with operational contract.")
+          print("Ready for canary deployment.")
+          EOF
+      
+      - name: Upload audit artifacts
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: invariant-evidence-${{ github.run_number }}
+          path: audit/
+          retention-days: 90
+      
+      - name: Comment on PR (if applicable)
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const pipAudit = fs.existsSync('audit/PIP_AUDIT.txt') ? fs.readFileSync('audit/PIP_AUDIT.txt', 'utf8').slice(0, 500) : 'N/A';
+            const bandit = fs.existsSync('audit/BANDIT.txt') ? fs.readFileSync('audit/BANDIT.txt', 'utf8').slice(0, 500) : 'N/A';
+            
+            const comment = `## Invariant Proof Gates - Run #${context.runNumber}
+            
+            ### Security Scans
+            - pip-audit: See artifacts
+            - bandit: See artifacts
+            - trivy: See artifacts
+            
+            ### Test Coverage
+            - See \`audit/coverage_html/index.html\` in artifacts
+            
+            ### Download full evidence pack
+            - Artifacts: \`invariant-evidence-${context.runNumber}\`
+            `;
+            
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: comment
+            });

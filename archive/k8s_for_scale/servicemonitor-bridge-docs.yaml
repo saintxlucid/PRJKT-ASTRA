@@ -1,0 +1,87 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: astra-bridge-sm
+  namespace: monitoring
+  labels:
+    app: astra
+    component: bridge
+    release: prometheus
+spec:
+  namespaceSelector:
+    matchNames:
+      - astra
+  selector:
+    matchLabels:
+      app: bridge
+  endpoints:
+    - port: http
+      path: /metrics
+      interval: 15s
+      scrapeTimeout: 10s
+      scheme: http
+      relabelings:
+        - sourceLabels: [__meta_kubernetes_pod_name]
+          targetLabel: pod
+        - sourceLabels: [__meta_kubernetes_pod_node_name]
+          targetLabel: node
+        - sourceLabels: [__meta_kubernetes_namespace]
+          targetLabel: namespace
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: astra-docs-sm
+  namespace: monitoring
+  labels:
+    app: astra
+    component: docs
+    release: prometheus
+spec:
+  namespaceSelector:
+    matchNames:
+      - astra
+  selector:
+    matchLabels:
+      app: docs
+  endpoints:
+    - port: http
+      path: /metrics
+      interval: 15s
+      scrapeTimeout: 10s
+      scheme: http
+      relabelings:
+        - sourceLabels: [__meta_kubernetes_pod_name]
+          targetLabel: pod
+        - sourceLabels: [__meta_kubernetes_pod_node_name]
+          targetLabel: node
+        - sourceLabels: [__meta_kubernetes_namespace]
+          targetLabel: namespace
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: astra-qdrant-sm
+  namespace: monitoring
+  labels:
+    app: astra
+    component: qdrant
+    release: prometheus
+spec:
+  namespaceSelector:
+    matchNames:
+      - astra
+  selector:
+    matchLabels:
+      app: qdrant
+  endpoints:
+    - port: http
+      path: /metrics
+      interval: 30s
+      scrapeTimeout: 10s
+      scheme: http
+      relabelings:
+        - sourceLabels: [__meta_kubernetes_pod_name]
+          targetLabel: pod
+        - sourceLabels: [__meta_kubernetes_namespace]
+          targetLabel: namespace

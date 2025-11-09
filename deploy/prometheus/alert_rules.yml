@@ -1,0 +1,20 @@
+groups:
+- name: astra-core
+  rules:
+  - alert: HighErrorRate
+    expr: (sum(rate(http_requests_total{code=~"5.."}[5m])) / clamp_min(sum(rate(http_requests_total[5m])), 1)) > 0.05
+    for: 10m
+    labels: {severity: page}
+    annotations: {summary: "HTTP 5xx > 5% for 10m"}
+
+  - alert: CacheInefficiency
+    expr: (sum(rate(astra_cache_hits_total[10m])) / clamp_min(sum(rate(astra_cache_requests_total[10m])),1)) < 0.60
+    for: 15m
+    labels: {severity: warn}
+    annotations: {summary: "Cache hit rate < 60% for 15m"}
+
+  - alert: RAGLatencyP95
+    expr: histogram_quantile(0.95, sum(rate(astra_rag_latency_seconds_bucket[5m])) by (le)) > 2.5
+    for: 10m
+    labels: {severity: warn}
+    annotations: {summary: "RAG P95 latency > 2.5s"}

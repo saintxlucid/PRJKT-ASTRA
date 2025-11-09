@@ -1,0 +1,181 @@
+# ASTRA v2.0 - Consolidated Configuration
+# Single source of truth for all system settings
+
+system:
+  env_file: ".env.gpg"           # GPG-encrypted secrets (decrypt at runtime)
+  log_level: "INFO"               # DEBUG | INFO | WARNING | ERROR
+  port: 8080
+  host: "0.0.0.0"
+  workers: 1                      # Single-user system
+
+identity:
+  config_file: "config/astra_identity.yaml"
+  persona:
+    warmth: 0.85
+    precision: 0.90
+    creativity: 0.75
+  invariants:
+    - "no_irreversible_without_backup"
+    - "no_exfiltration"
+    - "no_memory_forgery"
+  refusal_policy:
+    - "explain"
+    - "offer_alternative"
+    - "escalate"
+  
+rag:
+  # Knowledge retrieval settings
+  embed_model: "bge-m3"           # Target: Upgrade from MiniLM
+  reranker: "bge-reranker-v2"
+  top_k: 12
+  max_context_tokens: 2048
+  doc_budget_tokens: 1280
+  query_budget_tokens: 256
+  response_budget_tokens: 512
+  attach_provenance: true         # CRITICAL: Always show sources
+  multi_query_variants: 3
+  
+  nutrition_scoring:
+    enabled: true
+    weights:
+      credibility: 0.30
+      novelty: 0.20
+      relevance: 0.25
+      freshness: 0.15
+      emotion: 0.10
+
+memory:
+  vector_store: "chromadb"        # Single backend (simplification)
+  db_path: "data/memory/chroma/"
+  
+  semantic:
+    collection: "astra_semantic"
+  episodic:
+    db_file: "data/memory/episodic.db"
+  procedural:
+    db_file: "data/memory/procedural.db"
+    
+  signing:
+    enabled: true
+    algorithm: "sha256"
+    secret_key_env: "MEMORY_SIGNING_KEY"  # From .env.gpg
+  
+  consolidation:
+    enabled: true
+    schedule: "0 3 * * *"         # Daily at 3 AM
+    decay_low_importance: true
+    decay_threshold_days: 90
+    merge_similar_threshold: 0.95
+
+security:
+  secrets:
+    provider: "gpg_file"
+    key_id: "ASTRA_LOCAL"
+    
+  model_registry:
+    path: "config/models_registry.yaml"
+    verify_checksums: true        # CRITICAL: Block tampered models
+    
+  rate_limiting:
+    global_rps: 1000
+    per_endpoint:
+      "/health": 1000
+      "/live": 1000
+      "/ready": 1000
+      "/metrics": 100
+      "/answer": 50
+      "/answer/stream": 30
+      
+  circuit_breaker:
+    failure_threshold: 5
+    timeout_seconds: 60
+    half_open_requests: 3
+    
+  sandbox:
+    tools_in_container: false     # Set true when Docker-per-tool is ready
+    allowed_paths:
+      - "data/"
+      - "logs/"
+      - "models/"
+    denied_paths:
+      - "/Windows/"
+      - "/System32/"
+      - "/Program Files/"
+
+backups:
+  enabled: true
+  interval_hours: 4
+  target: "file://data/backups/"  # or s3://bucket/prefix
+  keep_count: 12
+  compression: "zip"
+  verify_on_create: true
+
+observability:
+  prometheus:
+    enabled: true
+    namespace: "astra"
+    port: 8080
+    path: "/metrics"
+    
+  logging:
+    format: "json"
+    output: "stdout"
+    file: "logs/astra.log"
+    rotation: "daily"
+    retention_days: 30
+    
+  tracing:
+    enabled: false                # Future: OpenTelemetry
+    
+  alerts:
+    enabled: true
+    channels:
+      - type: "console"
+      - type: "file"
+        path: "logs/alerts.log"
+
+deployment:
+  mode: "compose"                 # compose | systemd | k8s (archived)
+  image: "astra-core:latest"
+  
+  health_checks:
+    liveness: "/live"
+    readiness: "/ready"
+    startup_timeout_seconds: 60
+    
+  graceful_shutdown:
+    drain_endpoint: "/drain"
+    timeout_seconds: 30
+    
+  resources:
+    memory_limit_gb: 8
+    cpu_limit_cores: 4
+
+performance:
+  slo:
+    p95_latency_ms: 2500
+    p99_latency_ms: 5000
+    availability_percent: 99.9
+    error_rate_percent: 1.0
+    
+  targets:
+    p95_latency_ms: 500           # Aspirational (current: 110ms)
+    p99_latency_ms: 1000
+
+event_sourcing:
+  enabled: true
+  store_path: "data/events/astra_events.jsonl"
+  retention_days: 365
+  hash_chain: true                # Blockchain-style integrity
+  
+audit:
+  monthly_report: true
+  persona_tests: 30
+  drift_threshold_percent: 10
+
+features:
+  operator_console: false         # Week 3 target
+  voice_loop: false               # Week 8 target
+  multi_agent: false              # Week 7 target
+  workflow_learning: false        # Week 6 target
+  plugin_signing: false           # Future

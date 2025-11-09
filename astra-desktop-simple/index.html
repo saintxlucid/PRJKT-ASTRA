@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ASTRA Desktop</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #0b0b12 0%, #1a1a2e 100%);
+            color: #ffffff;
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .container {
+            max-width: 700px;
+            padding: 40px;
+        }
+
+        h1 {
+            font-size: 3.5em;
+            font-weight: 700;
+            background: linear-gradient(135deg, #ffffff 0%, #a8a8ff 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .subtitle {
+            text-align: center;
+            font-size: 1.2em;
+            opacity: 0.7;
+            margin-bottom: 50px;
+        }
+
+        .status {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 30px;
+            backdrop-filter: blur(10px);
+        }
+
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #4caf50;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 16px;
+            margin-top: 30px;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: 30px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+        }
+
+        .card:hover {
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateY(-4px);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+        }
+
+        .card-icon {
+            font-size: 3em;
+            margin-bottom: 12px;
+        }
+
+        .card-title {
+            font-size: 1.2em;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .card-desc {
+            font-size: 0.9em;
+            opacity: 0.7;
+        }
+
+        .info {
+            margin-top: 40px;
+            text-align: center;
+            opacity: 0.5;
+            font-size: 0.9em;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>ASTRA</h1>
+        <div class="subtitle">Your Local AI Assistant</div>
+
+        <div class="status">
+            <div class="status-indicator">
+                <div class="dot"></div>
+                <div>
+                    <strong>Backend Status:</strong> Running<br>
+                    <small style="opacity: 0.7;">http://127.0.0.1:8080</small>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid">
+            <div class="card" onclick="launchConsole()">
+                <div class="card-icon">🚀</div>
+                <div class="card-title">Launch Console</div>
+                <div class="card-desc">Open chat interface</div>
+            </div>
+
+            <div class="card" onclick="openSettings()">
+                <div class="card-icon">⚙️</div>
+                <div class="card-title">Settings</div>
+                <div class="card-desc">Configure ASTRA</div>
+            </div>
+
+            <div class="card" onclick="openMemory()">
+                <div class="card-icon">🧠</div>
+                <div class="card-title">Memory</div>
+                <div class="card-desc">Manage knowledge base</div>
+            </div>
+
+            <div class="card" onclick="openDocs()">
+                <div class="card-icon">📁</div>
+                <div class="card-title">Documents</div>
+                <div class="card-desc">Browse files</div>
+            </div>
+        </div>
+
+        <div class="info">
+            <p>💡 ASTRA runs entirely on your machine with full privacy</p>
+            <p>Version 1.0.0 • Desktop Core</p>
+        </div>
+    </div>
+
+    <script>
+        function launchConsole() {
+            // This will be handled by Electron's IPC in the future
+            // For now, we'll open the web UI
+            window.open('http://127.0.0.1:5173', '_blank');
+        }
+
+        function openSettings() {
+            window.open('http://127.0.0.1:8080/docs', '_blank');
+        }
+
+        function openMemory() {
+            alert('Memory management interface coming soon!');
+        }
+
+        function openDocs() {
+            alert('Document browser coming soon!');
+        }
+
+        // Check backend status
+        async function checkBackend() {
+            try {
+                const response = await fetch('http://127.0.0.1:8080/health');
+                const dot = document.querySelector('.dot');
+                if (response.ok) {
+                    dot.style.background = '#4caf50';
+                } else {
+                    dot.style.background = '#f44336';
+                }
+            } catch (e) {
+                document.querySelector('.dot').style.background = '#f44336';
+            }
+        }
+
+        // Check every 5 seconds
+        checkBackend();
+        setInterval(checkBackend, 5000);
+    </script>
+</body>
+</html>

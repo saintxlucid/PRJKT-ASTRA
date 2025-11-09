@@ -1,0 +1,25 @@
+T# ASTRA Maintenance Tasks Schedule
+
+# Daily Backup and Health Check (2 AM)
+0 2 * * * /usr/bin/python3 /app/scripts/backup_system.py > /var/log/astra/backup.log 2>&1
+30 2 * * * /usr/bin/python3 /app/scripts/verify_backup.py > /var/log/astra/backup_verify.log 2>&1
+
+# Hourly Health Checks
+0 * * * * /usr/bin/python3 /app/scripts/health_check.py > /var/log/astra/health.log 2>&1
+
+# Daily Performance Metrics Collection (3 AM)
+0 3 * * * /usr/bin/python3 /app/scripts/collect_metrics.py --daily > /var/log/astra/metrics_daily.log 2>&1
+
+# Weekly Tasks (Sunday 1 AM)
+0 1 * * 0 /usr/bin/python3 /app/scripts/performance_optimization.py > /var/log/astra/optimization.log 2>&1
+30 1 * * 0 /usr/bin/python3 /app/scripts/security_scan.py > /var/log/astra/security.log 2>&1
+
+# Monthly Tasks (1st of month, 12 AM)
+0 0 1 * * /usr/bin/python3 /app/scripts/monthly_audit.py > /var/log/astra/audit.log 2>&1
+30 0 1 * * /usr/bin/python3 /app/scripts/security_audit.py --full > /var/log/astra/security_audit.log 2>&1
+
+# Quarterly Assessment (1st day of quarter, 1 AM)
+0 1 1 */3 * /usr/bin/python3 /app/scripts/quarterly_assessment.py > /var/log/astra/quarterly.log 2>&1
+
+# Log Rotation (daily at 4 AM)
+0 4 * * * /usr/sbin/logrotate /etc/logrotate.d/astra

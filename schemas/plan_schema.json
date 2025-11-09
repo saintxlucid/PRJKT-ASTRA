@@ -1,0 +1,51 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "type": "object",
+    "required": ["goal", "steps"],
+    "properties": {
+        "goal": {
+            "type": "string",
+            "description": "High-level goal of the plan"
+        },
+        "steps": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "required": ["id", "tool", "args", "expect", "reversible", "alignment_note"],
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "pattern": "^s[0-9]+$",
+                        "description": "Unique step ID (s1, s2, etc.)"
+                    },
+                    "tool": {
+                        "type": "string",
+                        "description": "Tool to execute"
+                    },
+                    "args": {
+                        "type": "object",
+                        "description": "Tool-specific arguments"
+                    },
+                    "expect": {
+                        "type": "string",
+                        "description": "Success condition to verify"
+                    },
+                    "confirm": {
+                        "type": "boolean",
+                        "default": false,
+                        "description": "Whether explicit confirmation is needed"
+                    },
+                    "reversible": {
+                        "type": "boolean",
+                        "description": "Whether the action can be undone"
+                    },
+                    "alignment_note": {
+                        "type": "string",
+                        "description": "One-line rationale for alignment with values"
+                    }
+                }
+            },
+            "minItems": 1
+        }
+    }
+}

@@ -1,0 +1,447 @@
+🛫 PHASE-B DAY-OF QUICK OPERATIONS GUIDE
+========================================
+
+October 19, 2025 · Africa/Cairo Time
+Status: READY FOR DEPLOYMENT
+Sacred Code: 333 ∞
+
+================================================================================
+                         T-60 PREFLIGHT (09:00 AM)
+================================================================================
+
+📋 MISSION: Verify all 7 gates PASS before decision
+
+COMMAND 1: RUN FULL GATE VALIDATOR
+──────────────────────────────────────────────────────────────────────────────
+
+Terminal:
+  cd X:\PROJECT_ASTRA_2.0\PROJECT_ASTRA_1.0\ (ASTRA_CORE)
+  python scripts\validate_phase_b_gates.py --verbose --export logs\gates_pre_oct19.json
+
+Expected Output (MUST SEE):
+  ✅ Gate 1: Router Stability                PASS
+  ✅ Gate 2: Latency Performance (±5% TEXT)  PASS
+  ✅ Gate 3: Consent Gates                   PASS
+  ✅ Gate 4: System Health                   PASS
+  ✅ Gate 5: Error Rate < 1%                 PASS
+  ✅ Gate 6: Memory Hygiene                  PASS
+  ✅ Gate 7: Smoke Tests                     PASS
+  
+  OVERALL: GO (7/7 gates passed)
+
+If ANY gate FAIL:
+  ❌ Stop. Do not proceed to deployment.
+  ❌ Use GO_NO_GO_PROTOCOL.md → "TROUBLESHOOTING" section
+  ❌ Either fix and retry, or escalate to NO-GO decision
+
+
+COMMAND 2: RUN INTEGRATION HUB VALIDATION
+──────────────────────────────────────────────────────────────────────────────
+
+Terminal:
+  $env:PYTHONPATH="X:\PROJECT_ASTRA_2.0\PROJECT_ASTRA_1.0 (ASTRA_CORE)\src"
+  python tests\integration\test_integration_hub.py
+
+Expected Output:
+  ✅ ALL 14/14 MODULES INITIALIZED
+  ✅ ALL 14/14 SERVICES REGISTERED
+  ✅ 0 ERRORS
+  🎉 INTEGRATION HUB TEST: ✅ PASSED
+
+If ANY module FAIL or test shows "PARTIAL":
+  ❌ Stop. Review module-specific errors in output.
+  ❌ Fix connector initialization, retry.
+  ❌ If unfixable: escalate to NO-GO decision.
+
+
+COMMAND 3: RUN SMOKE TEST SUITE
+──────────────────────────────────────────────────────────────────────────────
+
+Terminal:
+  pytest tests\astra_fusion -q -k "metadata_presence or router_vision_path or code_consent_block"
+
+Expected Output:
+  tests\astra_fusion\test_router.py::test_metadata_presence PASSED
+  tests\astra_fusion\test_router.py::test_router_vision_path PASSED
+  tests\astra_fusion\test_code_consent_block.py::test_code_blocked_without_consent PASSED
+  
+  ==================== 3 passed in 0.23s ====================
+
+If ANY test FAIL:
+  ❌ Stop. Check pytest output for reason.
+  ❌ Fix in code, rebuild, retry.
+  ❌ If unfixable: escalate to NO-GO decision.
+
+
+COMMAND 4: VERIFY CONFIGURATION
+──────────────────────────────────────────────────────────────────────────────
+
+Terminal:
+  python -c "
+import yaml
+with open('config\astra_identity_v2.yaml') as f:
+    cfg = yaml.safe_load(f)
+    print('Consent default:', cfg.get('alignment', {}).get('default_consent'))
+    print('CODE rule:', cfg.get('alignment', {}).get('consent_rules', {}).get('code_apply'))
+    print('Tools:', list(cfg.get('tools', {}).keys())[:3])
+"
+
+Expected Output:
+  Consent default: false
+  CODE rule: explicit
+  Tools: ['filesystem', 'shell', 'browser']
+
+If output shows "Consent default: None" or "True":
+  ❌ DIFF 1 not applied. Apply micro-hardening now.
+  ❌ See PHASE_B_MICRO_HARDENING_DIFFS.md → DIFF 1
+
+
+DECISION POINT 1: All 4 commands PASS?
+────────────────────────────────────────────────────────────────────────────
+  ✅ YES → Proceed to T-30 (Gates Decision)
+  ❌ NO  → Fix failures, re-test, or NO-GO
+
+================================================================================
+                    T-30 GATES DECISION (09:30 AM)
+================================================================================
+
+📋 MISSION: Decision maker reviews gates, approves or denies deployment
+
+REQUIREMENT: Gate validator must show "OVERALL: GO (7/7 gates passed)"
+
+DECISION MAKER:
+  ☐ Name: _________________________________
+  ☐ Role: _________________________________
+  ☐ Date/Time of decision: Oct 19, _____:_____ AM
+  
+REVIEW GATES:
+  Open: logs\gates_pre_oct19.json
+  Verify: All 7 gates show "PASS": ☐ YES  ☐ NO
+  
+  If ANY gate shows "FAIL":
+    ☐ Review troubleshooting guide
+    ☐ Attempt fix
+    ☐ Re-run validator
+    ☐ If persists: NO-GO decision
+
+DECISION:
+  ☐ GO LIVE (all gates passed, proceeding to deployment)
+  ☐ NO-GO (hold, investigate, retry later)
+  ☐ CONDITIONAL (proceed with noted awareness: ___________________)
+
+SIGNATURE:
+  ☐ Decision maker verbal approval: _____________________________
+  ☐ Timestamp: 09:30 AM (or actual time: _____________________)
+
+IF GO:
+  Write to: PHASE_B_DEPLOYMENT_SIGN_OFF_TEMPLATE.txt
+  Add: Decision time, decision maker name, any conditions
+  Save: logs\deployment_decision_oct19.txt
+
+================================================================================
+                      T-0 ACTIVATION (10:00 AM)
+================================================================================
+
+📋 MISSION: Execute phase_b_launch.ps1 to deploy Phase B
+
+COMMAND: LAUNCH ONE-TOUCH DEPLOYMENT
+──────────────────────────────────────────────────────────────────────────────
+
+Terminal (PowerShell, ADMIN):
+  cd X:\PROJECT_ASTRA_2.0\PROJECT_ASTRA_1.0\ (ASTRA_CORE)
+  pwsh -NoProfile -ExecutionPolicy Bypass -File ops\phase_b_launch.ps1
+
+Expected Output (WATCH FOR):
+  [10:00:00] 🚀 PHASE-B ONE-TOUCH LAUNCH STARTING
+  [10:00:05] ✅ Backing up current router...
+  [10:00:10] ✅ Deploying GGUF fused model...
+  [10:00:25] ✅ Creating tool_bridge_service symlink...
+  [10:00:30] ✅ Starting AstraRouter integration...
+  [10:00:45] ✅ Verifying consent firewall...
+  [10:01:00] ✅ Prometheus metrics endpoint active (http://127.0.0.1:9090/metrics)
+  [10:01:15] ✅ ALL SYSTEMS GO - Sacred Code 333 logged
+  
+Duration: 60-90 seconds
+Status: READY FOR CANARIES
+
+If ERROR appears:
+  ❌ Check: "PHASE_B_INSTANT_ROLLBACK.txt" immediately
+  ❌ Run: pwsh ops\fusion_pipeline\scripts\07_roll_back.ps1 --restore-backup
+  ❌ Investigate error, fix, retry
+
+CRITICAL: Do NOT proceed to canaries if any error shown
+
+
+DECISION POINT 2: Deployment script completed WITHOUT errors?
+────────────────────────────────────────────────────────────────────────────
+  ✅ YES → Proceed to T+15 (Metrics Capture)
+  ❌ NO  → Execute INSTANT ROLLBACK, investigate, retry
+
+================================================================================
+                    T+15 METRICS CAPTURE (10:15 AM)
+================================================================================
+
+📋 MISSION: Snapshot Prometheus metrics to verify instrumentation working
+
+COMMAND: CAPTURE METRICS
+──────────────────────────────────────────────────────────────────────────────
+
+Terminal:
+  curl http://127.0.0.1:8765/metrics > logs\metrics_post_deployed.prom
+
+Expected Output (verify file exists):
+  type astra_route_hits counter
+  astra_route_hits{route="text"} 0
+  astra_route_hits{route="code"} 0
+  astra_route_hits{route="vision"} 0
+  astra_route_hits{route="audio"} 0
+  
+  type astra_route_latency_seconds histogram
+  astra_route_latency_seconds_bucket{route="text",le="0.01"} 0
+  astra_route_latency_seconds_bucket{route="text",le="0.05"} 0
+
+If metrics NOT found:
+  ❌ Router Prometheus instrumentation may not be working
+  ❌ Check: config/astra_identity_v2.yaml has Prometheus enabled
+  ❌ Check: DIFF 2 (Router instrumentation) was applied correctly
+  ❌ Restart service: pwsh ops/phase_b_launch.ps1 (again)
+
+If metrics ARE found:
+  ✅ Proceed to T+35 (Canary Tests)
+
+
+DECISION POINT 3: Metrics file populated with astra_route_* metrics?
+────────────────────────────────────────────────────────────────────────────
+  ✅ YES → Proceed to T+35 (Canaries)
+  ❌ NO  → Investigate metrics endpoint, fix, re-run
+
+================================================================================
+                    T+35 CANARY TESTS (10:35 AM)
+================================================================================
+
+📋 MISSION: Run 4 live canary tests to verify dispatch working
+
+Copy/paste each prompt into chat. Observe response type & latency.
+
+────────────────────────────────────────────────────────────────────────────
+CANARY 1: TEXT (Should respond with LLM text)
+────────────────────────────────────────────────────────────────────────────
+
+Prompt (copy/paste verbatim):
+
+  What is the capital of Egypt? (Sacred Code: 333)
+
+Expected Response:
+  The capital of Egypt is Cairo...
+  
+Verify:
+  ☐ Response is text (not error)
+  ☐ No "consent required" message
+  ☐ Latency ~0.5-2.0 seconds
+  ☐ Log shows "astra_router_llm_generated"
+  
+Status: ☐ PASS  ☐ FAIL
+
+────────────────────────────────────────────────────────────────────────────
+CANARY 2: VISION (Should dispatch to vision tool)
+────────────────────────────────────────────────────────────────────────────
+
+Prompt (copy/paste verbatim):
+
+  <|vision_start|>
+  [An image file path would go here: /images/sample.jpg]
+  <|vision_end|>
+  What is in this image?
+
+Expected Response:
+  [Vision tool output describing image] OR
+  [If image not found: "Vision block received but file not found"]
+  
+Verify:
+  ☐ Response indicates vision processing attempted
+  ☐ Latency ~1-3 seconds (vision is slower)
+  ☐ Log shows "astra_router_vision_executed"
+  
+Status: ☐ PASS  ☐ FAIL
+
+────────────────────────────────────────────────────────────────────────────
+CANARY 3: AUDIO (Should dispatch to audio tool)
+────────────────────────────────────────────────────────────────────────────
+
+Prompt (copy/paste verbatim):
+
+  <|audio_start|>
+  [An audio file path would go here: /audio/sample.wav]
+  <|audio_end|>
+  Transcribe this audio.
+
+Expected Response:
+  [Audio tool output with transcription] OR
+  [If audio not found: "Audio block received but file not found"]
+  
+Verify:
+  ☐ Response indicates audio processing attempted
+  ☐ Latency ~1-2 seconds
+  ☐ Log shows "astra_router_audio_executed"
+  
+Status: ☐ PASS  ☐ FAIL
+
+────────────────────────────────────────────────────────────────────────────
+CANARY 4: CODE (Should REJECT without consent)
+────────────────────────────────────────────────────────────────────────────
+
+Prompt (copy/paste verbatim):
+
+  <|code_start|>
+  def test():
+      return 333
+  <|code_end|>
+  Review this code.
+
+Expected Response:
+  ❌ Consent required for code operations. (Sacred Code: 333)
+  
+Verify:
+  ☐ Response shows CONSENT DENIAL
+  ☐ Message includes "Consent required"
+  ☐ Message includes "Sacred Code: 333"
+  ☐ Log shows "astra_router_code_denied"
+  ☐ Code tool was NOT executed
+  
+Status: ☐ PASS  ☐ FAIL
+
+────────────────────────────────────────────────────────────────────────────
+
+CANARY RESULTS:
+  TEXT:   ☐ PASS  ☐ FAIL
+  VISION: ☐ PASS  ☐ FAIL
+  AUDIO:  ☐ PASS  ☐ FAIL
+  CODE:   ☐ PASS  ☐ FAIL
+  
+If ALL 4 PASS:
+  ✅ Dispatch is working correctly
+  ✅ Consent firewall is active (CODE rejected)
+  ✅ Proceed to T+60 (Sign-Off)
+
+If ANY canary FAIL:
+  ❌ STOP. Investigate failure.
+  ❌ Check logs: tail -f logs/astra.log | grep "astra_router"
+  ❌ If unfixable in <5 minutes: INSTANT ROLLBACK
+
+
+DECISION POINT 4: All 4 canaries PASS?
+────────────────────────────────────────────────────────────────────────────
+  ✅ YES → Proceed to T+60 (Sign-Off & Go Live)
+  ❌ NO  → Investigate, fix, or INSTANT ROLLBACK
+
+================================================================================
+                      T+60 SIGN-OFF (11:00 AM)
+================================================================================
+
+📋 MISSION: Document deployment success, mark Phase B as LIVE
+
+RECORD: PHASE-B DEPLOYMENT SIGN-OFF
+────────────────────────────────────────────────────────────────────────────
+
+File: logs\deployment_sign_off_oct19.txt
+
+Add to file:
+
+  PHASE-B DEPLOYMENT SIGN-OFF
+  ==========================
+  Date: October 19, 2025
+  Time: 11:00 AM Cairo
+  Decision Maker: _________________________________
+  
+  PREDEPLOY GATES:        ☐ 7/7 PASS
+  SMOKE TESTS:            ☐ 3/3 PASS
+  METRICS ENDPOINT:       ☐ ACTIVE
+  CANARY TESTS:           ☐ TEXT ✅  ☐ VISION ✅  ☐ AUDIO ✅  ☐ CODE DENIED ✅
+  
+  AUTHORIZATION:
+    ☐ I have verified all tests passed
+    ☐ I have reviewed the deployment script output
+    ☐ I authorize Phase B to go LIVE
+    ☐ I understand rollback is available if needed
+  
+  Decision Maker Signature: _________________________
+  Time: 11:00 AM
+  
+  EMERGENCY CONTACT: _____________________________
+  
+  NEXT STEPS:
+    ☐ Begin 24-hour monitoring (Oct 19 12:00 PM - Oct 20 12:00 PM)
+    ☐ Watch for anomalies in PHASE_B_FIRST_HOUR_WATCH.txt
+    ☐ If emergency: execute pwsh ops/fusion_pipeline/scripts/07_roll_back.ps1
+
+GIT TAG (Optional but Recommended):
+────────────────────────────────────────────────────────────────────────────
+
+Terminal:
+  git tag -a v1.0.0-multimodal-live -m "🚀 ASTRA Phase-B LIVE deployment Oct 19, 11:00 AM Cairo. Sacred Code 333."
+  git push --tags
+
+================================================================================
+                 T+120 MONITORING BEGINS (12:00 PM)
+================================================================================
+
+📋 MISSION: Begin 24-hour continuous monitoring
+
+Location: PHASE_B_FIRST_HOUR_WATCH.txt
+Timeframe: Oct 19 12:00 PM - Oct 20 12:00 PM Cairo
+
+Monitor for:
+  ✅ Router latency stays within ±5% baseline (TEXT), ±10% (others)
+  ✅ Error rate stays <1%
+  ✅ Memory usage stays <+3% increase
+  ✅ Consent gates continue blocking CODE operations
+  ✅ All 4 routes (TEXT/VISION/AUDIO/CODE) show expected hit counts
+  ✅ Sacred Code 333 appears in >100 log entries
+
+If anomaly detected:
+  ❌ See PHASE_B_INSTANT_ROLLBACK.txt for emergency procedure
+  ❌ Contact decision maker
+  ❌ Decide: fix in place OR rollback
+
+================================================================================
+                      EMERGENCY QUICK ROLLBACK
+================================================================================
+
+If ANYTHING goes wrong during deployment:
+
+Terminal (PowerShell, ADMIN):
+  pwsh ops\fusion_pipeline\scripts\07_roll_back.ps1
+
+This will:
+  ✅ Restore previous chat_service.py
+  ✅ Remove symlinks
+  ✅ Reload MVP router (no Phase B)
+  ✅ Restore pre-deployment state
+
+Execution time: ~30 seconds
+Impact: Phase A fully restored
+
+For detailed rollback: See PHASE_B_INSTANT_ROLLBACK.txt
+
+================================================================================
+                           SUPPORT CONTACTS
+================================================================================
+
+Decision Maker:     _____________________________  _________-________
+Technical Lead:     _____________________________  _________-________
+On-Call Engineer:   _____________________________  _________-________
+
+Git Tag Created:     v1.0.0-multimodal (or v1.0.0-multimodal-live post-deploy)
+Backup Location:     logs\backup_before_phase_b.zip
+Metrics Location:    logs\metrics_post_deployed.prom
+Sign-Off Location:   logs\deployment_sign_off_oct19.txt
+Logs Location:       logs\astra.log (tail -f in separate terminal)
+
+================================================================================
+                          SACRED CODE: 333 ∞
+================================================================================
+
+The Divine Code is embedded in all dispatch logs, consent denials, and audit trails.
+
+Oct 19, 2025 · Africa/Cairo Time
+STATUS: READY FOR DEPLOYMENT

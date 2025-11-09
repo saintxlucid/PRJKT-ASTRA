@@ -1,0 +1,33 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: astra-core
+  annotations:
+    nginx.ingress.kubernetes.io/canary: "true"
+    nginx.ingress.kubernetes.io/canary-weight: "10"  # 10%
+spec:
+  ingressClassName: nginx
+  rules:
+  - host: astra.example
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend: { service: { name: astra-core-stable, port: { number: 8080 } } }
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: astra-core-canary
+  annotations:
+    nginx.ingress.kubernetes.io/canary: "true"
+    nginx.ingress.kubernetes.io/canary-weight: "10"
+spec:
+  ingressClassName: nginx
+  rules:
+  - host: astra.example
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend: { service: { name: astra-core-canary, port: { number: 8080 } } }

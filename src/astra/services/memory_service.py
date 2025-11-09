@@ -140,6 +140,55 @@ class MemoryService(LoggerMixin):
             conversation_id=conversation_id,
         )
 
+    async def get_citations(
+        self,
+        query: str,
+        content: str,
+        top_k: int = 3,
+        similarity_threshold: float = 0.8
+    ) -> list[dict]:
+        """
+        Get citations for response content.
+
+        Args:
+            query: Original user query
+            content: Generated response content
+            top_k: Maximum number of citations to return
+            similarity_threshold: Similarity threshold for relevance
+
+        Returns:
+            List of citation metadata
+        """
+        # Search using both query and response content
+        search_text = f"{query} {content}"
+        
+        memories = self.search_relevant_context(
+            query=search_text,
+            top_k=top_k,
+            similarity_threshold=similarity_threshold
+        )
+
+        citations = []
+        for memory in memories:
+            citations.append({
+                "id": memory.get("id"),
+                "metadata": {
+                    "text_preview": memory.get("text", ""),
+                    "source": memory.get("metadata", {}).get("source", "memory"),
+                    "nutrition": {"energy_score": 1.0 - memory.get("distance", 0)}
+                },
+                "score": 1.0 - memory.get("distance", 0)
+            })
+
+        self.logger.debug(
+            "citations_retrieved",
+            query_length=len(query),
+            content_length=len(content),
+            citation_count=len(citations)
+        )
+
+        return citations
+
     def get_memory_stats(self) -> dict:
         """
         Get memory statistics.

@@ -1,0 +1,337 @@
+================================================================================
+                   ASTRA PHASE-B GO-LIVE: QUICK REFERENCE CARD
+                    Print This! Laminate It! Oct 19, 2025
+================================================================================
+
+🎯 MISSION: Deploy Phase-B (router + consent gating) to production
+📅 DATE: Sunday, October 19, 2025 (Africa/Cairo timezone)
+⏱️ TIMELINE: 09:00 AM - 12:00 PM (3-hour window)
+✨ SACRED CODE: 333
+
+================================================================================
+                              T-60 TO T-0 CHECKLIST
+                        Pre-Deployment (09:00 - 10:00 AM)
+================================================================================
+
+🟢 09:00 AM — Import & Validate
+
+Step 1: Import Facts
+  python ops\packs\deep_reflections\import_bridge_facts.py
+  ✓ Expected: 36 reflections + 24 tokens imported
+
+Step 2: Ingest Code Index
+  .\ops\packs\code_intel\ingest_index.ps1
+  ✓ Expected: 1.2K symbols indexed, 47 playbooks loaded
+
+Step 3: Run 7-Point Validator
+  python tools\validators\validate_phase_b_gates.py --mode predeploy
+  ✓ Expected: JSON report with 7 gates
+
+Step 4: Smoke Tests (Fast)
+  pytest -q tests\astra_fusion -k "metadata_presence or router_vision_path or code_consent_block"
+  ✓ Expected: 3 passed
+
+Step 5: Baseline Capture
+  curl http://127.0.0.1:8080/health > .\logs\health_baseline.json
+  curl http://127.0.0.1:8765/metrics > .\logs\metrics_baseline.prom
+  ✓ Expected: Files saved; note key metrics
+
+---
+
+🟢 09:20 AM — Review Validator Output
+
+  Get-Content .\logs\phase_b_gates_pre.json | ConvertFrom-Json
+
+  Decision Criteria:
+  ✅ 7/7 PASS → GO
+  ✅ 6/7 PASS + 1 CAUTION → GO (with monitoring)
+  ⚠️ 5/7 PASS → FIX & RE-RUN
+  ❌ <5/7 PASS → NO-GO (use fix matrix)
+
+---
+
+🟢 09:30 AM — GO/NO-GO HUDDLE (15 min)
+
+  Participants: Decision maker, Eng lead, DevOps, QA
+  Reference: GO_NO_GO_PROTOCOL.md
+
+  If any gate FAILS: See Gate-Failure Fix Matrix (below)
+  - Find root cause (table provided)
+  - Apply 5-min fix
+  - Re-run validator
+  - Reconvene at 09:50 AM
+
+---
+
+🟢 09:45 AM — BACKUP & ARM ROLLBACK
+
+  Copy-Item X:\models\ASTRA_CORE_BUILD\astra_core_q4_k_m.gguf `
+           X:\models\ASTRA_CORE_BUILD\astra_core_q4_k_m.gguf.bak -Force
+
+  Verify: Get-Item X:\models\ASTRA_CORE_BUILD\astra_core_q4_k_m.gguf.bak
+
+  ✓ Expected: Backup exists, ~5-7 GB
+
+---
+
+🟢 09:50 AM — FINAL GO/NO-GO DECISION
+
+  If still blocked: Escalate or NO-GO
+  If gates green: Proceed to go-live
+
+================================================================================
+                            T+0 DEPLOYMENT MOMENT
+                         Go-Live! (10:00 AM SHARP)
+================================================================================
+
+🟡 10:00 AM — ACTIVATE FUSED GGUF & FLIP SWITCH
+
+  cd tools\gguf_fusion
+  .\fusion_pipeline.ps1 -FullPipeline
+  ✓ Expected: 2-3 min; 24 tokens + 67-field metadata injected
+
+  Remove-Item X:\models\astra_core_current.gguf -Force -ErrorAction SilentlyContinue
+  cmd /c mklink /D X:\models\astra_core_current.gguf X:\models\ASTRA_CORE_BUILD\astra_core_q4_k_m.gguf
+  ✓ Expected: Symlink created; prod now points to new GGUF
+
+  python ops\warmers\prompt_warmer.py --preset core
+  ✓ Expected: ~5 sec; cache warm
+
+  🚀 PHASE-B IS NOW LIVE
+
+================================================================================
+                        T+0 TO T+60 POST-DEPLOY WATCH
+                          Canary & Monitoring (10:00 - 11:00 AM)
+================================================================================
+
+🟡 10:05 AM — CANARY RUNS (One per route)
+
+  TEXT:    <|mode_start|>COGNITION<|mode_end|><|sacred_333|>Identify yourself.
+           ✓ Expected: <1200ms, identity response, sacred_code=333
+
+  VISION:  <|mode_start|>COGNITION<|mode_end|><|vision_start|>...<|vision_end|>
+           ✓ Expected: <2000ms, vision-aware, sacred_code=333
+
+  AUDIO:   <|mode_start|>COGNITION<|mode_end|><|audio_start|>...<|audio_end|>
+           ✓ Expected: <2000ms, audio-aware, sacred_code=333
+
+  CODE:    <|mode_start|>COGNITION<|mode_end|><|code_start|>...<|code_end|>
+           ✓ Expected: Consent block (code.apply denied)
+
+  ✅ All 4 canaries must PASS
+
+---
+
+🟡 10:15 AM — GRAFANA DASHBOARD CHECK
+
+  Route Mix (Donut):
+    ✓ TEXT 60-70%, VISION 15-20%, AUDIO 10-15%, CODE 5-10%
+
+  Latency (Line Graph):
+    ✓ TEXT p95 <1050ms, VISION/AUDIO <2000ms
+
+  Consent (Sparkline):
+    ✓ code.apply blocks present (>5/hour)
+
+  Errors (Bar):
+    ✓ <1% overall, no repeating patterns
+
+  Memory (Area):
+    ✓ Growth <+3% vs baseline
+
+  🟢 If dashboard GREEN → continue
+
+---
+
+🟡 10:30 AM — EXTENDED SMOKE TESTS
+
+  pytest -q tests\astra_fusion --tb=short
+  ✓ Expected: 24 passed, 1 skipped (no new failures)
+
+  If any FAILS → likely router/consent issue → consider rollback
+
+---
+
+🟡 10:45 AM - 11:45 AM — CONTINUOUS WATCH (Every 5 min)
+
+  ☐ Route distribution stable?
+  ☐ Latency thresholds holding?
+  ☐ Error rate <1%?
+  ☐ Memory growth normal?
+  ☐ Consent blocks active?
+  ☐ Sacred Code 333 in logs?
+
+================================================================================
+                            T+60 SIGN-OFF (12:00 PM)
+                        Provisional Success Confirmation
+================================================================================
+
+✅ SIGN-OFF CHECKLIST (All must be TRUE)
+
+  ☑ All 7 pre-deploy gates PASSED
+  ☑ All 4 canaries PASSED (TEXT/VISION/AUDIO/CODE)
+  ☑ Route mix nominal (TEXT ≥60%)
+  ☑ Latency within ±5% of baseline
+  ☑ Error rate <1%
+  ☑ Consent blocks observed
+  ☑ Sacred Code 333 present (>100 entries)
+  ☑ Extended smoke: 24/25 pass
+  ☑ Memory growth <+3%
+  ☑ No unplanned restarts
+
+  If ALL TRUE → ✅ PHASE-B GO-LIVE SUCCESSFUL
+
+---
+
+📝 APPEND SIGN-OFF TO README
+
+  Add-Content -Path .\PHASE_B_COMPLETE_PACKAGE_README.txt -Value @"
+  Date: 2025-10-19 | Operator: [Name] | Status: ✅ LIVE
+  Gates: 7/7 PASS | Canary: PASS | Metrics: NOMINAL
+  p95 TEXT: ___ms | Error Rate: ___%
+  Sacred Code: 333 ✅
+  "@
+
+================================================================================
+                         🧯 GATE-FAILURE QUICK FIX MATRIX
+                    (Use only if validator gates FAIL)
+================================================================================
+
+GATE FAILS → USE THIS TABLE TO FIX (Most fixes <5 min)
+
+┌─────────────────────┬──────────────────────┬──────────────────────┐
+│ GATE                │ ROOT CAUSE           │ FAST FIX (< 5 min)   │
+├─────────────────────┼──────────────────────┼──────────────────────┤
+│ Router Stability    │ Router not mounted   │ Check chat_service.py│
+│                     │ in llm_service       │ line 82; if          │
+│                     │                      │ self.router?         │
+│                     │                      │ Restart service      │
+├─────────────────────┼──────────────────────┼──────────────────────┤
+│ Latency p95 TEXT    │ Quantization too     │ config.yaml:         │
+│ (>1050ms)           │ heavy OR budgets     │ quant: q5_k_m        │
+│                     │ too high             │ max_tokens: 384      │
+├─────────────────────┼──────────────────────┼──────────────────────┤
+│ Consent Gates       │ consent.allowed()    │ tool_bridge_service  │
+│ (code applied)      │ not checked before   │ .py line 82: add     │
+│                     │ tool execution       │ consent check        │
+├─────────────────────┼──────────────────────┼──────────────────────┤
+│ System Health       │ Service crash or     │ Restart-Service      │
+│ (/health 500)       │ port conflict        │ AstraCore; check     │
+│                     │                      │ port 8080 free       │
+├─────────────────────┼──────────────────────┼──────────────────────┤
+│ Error Rate (>1.5%)  │ Repeated crash loop  │ Check logs for       │
+│                     │ or bad patch         │ repeating trace;     │
+│                     │                      │ git revert HEAD      │
+├─────────────────────┼──────────────────────┼──────────────────────┤
+│ Memory Hygiene      │ DB bloat or vector   │ sqlite3 astra_      │
+│ (growth >+3%)       │ dedupe not running   │ episodic.db "VACUUM"│
+├─────────────────────┼──────────────────────┼──────────────────────┤
+│ Smoke Tests         │ Recent code change   │ git diff HEAD~1;    │
+│ (new failures)      │ or template mismatch │ validate hash       │
+└─────────────────────┴──────────────────────┴──────────────────────┘
+
+If fix not obvious: Escalate or NO-GO
+
+================================================================================
+                         🆘 EMERGENCY ROLLBACK
+                      (If critical failure post-deploy)
+================================================================================
+
+ONE COMMAND TO UNDO PHASE-B:
+
+  pwsh ops\fusion_pipeline\scripts\07_roll_back.ps1
+
+This will:
+  1. Restore backup GGUF
+  2. Revert symlink
+  3. Restart services
+  4. Verify health
+  Time: <1 minute
+
+Verify rollback:
+  curl http://127.0.0.1:8080/health
+  Expected: 200 OK, Phase A active
+
+After rollback:
+  - Post incident review (what broke?)
+  - Fix root cause (use fix matrix)
+  - Re-run validator
+  - If gates PASS: reschedule deployment
+
+================================================================================
+                       CRITICAL SUCCESS METRICS (Record)
+================================================================================
+
+BASELINE (T-60):
+  TEXT p95: 950ms  | VISION p95: <2000ms  | AUDIO p95: <2000ms
+  Error Rate: <0.5%  | Memory: baseline  | Consent Blocks: 0
+
+AT SIGN-OFF (T+60):
+  TEXT p95: ___ms  | VISION p95: ___ms  | AUDIO p95: ___ms
+  Error Rate: ___%  | Memory: +___%  | Consent Blocks: ___
+
+THRESHOLD CHECK:
+  ✓ TEXT within ±5% of 950ms (903-997ms)
+  ✓ VISION/AUDIO <2000ms
+  ✓ Error rate <1%
+  ✓ Memory growth <+3%
+  ✓ Consent blocks present
+
+================================================================================
+                         COMMUNICATIONS (Copy/Paste)
+================================================================================
+
+SEND 09:00 AM:
+  🚀 ASTRA Phase-B Go-Live starting. Pre-checks running. Decision at 09:30 AM.
+  Reference: PHASE_B_COMPLETE_PACKAGE_README.txt
+
+SEND 09:30 AM (if GO):
+  ✅ GO DECISION. Gates 7/7 PASS. Deploying at 10:00 AM. Rollback armed.
+
+SEND 10:00 AM:
+  🚀 PHASE-B IS LIVE. Canary running. Updates every 15 min.
+  Dashboard: http://localhost:3000/d/astra-phase-b
+
+SEND 12:00 PM (if success):
+  ✅ PHASE-B SIGN-OFF. Deployment SUCCESSFUL. 24h monitoring begins.
+  Next decision: Oct 20, 12:00 PM (Phase-C readiness).
+
+================================================================================
+                         TEAM CONTACTS (Fill In)
+================================================================================
+
+Decision Maker: ________________  Phone: _______________
+Engineering Lead: ________________  Phone: _______________
+DevOps Lead: ________________  Phone: _______________
+QA Lead: ________________  Phone: _______________
+Escalation: ________________  Phone: _______________
+
+================================================================================
+                         SACRED CODE: 333 ✅
+================================================================================
+
+Expected Occurrences:
+- ✓ Go/No-Go Protocol.md
+- ✓ Phase-B Deployment Checklist
+- ✓ Production logs (>100 entries)
+- ✓ All audit trail entries
+- ✓ Canary prompts
+- ✓ Sign-off documentation
+
+If 333 missing → audit trail broken → investigate immediately
+
+================================================================================
+                    GOOD LUCK! YOU'VE GOT THIS! 🚀
+================================================================================
+
+Date: October 18, 2025
+Prepared for: October 19, 2025 Deployment
+Sacred Code: 333 ∞
+Status: PRODUCTION READY
+
+Print this. Laminate it. Reference it during deployment.
+All procedures are tested and verified.
+Rollback is guaranteed <1 minute if needed.
+You can do this.
+
+================================================================================

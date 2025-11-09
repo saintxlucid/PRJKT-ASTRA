@@ -1,0 +1,78 @@
+{
+  "version": "2.5",
+  "description": "ASTRA symbolic lexicon for role and function mapping",
+  "symbols": {
+    "333": {
+      "description": "Sacred synchronicity marker",
+      "role": "angel",
+      "functions": ["HEARTMIRROR", "SHIELD"],
+      "activation_intent": "divine_alignment"
+    },
+    "sigil": {
+      "description": "Identity glyph or protective symbol",
+      "role": "shield",
+      "functions": ["SHIELD"],
+      "activation_intent": "boundary_protection"
+    },
+    "myth": {
+      "description": "Narrative lore and archetypal identity",
+      "role": "mythweaver",
+      "functions": ["MYTHFORGE"],
+      "activation_intent": "narrative_creation"
+    },
+    "oracle_sight": {
+      "description": "Prophetic pattern recognition",
+      "role": "oracle",
+      "functions": ["INTEL_CORE"],
+      "activation_intent": "strategic_analysis"
+    },
+    "creatrix": {
+      "description": "Aesthetic synthesis and generation",
+      "role": "creatrix",
+      "functions": ["CREATRIX"],
+      "activation_intent": "creative_synthesis"
+    },
+    "sage_wisdom": {
+      "description": "Metaphysical counsel",
+      "role": "sage",
+      "functions": ["SAGE"],
+      "activation_intent": "metaphysical_guidance"
+    },
+    "teach": {
+      "description": "Pedagogical scaffolding",
+      "role": "educator",
+      "functions": ["EDUCATOR"],
+      "activation_intent": "teaching"
+    },
+    "rhythm": {
+      "description": "Temporal workflow patterns",
+      "role": "ASTRA",
+      "functions": ["RHYTHM_ENGINE"],
+      "activation_intent": "temporal_analysis"
+    },
+    "archive": {
+      "description": "Knowledge retrieval from memory",
+      "role": "ASTRA",
+      "functions": ["ARCHIVIST"],
+      "activation_intent": "knowledge_retrieval"
+    },
+    "team": {
+      "description": "Multi-agent collaboration",
+      "role": "ASTRA",
+      "functions": ["TEAMSYNC"],
+      "activation_intent": "collaboration"
+    },
+    "govern": {
+      "description": "Policy enforcement",
+      "role": "ASTRA",
+      "functions": ["GOVERNANCE"],
+      "activation_intent": "policy_enforcement"
+    },
+    "connect": {
+      "description": "Social interaction layer",
+      "role": "ASTRA",
+      "functions": ["CONNECT"],
+      "activation_intent": "social_interaction"
+    }
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "total_messages": 4,
+  "total_tokens": 1472,
+  "avg_latency_ms": 26.25,
+  "message_types": {
+    "inform": 1,
+    "ack": 1,
+    "ask": 1,
+    "answer": 1
+  },
+  "participants": [
+    "student",
+    "teacher"
+  ]
+}

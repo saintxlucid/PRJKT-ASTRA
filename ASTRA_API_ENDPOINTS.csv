@@ -1,0 +1,5 @@
+method,path,handler,module,lineno,rate_limit_hint
+POST,/ingest,ingest,src/astra/api/routes/bridge.py,40,Check astra_core.py or middleware for per-endpoint caps
+GET,/registry,registry_view,src/astra/api/routes/bridge.py,84,Check astra_core.py or middleware for per-endpoint caps
+GET,/healthz,healthz,src/astra/api/routes/bridge.py,95,Check astra_core.py or middleware for per-endpoint caps
+POST,/config,update_config,src/astra/api/routes/bridge.py,111,Check astra_core.py or middleware for per-endpoint caps

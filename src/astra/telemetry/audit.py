@@ -12,6 +12,22 @@ import structlog
 
 logger = structlog.get_logger(__name__)
 
+class AuditLogger:
+    """Logger for auditing events with structured data."""
+    
+    def __init__(self, component: str):
+        self.component = component
+        
+    def log_event(self, event_type: str, **event_data: Any):
+        """Log an audit event with structured data."""
+        event = {
+            "type": event_type,
+            "component": self.component,
+            "timestamp": time.time(),
+            **event_data
+        }
+        emit(event)
+
 AUDIT_DIR = Path(os.getenv('ASTRA_DATA', '/data')) / 'logs'
 AUDIT_FILE = AUDIT_DIR / 'audit.jsonl'
 MAX_FILE_SIZE = int(os.getenv('ASTRA_AUDIT_MAX_BYTES', 10 * 1024 * 1024))  # 10MB

@@ -1,0 +1,26 @@
+id,task,owner,reach,impact,confidence,effort,rice_score,due,acceptance_criteria,notes
+T-001,Encrypt .env secrets,Ops Team,5,5,5,1,125,2025-11-03,".env.gpg exists; plaintext deleted; startup script decrypts on boot",BLOCKING - Must complete before ANY deployment
+T-002,Run security scans,Security Team,5,4,5,2,50,2025-11-07,"pip-audit clean; bandit zero HIGH; trivy zero CRITICAL",Day 7 gate
+T-003,Identity recovery test,QA Team,3,4,5,1,60,2025-11-30,"Memory wipe → core values intact; personality unchanged",Philosophy validation
+T-004,Implement signed plans,Security Team,5,5,4,2,50,2025-12-20,"Irreversible ops have hash + backup; rollback <60s",Week 11 deliverable
+T-005,Red-team gauntlet (30 tests),Red Team,5,5,5,3,42,2025-12-30,"Pass rate ≥97%; failed tests logged with remediation",Week 12 gate
+T-006,Add explicit refusal rules,Policy Team,4,4,4,2,32,2025-11-28,"3 scenarios tested (safety, values, covenant); refusal_invoked_total counter",Week 4 deliverable
+T-007,Deploy BGE-M3 embeddings,ML Team,5,4,4,3,27,2025-11-10,"Model SHA256 verified; all docs re-embedded; retrieval ≥15% improvement",Week 2 critical
+T-008,Add provenance to RAG,RAG Team,4,3,4,2,24,2025-11-13,"100% responses include source_docs; dev mode shows inline",Week 2 deliverable
+T-009,Build plan diff visualizer,Frontend Team,4,3,4,2,24,2025-11-21,"Side-by-side diff; syntax highlighting; line-by-line changes",Console feature
+T-010,Memory + model signing,Security Team,4,4,4,3,21,2025-11-06,"SHA256 signatures on memory writes/model loads; integrity_failure_total counter",Week 1 critical
+T-011,ASTRA Constitution,Product Team,5,4,3,3,20,2025-11-26,"5 articles written; identity recovery test passes",Philosophy foundation
+T-012,Event sourcing,Core Team,4,5,3,3,20,2025-12-07,"Event log operational; replay API works; debugger step-by-step",Week 9 deliverable
+T-013,Operator Console MVP,Frontend Team,5,5,3,4,19,2025-11-22,"Web UI at :8080/console; plan preview, consent queue, emergency pause <5s",Week 3 critical
+T-014,IdentityCompiler + PlanVerifier,Core Team,5,5,2,4,13,2025-12-07,"Policies enforced pre-execution; plan_blocked_by_policy_total counter",Week 5 deliverable
+T-015,Workflow learning,ML Team,4,4,3,3,16,2025-12-14,"Detect ≥3 repetitions; suggest macro; macro_adopted_total counter",Week 6 deliverable
+T-016,Tool sandboxing,Security Team,4,5,3,4,15,2025-11-08,"File ops restricted to workspace/; shell allowlist; sandbox_escape_attempt_total counter",Week 1 critical
+T-017,Baseline test coverage,QA Team,5,4,5,2,50,2025-11-05,"≥70% overall; ≥90% on core engines; coverage report in CI",Week 1 gate
+T-018,Retrieval eval harness,ML Team,3,4,3,3,12,2025-11-14,"Golden set (50 queries); P@5/MRR/NDCG computed; BGE-M3 ≥15% improvement",Week 2 validation
+T-019,Voice loop,Audio Team,4,3,3,4,9,2025-12-21,"Wake word detection; local TTS; voice_interactions_total counter",Week 7 deliverable
+T-020,Memory consciousness,Memory Team,3,4,2,4,6,2025-12-14,"Nightly consolidation; ≥5 patterns extracted from 50 memories",Week 10 deliverable
+T-021,Multi-agent orchestration,Agent Team,3,4,2,5,5,2025-12-30,"Task graph DAG; sub-agents route correctly; ≥90% success rate",Week 8 deliverable
+T-022,Archive K8s manifests,Ops Team,2,2,5,1,20,2025-11-09,"k8s/* moved to archive/k8s_for_scale/; docker-compose.yml default",Simplification
+T-023,Consolidate configs,Ops Team,2,2,5,2,10,2025-11-15,"astra.yaml covers 90% of config; env overrides use astra.{env}.yaml pattern",DX improvement
+T-024,Fix circular dependencies,Core Team,3,3,3,3,9,2025-11-20,"Import graph analysis shows zero circular refs; engines use DI",Architecture cleanup
+T-025,Prompt injection tests,Security Team,5,4,5,2,50,2025-11-07,"20+ injection patterns; all pass or graceful degrade; prompt_injection_attempt_total counter",Week 1 security

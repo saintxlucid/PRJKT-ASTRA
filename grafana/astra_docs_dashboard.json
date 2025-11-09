@@ -1,0 +1,25 @@
+{
+  "annotations": {"list": []},
+  "panels": [
+    {
+      "type": "graph",
+      "title": "Docs - Ingest count",
+      "targets": [{"expr": "rate(docs_ingest_total[5m])", "legendFormat": "ingest/sec"}],
+      "id": 1
+    },
+    {
+      "type": "graph",
+      "title": "Docs - Ingest latency (p95)",
+      "targets": [{"expr": "histogram_quantile(0.95, sum(rate(docs_ingest_duration_seconds_bucket[5m])) by (le))", "legendFormat": "p95"}],
+      "id": 2
+    },
+    {
+      "type": "graph",
+      "title": "Docs - Search RPM",
+      "targets": [{"expr": "rate(docs_search_total[1m]) * 60", "legendFormat": "search/min"}],
+      "id": 3
+    }
+  ],
+  "schemaVersion": 16,
+  "title": "ASTRA - Documents Service"
+}

@@ -1,0 +1,28 @@
+name: Weekly Rehearsal & Adapter Draft
+on:
+  schedule:
+    - cron: "0 3 * * 6"  # Saturdays 03:00 Cairo time (UTC+2)
+  workflow_dispatch: {}
+jobs:
+  rehearse:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: |
+          pip install -r requirements.txt
+          python -m astra.learn.rehearsal --out data/rehearsal/train_adapter.jsonl --topk 1000
+      - name: Train Adapter (draft)
+        run: |
+          python -m astra.learn.train_adapter --data data/rehearsal/train_adapter.jsonl --out artifacts/adapter_draft
+      - name: Evaluate & Gate
+        run: |
+          python -m astra.learn.eval_harness --adapter artifacts/adapter_draft --report reports/gating_report.html
+      - uses: actions/upload-artifact@v4
+        with:
+          name: adapter_draft
+          path: |
+            artifacts/adapter_draft
+            reports/gating_report.html

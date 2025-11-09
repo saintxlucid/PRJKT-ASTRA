@@ -1,0 +1,25 @@
+# ASTRA Desktop UI Dependencies
+# Created: October 22, 2025
+
+# Core UI Framework
+PyQt6==6.6.0
+PyQt6-Qt6==6.6.0
+PyQt6-sip==13.6.0
+
+# IPC / Networking
+websockets==11.0.3
+aiohttp==3.8.6
+
+# Development Tools
+black==23.10.0
+pylint==3.0.1
+mypy==1.6.1
+
+# Testing
+pytest==7.4.2
+pytest-qt==4.2.0
+pytest-asyncio==0.21.1
+
+# Logging & Monitoring
+structlog==23.2.0
+prometheus-client==0.17.1

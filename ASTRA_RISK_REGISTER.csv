@@ -1,0 +1,15 @@
+id,area,severity,likelihood,impact,evidence,recommendation,owner,due,status
+F-001,Security,5,4,20,".env contains plaintext secrets [.env:1-50]","Encrypt .env with GPG; use vault in production",Ops Team,2025-11-03,BLOCKING
+F-004,Security,5,3,15,"Tool executor runs with full privileges [src/astra/executor/*]","Implement sandbox (chroot/Docker); allowlist shell commands",Security Team,2025-11-08,CRITICAL
+F-002,Security,4,3,12,"Memory writes lack signatures [src/astra/core/memory_engine.py:120-168]","Add SHA256 signing to memory records; verify on read",Security Team,2025-11-06,CRITICAL
+F-013,DX,4,5,20,"No visual interface for operators [TBD]","Build Operator Console MVP (plan preview, consent queue, emergency pause)",Frontend Team,2025-11-22,HIGH
+F-003,Security,4,2,8,"Models loaded without checksums [config/models_registry.yaml]","Add SHA256 to registry; verify on load",Security Team,2025-11-12,HIGH
+F-011,Autonomy,4,2,8,"Identity persistence undefined [config/astra_identity.yaml:1-10]","Write ASTRA Constitution (5 articles on identity, autonomy, memory, evolution, termination)",Product Team,2025-11-26,HIGH
+F-007,Performance,3,5,15,"BGE-M3 configured but deployment unclear [config/rag.yaml:15-20]","Verify BGE-M3 model present; re-embed docs (~3 hours)",ML Team,2025-11-10,HIGH
+F-005,Security,3,4,12,"Prompt injection defenses unverified [TBD]","Add 20+ red-team tests; implement input sanitization",Security Team,2025-11-07,MEDIUM
+F-012,Policies,3,3,9,"Refusal scenarios undefined [config/policy.yaml]","Add explicit_refusal_rules to policy.yaml (safety, values, covenant violations)",Policy Team,2025-11-28,MEDIUM
+F-009,Infra,3,3,9,"Circular imports (memory ↔ identity) [src/astra/core/*]","Extract shared interfaces; use dependency injection",Core Team,2025-11-20,MEDIUM
+F-010,Testing,3,5,15,"Test coverage unknown [TBD]","Run pytest --cov; target ≥70% overall, ≥90% on core engines",QA Team,2025-11-05,MEDIUM
+F-008,RAG,2,4,8,"No provenance in responses [src/astra/rag/rag_fusion.py:100-200]","Attach doc_ids + source paths; display in dev mode",RAG Team,2025-11-13,MEDIUM
+F-006,Performance,2,5,10,"67 K8s manifests for single-user [k8s/*]","Archive k8s/ to archive/k8s_for_scale/; use docker-compose.yml",Ops Team,2025-11-09,LOW
+F-010,DX,2,5,10,"Config sprawl (7 YAML files) [config/*]","Consolidate to astra.yaml with sections",Ops Team,2025-11-15,LOW

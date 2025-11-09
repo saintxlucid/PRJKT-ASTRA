@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: bridge
+  namespace: astra
+spec:
+  selector:
+    app: bridge
+  ports:
+    - port: 80
+      targetPort: 8888
+      protocol: TCP
+      name: http
+  type: ClusterIP
