@@ -1,0 +1,193 @@
+version: '3.8'
+
+services:
+  # ═══════════════════════════════════════════════════════════════════════════
+  # INFRASTRUCTURE
+  # ═══════════════════════════════════════════════════════════════════════════
+
+  redis:
+    image: redis:7-alpine
+    container_name: astra_redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  postgres:
+    image: postgres:15
+    container_name: astra_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: astra
+      POSTGRES_USER: astra
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-astra_pass}
+    ports:
+      - "5432:5432"
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U astra -d astra"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  etcd:
+    image: quay.io/coreos/etcd:v3.5.10
+    container_name: astra_etcd
+    restart: unless-stopped
+    environment:
+      ETCD_LISTEN_CLIENT_URLS: http://0.0.0.0:2379
+      ETCD_ADVERTISE_CLIENT_URLS: http://etcd:2379
+    ports:
+      - "2379:2379"
+    volumes:
+      - etcd_data:/etcd-data
+    healthcheck:
+      test: ["CMD", "etcdctl", "--endpoints", "http://127.0.0.1:2379", "endpoint", "health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  jaeger:
+    image: jaegertracing/all-in-one:latest
+    container_name: astra_jaeger
+    restart: unless-stopped
+    ports:
+      - "16686:16686"
+      - "4318:4318"
+    environment:
+      COLLECTOR_OTLP_ENABLED: "true"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:16686/"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # ASTRA SERVICES
+  # ═══════════════════════════════════════════════════════════════════════════
+
+  astra-master:
+    image: astra-master:latest
+    container_name: astra-master
+    restart: unless-stopped
+    build:
+      context: .
+      dockerfile: Dockerfile.astra-master
+    environment:
+      DATABASE_URL: postgresql://astra:${POSTGRES_PASSWORD:-astra_pass}@postgres:5432/astra
+      REDIS_URL: redis://redis:6379/0
+      JAEGER_ENDPOINT: http://jaeger:4318/v1/traces
+      JWT_SECRET: ${JWT_SECRET:-change_this_to_a_strong_secret}
+      LLAMA_CPP_BASE_URL: ${LLAMA_CPP_BASE_URL:-http://localhost:9010/v1}
+      OLLAMA_BASE_URL: ${OLLAMA_BASE_URL:-http://localhost:11434/v1}
+      VLLM_BASE_URL: ${VLLM_BASE_URL:-http://localhost:9020/v1}
+      LOG_LEVEL: info
+    ports:
+      - "8000:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      jaeger:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/v1/system/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  memory-service:
+    image: astra-memory-service:latest
+    container_name: astra-memory-service
+    restart: unless-stopped
+    build:
+      context: .
+      dockerfile: Dockerfile.memory-service
+    environment:
+      DATABASE_URL: postgresql://astra:${POSTGRES_PASSWORD:-astra_pass}@postgres:5432/astra
+      REDIS_URL: redis://redis:6379/0
+      JAEGER_ENDPOINT: http://jaeger:4318/v1/traces
+      LOG_LEVEL: info
+    ports:
+      - "7007:7007"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:7007/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  sigil-gate:
+    image: astra-sigil-gate:latest
+    container_name: astra-sigil-gate
+    restart: unless-stopped
+    build:
+      context: .
+      dockerfile: Dockerfile.sigil-gate
+    environment:
+      JWT_SECRET: ${JWT_SECRET:-change_this_to_a_strong_secret}
+      REDIS_URL: redis://redis:6379/0
+      DATABASE_URL: postgresql://astra:${POSTGRES_PASSWORD:-astra_pass}@postgres:5432/astra
+      JAEGER_ENDPOINT: http://jaeger:4318/v1/traces
+      LOG_LEVEL: info
+    ports:
+      - "7701:7701"
+    depends_on:
+      redis:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:7701/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  supervisor:
+    image: astra-supervisor:latest
+    container_name: astra-supervisor
+    restart: unless-stopped
+    build:
+      context: .
+      dockerfile: Dockerfile.supervisor
+    environment:
+      DATABASE_URL: postgresql://astra:${POSTGRES_PASSWORD:-astra_pass}@postgres:5432/astra
+      REDIS_URL: redis://redis:6379/0
+      ETCD_ENDPOINTS: etcd:2379
+      JAEGER_ENDPOINT: http://jaeger:4318/v1/traces
+      LOG_LEVEL: info
+    ports:
+      - "7703:7703"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      etcd:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:7703/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+volumes:
+  redis_data:
+  pg_data:
+  etcd_data:
+
+networks:
+  default:
+    name: astra_network
