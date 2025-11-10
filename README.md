@@ -44,6 +44,7 @@ Welcome to the **ASTRA Prime System**, a sovereign, local-first AI deployment en
 
 ### 🚀 Quick Start & Verification
 
+- **[💬 ASTRA TUI](astra_tui.py)** — No-drama terminal chat interface (auto token, health checks, slash-commands)
 - **[⚡ 10-Minute Local Activation](LOCAL_ACTIVATION_10MIN.md)** — Boot ASTRA locally against custom GPT-OSS (zero drama)
 - **[Quick Start Guide](QUICK_START.md)** — 5-minute reference for rapid deployment
 - **[⚙️ Sanity Sweep Script](sanity_sweep.ps1)** — PowerShell health check (30 seconds, all systems verified)
