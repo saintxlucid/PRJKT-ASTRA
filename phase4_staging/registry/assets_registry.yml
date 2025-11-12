@@ -1,0 +1,232 @@
+# ASTRA Asset Registry - Phase 4 Staging
+# Last Updated: November 13, 2025
+# Tracks all external repositories and datasets integrated into ASTRA staging environment
+
+schema_version: "1.0"
+environment: staging
+timestamp: "2025-11-13T00:00:00Z"
+
+repositories:
+  - id: "repo_001"
+    name: "llm-engineer-toolkit"
+    type: "repo"
+    source: "https://github.com/KalyanKS-NLP/llm-engineer-toolkit.git"
+    path: "/ASTRA/repos/llm-engineer-toolkit"
+    category: "modules"
+    status: "staged"
+    version: "main"
+    last_updated: "2025-11-13"
+    notes: "Curated list of 120+ LLM libraries (inference, agents, RAG, evaluation). Maps to modules/llm_engineer_toolkit."
+    integration_status: "pending"
+    tests_passed: 0
+    
+  - id: "repo_002"
+    name: "ragged"
+    type: "repo"
+    source: "https://github.com/neulab/ragged.git"
+    path: "/ASTRA/repos/ragged"
+    category: "infra"
+    status: "staged"
+    version: "main"
+    last_updated: "2025-11-13"
+    notes: "Framework for systematic evaluation of RAG systems. Benchmarking ASTRA's RAG pipelines."
+    integration_status: "pending"
+    tests_passed: 0
+    
+  - id: "repo_003"
+    name: "Awesome-LLMOps"
+    type: "repo"
+    source: "https://github.com/tensorchord/Awesome-LLMOps.git"
+    path: "/ASTRA/repos/Awesome-LLMOps"
+    category: "infra"
+    status: "staged"
+    version: "main"
+    last_updated: "2025-11-13"
+    notes: "Curated ops/infra list: vector stores, serving, monitoring. Builds ASTRA infrastructure layer."
+    integration_status: "pending"
+    tests_passed: 0
+    
+  - id: "repo_004"
+    name: "awesome-llm-agents"
+    type: "repo"
+    source: "https://github.com/kaushikb11/awesome-llm-agents.git"
+    path: "/ASTRA/repos/awesome-llm-agents"
+    category: "agents"
+    status: "staged"
+    version: "main"
+    last_updated: "2025-11-13"
+    notes: "Catalog of agent frameworks (multi-agent, tool orchestration). Scaffolds ASTRA's multi-agent kernel."
+    integration_status: "pending"
+    tests_passed: 0
+    
+  - id: "repo_005"
+    name: "llm-toolkit"
+    type: "repo"
+    source: "https://github.com/tooniez/llm-toolkit.git"
+    path: "/ASTRA/repos/llm-toolkit"
+    category: "modules"
+    status: "staged"
+    version: "main"
+    last_updated: "2025-11-13"
+    notes: "Toolkit of prompts, reusable tools, functions. Builds ASTRA's prompt engineering & function library."
+    integration_status: "pending"
+    tests_passed: 0
+
+datasets:
+  - id: "ds_001"
+    name: "rag-mini-wikipedia"
+    type: "dataset"
+    source: "huggingface:rag-datasets/rag-mini-wikipedia"
+    path: "/ASTRA/datasets/rag_mini_wikipedia"
+    category: "knowledge_base"
+    status: "staged"
+    size_gb: 1.2
+    record_count: 21015
+    last_updated: "2025-11-13"
+    notes: "Wikipedia subset for RAG research. Baseline knowledge base ingestion for ASTRA."
+    integration_status: "pending"
+    vector_index: null
+    retrieval_validated: false
+    sample_queries_tested: 0
+    
+  - id: "ds_002"
+    name: "rag-mini-bioasq"
+    type: "dataset"
+    source: "huggingface:rag-datasets/rag-mini-bioasq"
+    path: "/ASTRA/datasets/rag_mini_bioasq"
+    category: "knowledge_base"
+    status: "staged"
+    size_gb: 0.8
+    record_count: 14915
+    last_updated: "2025-11-13"
+    notes: "Domain-specific RAG dataset (biomedical). Vertical ingestion test for ASTRA."
+    integration_status: "pending"
+    vector_index: null
+    retrieval_validated: false
+    sample_queries_tested: 0
+    
+  - id: "ds_003"
+    name: "RAGBench"
+    type: "dataset"
+    source: "huggingface:rungalileo/ragbench"
+    path: "/ASTRA/datasets/ragbench"
+    category: "benchmark"
+    status: "staged"
+    size_gb: 0.5
+    record_count: 5000
+    last_updated: "2025-11-13"
+    notes: "Benchmark dataset for RAG systems. Rigorous evaluation of ASTRA's retrieval/generation performance."
+    integration_status: "pending"
+    vector_index: null
+    retrieval_validated: false
+    sample_queries_tested: 0
+    
+  - id: "ds_004"
+    name: "CXM_Arena"
+    type: "dataset"
+    source: "huggingface:sprinklr-huggingface/CXM_Arena"
+    path: "/ASTRA/datasets/CXM_Arena"
+    category: "observability"
+    status: "staged"
+    size_gb: 2.1
+    record_count: 50000
+    last_updated: "2025-11-13"
+    notes: "Dataset for agent quality, KB refinement, contradiction detection. Observability & audit for ASTRA."
+    integration_status: "pending"
+    vector_index: null
+    retrieval_validated: false
+    sample_queries_tested: 0
+    
+  - id: "ds_005"
+    name: "ThePile"
+    type: "dataset"
+    source: "https://pile.eleuther.ai/"
+    path: "/ASTRA/datasets/thepile"
+    category: "large_corpus"
+    status: "pending_download"
+    size_gb: 800
+    record_count: null
+    last_updated: "2025-11-13"
+    notes: "Massive general-text corpus (~800 GB+). Large-scale memory/self-improvement corpus for ASTRA. NOTE: Download optional due to size. Decide per staging capacity."
+    integration_status: "pending"
+    vector_index: null
+    retrieval_validated: false
+    sample_queries_tested: 0
+
+integration_tests:
+  - test_id: "test_001"
+    name: "Repo Clone & Build Smoke Test"
+    description: "Clone all repos and run basic build/test if available"
+    status: "not_started"
+    
+  - test_id: "test_002"
+    name: "Dataset Load & Disk Save"
+    description: "Load HF datasets and verify saved to disk with expected schema"
+    status: "not_started"
+    
+  - test_id: "test_003"
+    name: "Vector Embedding & Indexing"
+    description: "Embed datasets and create indexes in staging vector store"
+    status: "not_started"
+    
+  - test_id: "test_004"
+    name: "Retrieval Validation (10 queries per dataset)"
+    description: "Run 10 sample queries and validate results meet relevancy thresholds"
+    status: "not_started"
+    
+  - test_id: "test_005"
+    name: "Agent Module Wiring"
+    description: "Wire modules into agent layer and run end-to-end flows"
+    status: "not_started"
+    
+  - test_id: "test_006"
+    name: "Performance & Observability"
+    description: "Measure latency, throughput, contradiction rates. Validate monitoring."
+    status: "not_started"
+
+promotion_criteria:
+  - criterion: "All repos build/test successfully"
+    target: "100%"
+    current: "0%"
+    passed: false
+    
+  - criterion: "All datasets load and save to disk"
+    target: "100%"
+    current: "0%"
+    passed: false
+    
+  - criterion: "Vector indexes created and queryable"
+    target: "100%"
+    current: "0%"
+    passed: false
+    
+  - criterion: "Retrieval validation (10 queries × datasets)"
+    target: "80% relevancy"
+    current: "0%"
+    passed: false
+    
+  - criterion: "Agent flows run end-to-end without errors"
+    target: "100%"
+    current: "0%"
+    passed: false
+    
+  - criterion: "No performance regression vs baseline"
+    target: "±5% latency"
+    current: "pending"
+    passed: false
+
+notes: |
+  Status Legend:
+  - staged: ready for ingestion
+  - pending: awaiting ingestion
+  - in_progress: currently ingesting
+  - validated: ingested and tested
+  - promoted: moved to production
+  - failed: ingestion failed, review notes
+  
+  Next Actions:
+  1. Run clone_and_download.sh to ingest repos and datasets
+  2. Execute integration tests in order
+  3. Update this registry with results
+  4. Once all criteria pass, schedule production promotion
+  5. Create release bundle and migration plan
