@@ -1,14 +1,17 @@
-# tests/conftest.py# tests/conftest.py# tests/conftest.py
+"""Pytest configuration for ASTRA tests."""
 
-# Minimal conftest.py for response template tests
-
-import pytest# Minimal conftest.py for response template testsimport asyncio
+import asyncio
 import os
+import sys
 import tempfile
-from typing import Dict, Any, Generator
+from pathlib import Path
+from typing import Any, Dict, Generator
 
 import numpy as np
 import pytest
+
+# Add src directory to path for imports
+sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
 # Conditional import for missing module
 try:

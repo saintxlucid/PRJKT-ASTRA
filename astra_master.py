@@ -31,9 +31,10 @@ from contextlib import asynccontextmanager
 from pathlib import Path
 from typing import Any, Dict, Optional
 
-# Add src to path
-sys.path.insert(0, str(Path(__file__).parent / "src"))
-sys.path.insert(0, str(Path(__file__).parent))
+# Add src to path (before other imports)
+_project_root = Path(__file__).parent
+sys.path.insert(0, str(_project_root / "src"))
+sys.path.insert(0, str(_project_root))
 
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
@@ -156,7 +157,7 @@ class MasterBootOrchestrator:
         self.integration_hub: Optional[AstraCoreHub] = None
         self.agent_planner: Optional[Any] = None
         self.tool_registry: Optional[Any] = None
-    self.state_manager: Optional[StateManager] = None
+        self.state_manager: Optional[StateManager] = None
         self.is_initialized = False
         
     async def boot(self) -> Dict[str, Any]:
@@ -545,7 +546,7 @@ async def lifespan(app: FastAPI):
         app.state.memory_service = orchestrator.memory_service
         app.state.transcendent_service = orchestrator.transcendent_service
         app.state.gate = orchestrator.gate
-    app.state.state_manager = orchestrator.state_manager
+        app.state.state_manager = orchestrator.state_manager
         app.state.tool_registry = orchestrator.tool_registry
         app.state.boot_deps = orchestrator.boot_deps
         
