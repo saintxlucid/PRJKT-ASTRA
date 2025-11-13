@@ -1,0 +1,77 @@
+{
+  "timestamp": "X:\\PROJECT_ASTRA_2.0\\PROJECT_ASTRA_1.0 (ASTRA_CORE)",
+  "total_datasets": 4,
+  "verified": 4,
+  "failed": 0,
+  "total_records": 0,
+  "results": [
+    {
+      "name": "CXM_Arena",
+      "path": "X:\\PROJECT_ASTRA_2.0\\PROJECT_ASTRA_1.0 (ASTRA_CORE)\\phase4_staging\\datasets\\CXM_Arena",
+      "exists": true,
+      "is_directory": true,
+      "valid": true,
+      "splits": [
+        "splits"
+      ],
+      "split_info": {
+        "splits": {
+          "error": "Split directory not found"
+        }
+      },
+      "total_records": 0,
+      "status": "VERIFIED"
+    },
+    {
+      "name": "rag_mini_bioasq",
+      "path": "X:\\PROJECT_ASTRA_2.0\\PROJECT_ASTRA_1.0 (ASTRA_CORE)\\phase4_staging\\datasets\\rag_mini_bioasq",
+      "exists": true,
+      "is_directory": true,
+      "valid": true,
+      "splits": [
+        "splits"
+      ],
+      "split_info": {
+        "splits": {
+          "error": "Split directory not found"
+        }
+      },
+      "total_records": 0,
+      "status": "VERIFIED"
+    },
+    {
+      "name": "rag_mini_wikipedia",
+      "path": "X:\\PROJECT_ASTRA_2.0\\PROJECT_ASTRA_1.0 (ASTRA_CORE)\\phase4_staging\\datasets\\rag_mini_wikipedia",
+      "exists": true,
+      "is_directory": true,
+      "valid": true,
+      "splits": [
+        "splits"
+      ],
+      "split_info": {
+        "splits": {
+          "error": "Split directory not found"
+        }
+      },
+      "total_records": 0,
+      "status": "VERIFIED"
+    },
+    {
+      "name": "ragbench",
+      "path": "X:\\PROJECT_ASTRA_2.0\\PROJECT_ASTRA_1.0 (ASTRA_CORE)\\phase4_staging\\datasets\\ragbench",
+      "exists": true,
+      "is_directory": true,
+      "valid": true,
+      "splits": [
+        "splits"
+      ],
+      "split_info": {
+        "splits": {
+          "error": "Split directory not found"
+        }
+      },
+      "total_records": 0,
+      "status": "VERIFIED"
+    }
+  ]
+}

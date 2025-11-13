@@ -1,0 +1,108 @@
+{
+  "timestamp": "X:\\PROJECT_ASTRA_2.0\\PROJECT_ASTRA_1.0 (ASTRA_CORE)",
+  "total_repos": 5,
+  "verified": 5,
+  "failed": 0,
+  "results": [
+    {
+      "name": "awesome-llm-agents",
+      "path": "X:\\PROJECT_ASTRA_2.0\\PROJECT_ASTRA_1.0 (ASTRA_CORE)\\phase4_staging\\repos\\awesome-llm-agents",
+      "exists": true,
+      "is_directory": true,
+      "git": {
+        "valid": true,
+        "commit_hash": "7622387654b3fae79e4e21c82c72e00dfe4282c6",
+        "remote_url": "https://github.com/kaushikb11/awesome-llm-agents.git"
+      },
+      "structure": {
+        "python_files": 1,
+        "readme_files": 1,
+        "requirements_files": 1,
+        "setup_files": 0,
+        "pyproject_files": 0,
+        "total_files": 54
+      },
+      "status": "VERIFIED"
+    },
+    {
+      "name": "Awesome-LLMOps",
+      "path": "X:\\PROJECT_ASTRA_2.0\\PROJECT_ASTRA_1.0 (ASTRA_CORE)\\phase4_staging\\repos\\Awesome-LLMOps",
+      "exists": true,
+      "is_directory": true,
+      "git": {
+        "valid": true,
+        "commit_hash": "42952e74bcd22cc4c053879dd87bc010bfdcb2c1",
+        "remote_url": "https://github.com/tensorchord/Awesome-LLMOps.git"
+      },
+      "structure": {
+        "python_files": 1,
+        "readme_files": 1,
+        "requirements_files": 0,
+        "setup_files": 0,
+        "pyproject_files": 0,
+        "total_files": 52
+      },
+      "status": "VERIFIED"
+    },
+    {
+      "name": "llm-engineer-toolkit",
+      "path": "X:\\PROJECT_ASTRA_2.0\\PROJECT_ASTRA_1.0 (ASTRA_CORE)\\phase4_staging\\repos\\llm-engineer-toolkit",
+      "exists": true,
+      "is_directory": true,
+      "git": {
+        "valid": true,
+        "commit_hash": "17601435e38eca2f8c503f1a645b14b13aac5985",
+        "remote_url": "https://github.com/KalyanKS-NLP/llm-engineer-toolkit.git"
+      },
+      "structure": {
+        "python_files": 0,
+        "readme_files": 1,
+        "requirements_files": 0,
+        "setup_files": 0,
+        "pyproject_files": 0,
+        "total_files": 50
+      },
+      "status": "VERIFIED"
+    },
+    {
+      "name": "llm-toolkit",
+      "path": "X:\\PROJECT_ASTRA_2.0\\PROJECT_ASTRA_1.0 (ASTRA_CORE)\\phase4_staging\\repos\\llm-toolkit",
+      "exists": true,
+      "is_directory": true,
+      "git": {
+        "valid": true,
+        "commit_hash": "7a05672f099cc6ce858c30d06a4875d599d7fc2d",
+        "remote_url": "https://github.com/tooniez/llm-toolkit.git"
+      },
+      "structure": {
+        "python_files": 4,
+        "readme_files": 1,
+        "requirements_files": 0,
+        "setup_files": 0,
+        "pyproject_files": 0,
+        "total_files": 73
+      },
+      "status": "VERIFIED"
+    },
+    {
+      "name": "ragged",
+      "path": "X:\\PROJECT_ASTRA_2.0\\PROJECT_ASTRA_1.0 (ASTRA_CORE)\\phase4_staging\\repos\\ragged",
+      "exists": true,
+      "is_directory": true,
+      "git": {
+        "valid": true,
+        "commit_hash": "e99fd4bcb7682169ba53e1446b5f411db5d1995b",
+        "remote_url": "https://github.com/neulab/ragged.git"
+      },
+      "structure": {
+        "python_files": 25,
+        "readme_files": 1,
+        "requirements_files": 1,
+        "setup_files": 0,
+        "pyproject_files": 0,
+        "total_files": 95
+      },
+      "status": "VERIFIED"
+    }
+  ]
+}
