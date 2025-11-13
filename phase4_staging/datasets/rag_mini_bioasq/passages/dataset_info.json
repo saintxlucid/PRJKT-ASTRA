@@ -1,0 +1,42 @@
+{
+  "builder_name": "parquet",
+  "citation": "",
+  "config_name": "text-corpus",
+  "dataset_name": "rag-mini-bioasq",
+  "dataset_size": 42068943,
+  "description": "",
+  "download_checksums": {
+    "hf://datasets/rag-datasets/rag-mini-bioasq@224a87f64a5c3a720b5bc627cf760f543b2f1e79/data/passages.parquet/part.0.parquet": {
+      "num_bytes": 24470604,
+      "checksum": null
+    }
+  },
+  "download_size": 24470604,
+  "features": {
+    "passage": {
+      "dtype": "string",
+      "_type": "Value"
+    },
+    "id": {
+      "dtype": "int64",
+      "_type": "Value"
+    }
+  },
+  "homepage": "",
+  "license": "",
+  "size_in_bytes": 66539547,
+  "splits": {
+    "passages": {
+      "name": "passages",
+      "num_bytes": 42068943,
+      "num_examples": 40221,
+      "dataset_name": "rag-mini-bioasq"
+    }
+  },
+  "version": {
+    "version_str": "0.0.0",
+    "major": 0,
+    "minor": 0,
+    "patch": 0
+  }
+}

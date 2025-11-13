@@ -1,0 +1,205 @@
+{
+  "builder_name": "parquet",
+  "citation": "",
+  "config_name": "covidqa",
+  "dataset_name": "ragbench",
+  "dataset_size": 12696259,
+  "description": "",
+  "download_checksums": {
+    "hf://datasets/rungalileo/ragbench@97808f3e5fd16ede40bbff6c2949af8139b2eb7b/covidqa/train-00000-of-00001.parquet": {
+      "num_bytes": 4204366,
+      "checksum": null
+    },
+    "hf://datasets/rungalileo/ragbench@97808f3e5fd16ede40bbff6c2949af8139b2eb7b/covidqa/test-00000-of-00001.parquet": {
+      "num_bytes": 854068,
+      "checksum": null
+    },
+    "hf://datasets/rungalileo/ragbench@97808f3e5fd16ede40bbff6c2949af8139b2eb7b/covidqa/validation-00000-of-00001.parquet": {
+      "num_bytes": 912574,
+      "checksum": null
+    }
+  },
+  "download_size": 5971008,
+  "features": {
+    "id": {
+      "dtype": "string",
+      "_type": "Value"
+    },
+    "question": {
+      "dtype": "string",
+      "_type": "Value"
+    },
+    "documents": {
+      "feature": {
+        "dtype": "string",
+        "_type": "Value"
+      },
+      "_type": "List"
+    },
+    "response": {
+      "dtype": "string",
+      "_type": "Value"
+    },
+    "generation_model_name": {
+      "dtype": "string",
+      "_type": "Value"
+    },
+    "annotating_model_name": {
+      "dtype": "string",
+      "_type": "Value"
+    },
+    "dataset_name": {
+      "dtype": "string",
+      "_type": "Value"
+    },
+    "documents_sentences": {
+      "feature": {
+        "feature": {
+          "feature": {
+            "dtype": "string",
+            "_type": "Value"
+          },
+          "_type": "List"
+        },
+        "_type": "List"
+      },
+      "_type": "List"
+    },
+    "response_sentences": {
+      "feature": {
+        "feature": {
+          "dtype": "string",
+          "_type": "Value"
+        },
+        "_type": "List"
+      },
+      "_type": "List"
+    },
+    "sentence_support_information": {
+      "feature": {
+        "explanation": {
+          "dtype": "string",
+          "_type": "Value"
+        },
+        "fully_supported": {
+          "dtype": "bool",
+          "_type": "Value"
+        },
+        "response_sentence_key": {
+          "dtype": "string",
+          "_type": "Value"
+        },
+        "supporting_sentence_keys": {
+          "feature": {
+            "dtype": "string",
+            "_type": "Value"
+          },
+          "_type": "List"
+        }
+      },
+      "_type": "List"
+    },
+    "unsupported_response_sentence_keys": {
+      "feature": {
+        "dtype": "string",
+        "_type": "Value"
+      },
+      "_type": "List"
+    },
+    "adherence_score": {
+      "dtype": "bool",
+      "_type": "Value"
+    },
+    "overall_supported_explanation": {
+      "dtype": "string",
+      "_type": "Value"
+    },
+    "relevance_explanation": {
+      "dtype": "string",
+      "_type": "Value"
+    },
+    "all_relevant_sentence_keys": {
+      "feature": {
+        "dtype": "string",
+        "_type": "Value"
+      },
+      "_type": "List"
+    },
+    "all_utilized_sentence_keys": {
+      "feature": {
+        "dtype": "string",
+        "_type": "Value"
+      },
+      "_type": "List"
+    },
+    "trulens_groundedness": {
+      "dtype": "float64",
+      "_type": "Value"
+    },
+    "trulens_context_relevance": {
+      "dtype": "float64",
+      "_type": "Value"
+    },
+    "ragas_faithfulness": {
+      "dtype": "float64",
+      "_type": "Value"
+    },
+    "ragas_context_relevance": {
+      "dtype": "float64",
+      "_type": "Value"
+    },
+    "gpt3_adherence": {
+      "dtype": "float64",
+      "_type": "Value"
+    },
+    "gpt3_context_relevance": {
+      "dtype": "float64",
+      "_type": "Value"
+    },
+    "gpt35_utilization": {
+      "dtype": "float64",
+      "_type": "Value"
+    },
+    "relevance_score": {
+      "dtype": "float64",
+      "_type": "Value"
+    },
+    "utilization_score": {
+      "dtype": "float64",
+      "_type": "Value"
+    },
+    "completeness_score": {
+      "dtype": "float64",
+      "_type": "Value"
+    }
+  },
+  "homepage": "",
+  "license": "",
+  "size_in_bytes": 18667267,
+  "splits": {
+    "train": {
+      "name": "train",
+      "num_bytes": 9056054,
+      "num_examples": 1252,
+      "dataset_name": "ragbench"
+    },
+    "test": {
+      "name": "test",
+      "num_bytes": 1727820,
+      "num_examples": 246,
+      "dataset_name": "ragbench"
+    },
+    "validation": {
+      "name": "validation",
+      "num_bytes": 1912385,
+      "num_examples": 267,
+      "dataset_name": "ragbench"
+    }
+  },
+  "version": {
+    "version_str": "0.0.0",
+    "major": 0,
+    "minor": 0,
+    "patch": 0
+  }
+}

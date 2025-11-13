@@ -1,0 +1,55 @@
+{
+  "builder_name": "parquet",
+  "citation": "",
+  "config_name": "KB_Refinement",
+  "dataset_name": "cxm_arena",
+  "dataset_size": 26793,
+  "description": "",
+  "download_checksums": {
+    "hf://datasets/sprinklr-huggingface/CXM_Arena@e530109964f91271f52ba6838463ccc5b4169c5b/KB_refinement/test_contradictory.parquet": {
+      "num_bytes": 6232,
+      "checksum": null
+    },
+    "hf://datasets/sprinklr-huggingface/CXM_Arena@e530109964f91271f52ba6838463ccc5b4169c5b/KB_refinement/test_similarity.parquet": {
+      "num_bytes": 9727,
+      "checksum": null
+    }
+  },
+  "download_size": 15959,
+  "features": {
+    "id": {
+      "dtype": "int64",
+      "_type": "Value"
+    },
+    "Pairs": {
+      "feature": {
+        "dtype": "string",
+        "_type": "Value"
+      },
+      "_type": "List"
+    }
+  },
+  "homepage": "",
+  "license": "",
+  "size_in_bytes": 42752,
+  "splits": {
+    "contradictory_pairs": {
+      "name": "contradictory_pairs",
+      "num_bytes": 9658,
+      "num_examples": 293,
+      "dataset_name": "cxm_arena"
+    },
+    "similarity_pairs": {
+      "name": "similarity_pairs",
+      "num_bytes": 17135,
+      "num_examples": 518,
+      "dataset_name": "cxm_arena"
+    }
+  },
+  "version": {
+    "version_str": "0.0.0",
+    "major": 0,
+    "minor": 0,
+    "patch": 0
+  }
+}
